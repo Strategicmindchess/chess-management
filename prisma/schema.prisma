@@ -1,0 +1,141 @@
+// SMC CRM - Chess Academy Management System
+// Phase 1 schema: Auth + Admin (batch creation & coach assignment)
+// Additional models will be added incrementally as later modules are built.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  ADMIN
+  TEACHER
+  STUDENT
+}
+
+enum Weekday {
+  MONDAY
+  TUESDAY
+  WEDNESDAY
+  THURSDAY
+  FRIDAY
+  SATURDAY
+  SUNDAY
+}
+
+/// A platform user. `role` determines which dashboard and permissions apply.
+
+model User {
+  id           String   @id @default(cuid())
+  name         String
+  email        String   @unique
+  
+  passwordHash String?
+  // Set once a signup OTP (or Google sign-in) has verified the email.
+  // Admin-created Coach/Student accounts are verified immediately.
+  emailVerified Boolean @default(false)
+  // Present once this account has been linked to a Google account.
+  googleId     String?  @unique
+  role         Role
+  phone        String?
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Batches this user coaches (role = TEACHER)
+  coachedBatches Batch[]        @relation("BatchCoach")
+  // Batches this user is enrolled in (role = STUDENT)
+  enrollments    BatchStudent[]
+  otpCodes       OtpCode[]
+  refreshTokens  RefreshToken[]
+
+  @@map("users")
+}
+
+enum OtpPurpose {
+  SIGNUP_VERIFICATION
+  PASSWORD_RESET
+}
+
+/// A short-lived one-time code emailed to a user, used for signup email
+/// verification and for password resets. The code itself is never stored in
+/// plain text.
+model OtpCode {
+  id         String     @id @default(cuid())
+  userId     String
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  purpose    OtpPurpose
+  codeHash   String
+  attempts   Int        @default(0)
+  consumedAt DateTime?
+  expiresAt  DateTime
+  createdAt  DateTime   @default(now())
+
+  @@index([userId, purpose])
+  @@map("otp_codes")
+}
+
+/// A long-lived opaque refresh token (its hash, never the raw value) that lets
+/// the frontend silently obtain new short-lived access tokens without forcing
+/// the user to log in again.
+model RefreshToken {
+  id        String    @id @default(cuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash String    @unique
+  expiresAt DateTime
+  revokedAt DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([userId])
+  @@map("refresh_tokens")
+}
+
+/// A recurring class batch created by an Admin/Management user.
+model Batch {
+  id        String   @id @default(cuid())
+  name      String
+  code      String   @unique
+  meetLink  String
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  coachId String?
+  coach   User?   @relation("BatchCoach", fields: [coachId], references: [id], onDelete: SetNull)
+
+  schedules BatchSchedule[]
+  students  BatchStudent[]
+
+  @@map("batches")
+}
+
+/// A single weekly recurring slot for a batch (a batch can meet on multiple days).
+model BatchSchedule {
+  id        String  @id @default(cuid())
+  batchId   String
+  batch     Batch   @relation(fields: [batchId], references: [id], onDelete: Cascade)
+  day       Weekday
+  startTime String // 24h "HH:mm", e.g. "16:00"
+  endTime   String // 24h "HH:mm", e.g. "17:00"
+
+  @@unique([batchId, day, startTime])
+  @@map("batch_schedules")
+}
+
+/// Enrollment join table between a Batch and a Student (User with role = STUDENT).
+model BatchStudent {
+  id        String   @id @default(cuid())
+  batchId   String
+  batch     Batch    @relation(fields: [batchId], references: [id], onDelete: Cascade)
+  studentId String
+  student   User     @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  joinedAt  DateTime @default(now())
+
+  @@unique([batchId, studentId])
+  @@map("batch_students")
+}

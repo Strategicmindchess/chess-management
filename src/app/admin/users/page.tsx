@@ -1,0 +1,91 @@
+import Link from "next/link";
+import type { Metadata } from "next";
+import { requireRole } from "@/lib/dal";
+import { prisma } from "@/lib/prisma";
+import { Role } from "@/lib/enums";
+import { Card } from "@/components/ui/card";
+import { cn } from "@/lib/utils";
+import { CreateUserButton } from "@/components/admin/create-user-dialog";
+import { UsersTable } from "@/components/admin/users-table";
+
+export const metadata: Metadata = { title: "Coaches & Students · SMC CRM" };
+
+const TABS = [
+  { label: "All", value: "ALL" as const },
+  { label: "Coaches", value: Role.TEACHER },
+  { label: "Students", value: Role.STUDENT },
+];
+
+export default async function AdminUsersPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ role?: string }>;
+}) {
+  await requireRole([Role.ADMIN]);
+
+  const { role } = await searchParams;
+  const activeTab =
+    role === Role.TEACHER || role === Role.STUDENT ? role : "ALL";
+
+  const users = await prisma.user.findMany({
+    where:
+      activeTab === "ALL"
+        ? { role: { in: [Role.TEACHER, Role.STUDENT] } }
+        : { role: activeTab },
+    orderBy: [{ isActive: "desc" }, { name: "asc" }],
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      phone: true,
+      role: true,
+      isActive: true,
+    },
+  });
+
+  return (
+    <div className="space-y-6">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h1 className="text-xl font-semibold text-slate-900">
+            Coaches & Students
+          </h1>
+          <p className="text-sm text-slate-500">
+            Create and manage coach and student accounts.
+          </p>
+        </div>
+        <CreateUserButton />
+      </div>
+
+      <Card>
+        <div className="flex gap-1 overflow-x-auto border-b border-slate-100 px-3 pt-3">
+          {TABS.map((tab) => {
+            const href =
+              tab.value === "ALL"
+                ? "/admin/users"
+                : `/admin/users?role=${tab.value}`;
+            const isActive = activeTab === tab.value;
+
+            return (
+              <Link
+                key={tab.value}
+                href={href}
+                className={cn(
+                  "rounded-t-lg border-b-2 px-3 py-2 text-sm font-medium whitespace-nowrap",
+                  isActive
+                    ? "border-brand-600 text-brand-700"
+                    : "border-transparent text-slate-500 hover:text-slate-700",
+                )}
+              >
+                {tab.label}
+              </Link>
+            );
+          })}
+        </div>
+        <div className="p-5">
+          <UsersTable users={users} />
+        </div>
+      </Card>
+    </div>
+  );
+}
