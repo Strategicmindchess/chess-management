@@ -11,7 +11,7 @@ export const metadata: Metadata = { title: "Batches · SMC CRM" };
 export default async function AdminBatchesPage() {
   await requireRole([Role.ADMIN]);
 
-  const [batches, coaches, students] = await Promise.all([
+  const [batches, coachesData, students] = await Promise.all([
     prisma.batch.findMany({
       orderBy: [{ isActive: "desc" }, { name: "asc" }],
       include: {
@@ -26,15 +26,34 @@ export default async function AdminBatchesPage() {
     }),
     prisma.user.findMany({
       where: { role: Role.TEACHER, isActive: true },
-      select: { id: true, name: true, email: true },
+      select: { 
+        id: true, 
+        name: true, 
+        email: true,
+        coachProfile: {
+          select: {
+            availabilities: {
+              select: { dayOfWeek: true, startTime: true, endTime: true },
+              orderBy: [{ dayOfWeek: 'asc' }, { startTime: 'asc' }]
+            }
+          }
+        }
+      },
       orderBy: { name: "asc" },
     }),
     prisma.user.findMany({
       where: { role: Role.STUDENT, isActive: true },
       select: { id: true, name: true, email: true },
       orderBy: { name: "asc" },
-    }),
+    })
   ]);
+
+  const coaches = coachesData.map(coach => ({
+    id: coach.id,
+    name: coach.name,
+    email: coach.email,
+    availabilities: coach.coachProfile?.availabilities || []
+  }));
 
   const batchItems = batches.map((batch) => ({
     id: batch.id,

@@ -20,7 +20,7 @@ interface CoachOption {
   id: string;
   name: string;
   email: string;
-  availabilities?: { day: string; startTime: string; endTime: string }[];
+  availabilities?: { dayOfWeek: string; startTime: string; endTime: string }[];
 }
 
 export function CreateBatchButton({ coaches }: { coaches: CoachOption[] }) {
@@ -125,12 +125,12 @@ function CreateBatchForm({
             const selectedCoach = coaches.find(c => c.id === selectedCoachId);
             if (selectedCoach && selectedCoach.availabilities && selectedCoach.availabilities.length > 0) {
               return (
-                <div className="mt-3 text-sm text-slate-600 rounded-md bg-slate-50 border border-slate-100 p-3">
+                <div className="mt-3 text-sm text-slate-600 rounded-md bg-slate-50 border border-slate-100 p-3 max-h-52 overflow-y-auto">
                   <p className="mb-1 font-medium text-slate-900">Available Times:</p>
                   <ul className="space-y-1">
                     {selectedCoach.availabilities.map((slot, i) => (
                       <li key={i}>
-                        {WEEKDAY_OPTIONS.find(o => o.value === slot.day)?.label} {slot.startTime}–{slot.endTime}
+                        {WEEKDAY_OPTIONS.find(o => o.value === slot.dayOfWeek)?.label} {slot.startTime}–{slot.endTime}
                       </li>
                     ))}
                   </ul>
@@ -163,7 +163,7 @@ function CreateBatchForm({
           </Button>
         </div>
 
-        <div className="space-y-3">
+        <div className="max-h-52 overflow-y-auto space-y-3 pr-2">
           {fields.map((field, index) => (
             <div key={field.id} className="rounded-lg border border-slate-200 p-3">
               <div className="flex items-end gap-2">

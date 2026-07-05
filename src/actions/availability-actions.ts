@@ -23,13 +23,22 @@ export async function updateAvailability(slots: AvailabilitySlot[]): Promise<Act
     return { success: false, error: "Coach profile not found." };
   }
 
+  // Deduplicate slots to prevent the same day and time from appearing multiple times
+  const uniqueSlots = slots.filter((slot, index, self) =>
+    index === self.findIndex((t) => (
+      t.dayOfWeek === slot.dayOfWeek && 
+      t.startTime === slot.startTime && 
+      t.endTime === slot.endTime
+    ))
+  );
+
   // Use a transaction to delete old availability and insert new ones
   await prisma.$transaction([
     prisma.coachAvailability.deleteMany({
       where: { coachId: coachProfile.id },
     }),
     prisma.coachAvailability.createMany({
-      data: slots.map(slot => ({
+      data: uniqueSlots.map(slot => ({
         coachId: coachProfile.id,
         dayOfWeek: slot.dayOfWeek,
         startTime: slot.startTime,
