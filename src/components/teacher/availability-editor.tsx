@@ -17,7 +17,7 @@ export function AvailabilityEditor({ initialSlots }: { initialSlots: Availabilit
   const [success, setSuccess] = useState<boolean>(false);
 
   function addSlot() {
-    setSlots([...slots, { day: Weekday.MONDAY, startTime: "09:00", endTime: "17:00" }]);
+    setSlots([...slots, { dayOfWeek: Weekday.MONDAY, startTime: "09:00", endTime: "17:00" }]);
     setSuccess(false);
   }
 
@@ -55,8 +55,8 @@ export function AvailabilityEditor({ initialSlots }: { initialSlots: Availabilit
           {slots.map((slot, i) => (
             <div key={i} className="flex flex-wrap items-center gap-3 rounded-lg border border-slate-200 bg-white p-3 shadow-sm sm:flex-nowrap">
               <Select
-                value={slot.day}
-                onChange={(e) => updateSlot(i, "day", e.target.value)}
+                value={slot.dayOfWeek}
+                onChange={(e) => updateSlot(i, "dayOfWeek", e.target.value)}
                 className="w-full sm:w-40"
               >
                 {Object.entries(WEEKDAY_LABEL).map(([val, label]) => (

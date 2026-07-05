@@ -47,6 +47,12 @@ async function main() {
       passwordHash: await hashPassword("Coach@123"),
       role: Role.TEACHER,
       emailVerified: true,
+      coachProfile: {
+        create: {
+          bio: "Experienced chess coach",
+          city: "Jhansi",
+        }
+      }
     },
   });
   console.log(`Demo coach ready: ${coach.email} / Coach@123`);
@@ -61,14 +67,19 @@ async function main() {
       passwordHash: await hashPassword("Student@123"),
       role: Role.STUDENT,
       emailVerified: true,
-      parentName: "Demo Parent",
-      parentPhone: "9123456781",
-      city: "Jhansi",
-      chessComId: "demo_student",
-      lichessId: "demo_student_lichess",
-      rating: 1200,
-      monthlyFee: 2000,
-      perSessionFee: 300,
+      studentProfile: {
+        create: {
+          parentName: "Demo Parent",
+          parentPhone: "9123456781",
+          city: "Jhansi",
+          chessComId: "demo_student",
+          lichessId: "demo_student_lichess",
+          rating: 1200,
+          monthlyFee: 2000,
+          perSessionFee: 300,
+          assignedCoachId: null, // Will set later if needed
+        }
+      }
     },
   });
   console.log(`Demo student ready: ${student.email} / Student@123`);

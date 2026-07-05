@@ -10,10 +10,10 @@ import { WEEKDAY_LABEL } from "@/lib/constants";
 export default async function StudentDashboardPage() {
   const user = await requireRole([Role.STUDENT]);
 
-  const [studentDetails, enrollments] = await Promise.all([
+  const [userWithProfile, enrollments] = await Promise.all([
     prisma.user.findUnique({
       where: { id: user.id },
-      select: { chessComId: true, lichessId: true, rating: true, city: true },
+      include: { studentProfile: { select: { chessComId: true, lichessId: true, rating: true, city: true } } },
     }),
     prisma.batchStudent.findMany({
     where: { studentId: user.id, batch: { isActive: true } },
@@ -28,6 +28,8 @@ export default async function StudentDashboardPage() {
     orderBy: { batch: { name: "asc" } },
     }),
   ]);
+
+  const studentDetails = userWithProfile?.studentProfile;
 
   return (
     <div className="space-y-6">

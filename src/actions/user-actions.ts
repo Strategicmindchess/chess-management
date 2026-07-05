@@ -61,15 +61,28 @@ export async function createStaffUser(
       emailVerified: true,
       ...(role === "STUDENT"
         ? {
-            parentName: parentName || null,
-            parentPhone: parentPhone || null,
-            city: city || null,
-            chessComId: chessComId || null,
-            lichessId: lichessId || null,
-            rating: isNaN(rating as number) ? null : rating,
-            monthlyFee: isNaN(monthlyFee as number) ? null : monthlyFee,
-            perSessionFee: isNaN(perSessionFee as number) ? null : perSessionFee,
-            joiningDate: new Date(),
+            studentProfile: {
+              create: {
+                parentName: parentName || null,
+                parentPhone: parentPhone || null,
+                city: city || null,
+                chessComId: chessComId || null,
+                lichessId: lichessId || null,
+                rating: isNaN(rating as number) ? null : rating,
+                monthlyFee: isNaN(monthlyFee as number) ? null : monthlyFee,
+                perSessionFee: isNaN(perSessionFee as number) ? null : perSessionFee,
+                joiningDate: new Date(),
+              },
+            },
+          }
+        : {}),
+      ...(role === "TEACHER"
+        ? {
+            coachProfile: {
+              create: {
+                city: city || null,
+              },
+            },
           }
         : {}),
     },

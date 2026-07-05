@@ -46,7 +46,7 @@ export const getCurrentUser = cache(async () => {
   });
 
   if (!user || !user.isActive) {
-    redirect("/login");
+    redirect("/api/auth/clear-session");
   }
 
   return user;

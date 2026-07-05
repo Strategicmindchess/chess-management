@@ -21,9 +21,13 @@ export default async function TeacherDashboardPage() {
             student: {
               select: {
                 name: true,
-                chessComId: true,
-                lichessId: true,
-                rating: true,
+                studentProfile: {
+                  select: {
+                    chessComId: true,
+                    lichessId: true,
+                    rating: true,
+                  }
+                }
               },
             },
           },
@@ -32,9 +36,9 @@ export default async function TeacherDashboardPage() {
       orderBy: { name: "asc" },
     }),
     prisma.coachAvailability.findMany({
-      where: { coachId: user.id },
-      orderBy: [{ day: "asc" }, { startTime: "asc" }],
-      select: { day: true, startTime: true, endTime: true },
+      where: { coach: { userId: user.id } },
+      orderBy: [{ dayOfWeek: "asc" }, { startTime: "asc" }],
+      select: { dayOfWeek: true, startTime: true, endTime: true },
     })
   ]);
 
@@ -116,14 +120,14 @@ export default async function TeacherDashboardPage() {
                               {student.name}
                             </span>
                             <div className="flex gap-3 text-slate-500 text-xs">
-                              {student.rating && (
-                                <span>Rating: {student.rating}</span>
+                              {student.studentProfile?.rating && (
+                                <span>Rating: {student.studentProfile.rating}</span>
                               )}
-                              {student.chessComId && (
-                                <span>Chess.com: {student.chessComId}</span>
+                              {student.studentProfile?.chessComId && (
+                                <span>Chess.com: {student.studentProfile.chessComId}</span>
                               )}
-                              {student.lichessId && (
-                                <span>Lichess: {student.lichessId}</span>
+                              {student.studentProfile?.lichessId && (
+                                <span>Lichess: {student.studentProfile.lichessId}</span>
                               )}
                             </div>
                           </li>

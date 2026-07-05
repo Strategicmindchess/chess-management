@@ -7,7 +7,7 @@ import { Role, Weekday } from "@/lib/enums";
 import type { ActionResult } from "@/lib/types";
 
 export interface AvailabilitySlot {
-  day: Weekday;
+  dayOfWeek: Weekday;
   startTime: string; // "HH:mm"
   endTime: string;   // "HH:mm"
 }
@@ -15,15 +15,23 @@ export interface AvailabilitySlot {
 export async function updateAvailability(slots: AvailabilitySlot[]): Promise<ActionResult> {
   const user = await requireRole([Role.TEACHER]);
 
+  const coachProfile = await prisma.coachProfile.findUnique({
+    where: { userId: user.id }
+  });
+
+  if (!coachProfile) {
+    return { success: false, error: "Coach profile not found." };
+  }
+
   // Use a transaction to delete old availability and insert new ones
   await prisma.$transaction([
     prisma.coachAvailability.deleteMany({
-      where: { coachId: user.id },
+      where: { coachId: coachProfile.id },
     }),
     prisma.coachAvailability.createMany({
       data: slots.map(slot => ({
-        coachId: user.id,
-        day: slot.day,
+        coachId: coachProfile.id,
+        dayOfWeek: slot.dayOfWeek,
         startTime: slot.startTime,
         endTime: slot.endTime,
       })),

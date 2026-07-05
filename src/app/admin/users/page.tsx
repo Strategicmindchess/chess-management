@@ -27,7 +27,7 @@ export default async function AdminUsersPage({
   const activeTab =
     role === Role.TEACHER || role === Role.STUDENT ? role : "ALL";
 
-  const users = await prisma.user.findMany({
+  const usersData = await prisma.user.findMany({
     where:
       activeTab === "ALL"
         ? { role: { in: [Role.TEACHER, Role.STUDENT] } }
@@ -40,10 +40,21 @@ export default async function AdminUsersPage({
       phone: true,
       role: true,
       isActive: true,
-      city: true,
-      rating: true,
+      studentProfile: { select: { city: true, rating: true } },
+      coachProfile: { select: { city: true } },
     },
   });
+
+  const users = usersData.map((u) => ({
+    id: u.id,
+    name: u.name,
+    email: u.email,
+    phone: u.phone,
+    role: u.role,
+    isActive: u.isActive,
+    city: u.studentProfile?.city || u.coachProfile?.city || null,
+    rating: u.studentProfile?.rating ?? null,
+  }));
 
   return (
     <div className="space-y-6">

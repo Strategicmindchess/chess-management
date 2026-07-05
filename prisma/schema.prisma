@@ -53,10 +53,18 @@ model User {
   otpCodes       OtpCode[]
   refreshTokens  RefreshToken[]
 
-  // --- Module 6: Coach Availability ---
-  availabilities CoachAvailability[] @relation("CoachAvailability")
+  // Profiles
+  studentProfile StudentProfile?
+  coachProfile   CoachProfile?
 
-  // --- Module 7: Student Profile & Fees ---
+  @@map("users")
+}
+
+model StudentProfile {
+  id            String    @id @default(cuid())
+  userId        String    @unique
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
   parentName    String?
   parentPhone   String?
   city          String?
@@ -67,7 +75,34 @@ model User {
   monthlyFee    Int?
   perSessionFee Int?
 
-  @@map("users")
+  assignedCoachId String?
+  assignedCoach   CoachProfile? @relation("StudentAssignedCoach", fields: [assignedCoachId], references: [id], onDelete: SetNull)
+
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@map("student_profiles")
+}
+
+model CoachProfile {
+  id            String    @id @default(cuid())
+  userId        String    @unique
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  bio           String?
+  experience    String?
+  city          String?
+
+  availabilities  CoachAvailability[] @relation("CoachAvailability")
+  assignedStudents StudentProfile[]   @relation("StudentAssignedCoach")
+  
+  // Note: Batch coach relations are still linked directly to User to minimize refactoring, 
+  // but if needed they can be migrated later.
+
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@map("coach_profiles")
 }
 
 enum OtpPurpose {
@@ -158,10 +193,13 @@ model BatchStudent {
 model CoachAvailability {
   id        String   @id @default(cuid())
   coachId   String
-  coach     User     @relation("CoachAvailability", fields: [coachId], references: [id], onDelete: Cascade)
-  day       Weekday
+  coach     CoachProfile @relation("CoachAvailability", fields: [coachId], references: [id], onDelete: Cascade)
+  dayOfWeek Weekday
   startTime String   // 24h "HH:mm"
   endTime   String   // 24h "HH:mm"
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@map("coach_availability")
 }
