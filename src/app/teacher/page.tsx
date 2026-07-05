@@ -1,4 +1,4 @@
-import { ExternalLink } from "lucide-react";
+import { ExternalLink, IndianRupee, Clock, CalendarDays } from "lucide-react";
 import { requireRole } from "@/lib/dal";
 import { prisma } from "@/lib/prisma";
 import { Role } from "@/lib/enums";
@@ -7,11 +7,16 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { WEEKDAY_LABEL } from "@/lib/constants";
 import { AvailabilityEditor } from "@/components/teacher/availability-editor";
+import { MarkClassHeldDialog } from "@/components/coach/mark-class-held-dialog";
 
 export default async function TeacherDashboardPage() {
   const user = await requireRole([Role.TEACHER]);
 
-  const [batches, availabilities] = await Promise.all([
+  const now = new Date();
+  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+  const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
+
+  const [batches, availabilities, monthlyLogs] = await Promise.all([
     prisma.batch.findMany({
       where: { coachId: user.id, isActive: true },
       include: {
@@ -20,6 +25,7 @@ export default async function TeacherDashboardPage() {
           include: {
             student: {
               select: {
+                id: true,
                 name: true,
                 studentProfile: {
                   select: {
@@ -39,8 +45,21 @@ export default async function TeacherDashboardPage() {
       where: { coach: { userId: user.id } },
       orderBy: [{ dayOfWeek: "asc" }, { startTime: "asc" }],
       select: { dayOfWeek: true, startTime: true, endTime: true },
+    }),
+    prisma.classLog.aggregate({
+      where: {
+        coachId: user.id,
+        date: { gte: startOfMonth, lte: endOfMonth },
+      },
+      _sum: { payoutAmount: true, durationMins: true },
+      _count: { id: true },
     })
   ]);
+
+  const totalEarnings = monthlyLogs._sum.payoutAmount || 0;
+  const totalClasses = monthlyLogs._count.id;
+  const totalDuration = monthlyLogs._sum.durationMins || 0;
+  const monthName = now.toLocaleString("default", { month: "long" });
 
   return (
     <div className="space-y-6">
@@ -53,14 +72,47 @@ export default async function TeacherDashboardPage() {
         </p>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>My Availability</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <AvailabilityEditor initialSlots={availabilities} />
-        </CardContent>
-      </Card>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <Card className="md:col-span-1">
+          <CardHeader className="pb-3">
+            <CardTitle>My Availability</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <AvailabilityEditor initialSlots={availabilities} />
+          </CardContent>
+        </Card>
+
+        <Card className="md:col-span-2 bg-brand-50/50 border-brand-100">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-brand-900">{monthName} Payout Summary</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="rounded-lg bg-white p-4 shadow-sm border border-brand-100/50">
+                <div className="flex items-center gap-2 text-brand-600 mb-2">
+                  <IndianRupee className="h-4 w-4" />
+                  <p className="text-xs font-semibold uppercase tracking-wider">Total Earned</p>
+                </div>
+                <p className="text-3xl font-bold text-brand-900">₹{totalEarnings.toLocaleString()}</p>
+              </div>
+              <div className="rounded-lg bg-white p-4 shadow-sm border border-brand-100/50">
+                <div className="flex items-center gap-2 text-brand-600 mb-2">
+                  <CalendarDays className="h-4 w-4" />
+                  <p className="text-xs font-semibold uppercase tracking-wider">Classes Held</p>
+                </div>
+                <p className="text-3xl font-bold text-brand-900">{totalClasses}</p>
+              </div>
+              <div className="rounded-lg bg-white p-4 shadow-sm border border-brand-100/50">
+                <div className="flex items-center gap-2 text-brand-600 mb-2">
+                  <Clock className="h-4 w-4" />
+                  <p className="text-xs font-semibold uppercase tracking-wider">Minutes Taught</p>
+                </div>
+                <p className="text-3xl font-bold text-brand-900">{totalDuration}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
 
       <Card>
         <CardHeader>
@@ -95,14 +147,25 @@ export default async function TeacherDashboardPage() {
                         </Badge>
                       ))}
                     </div>
-                    <a
-                      href={batch.meetLink}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="inline-flex w-fit items-center gap-1 text-sm font-medium text-brand-600 hover:underline"
-                    >
-                      Join class <ExternalLink className="h-3.5 w-3.5" />
-                    </a>
+                    <div className="mt-2 flex flex-wrap items-center gap-3">
+                      <a
+                        href={batch.meetLink}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex items-center gap-1 text-sm font-medium text-brand-600 hover:underline"
+                      >
+                        Join class <ExternalLink className="h-3.5 w-3.5" />
+                      </a>
+                      <span className="text-slate-300">•</span>
+                      <MarkClassHeldDialog 
+                        batchId={batch.id} 
+                        batchName={batch.name} 
+                        students={batch.students.map((s) => ({
+                          id: s.student.id,
+                          name: s.student.name,
+                        }))} 
+                      />
+                    </div>
                   </div>
 
                   {batch.students.length > 0 && (
@@ -139,13 +202,6 @@ export default async function TeacherDashboardPage() {
               ))}
             </div>
           )}
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardContent className="text-sm text-slate-600">
-          More coach tools — attendance logging, payouts, availability, and
-          feedback — are coming in the next modules.
         </CardContent>
       </Card>
     </div>

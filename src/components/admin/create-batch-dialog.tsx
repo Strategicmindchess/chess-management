@@ -71,6 +71,7 @@ function CreateBatchForm({
       name: '',
       code: '',
       meetLink: '',
+      payoutRate: 0,
       coachId: '',
       schedules: [{ day: 'MONDAY', startTime: '16:00', endTime: '17:00' }],
     },
@@ -104,10 +105,17 @@ function CreateBatchForm({
         </div>
       </div>
 
-      <div>
-        <Label htmlFor="meetLink">Google Meet link</Label>
-        <Input id="meetLink" {...register('meetLink')} placeholder="https://meet.google.com/xxx-xxxx-xxx" />
-        <FieldError message={errors.meetLink?.message} />
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div>
+          <Label htmlFor="meetLink">Google Meet link</Label>
+          <Input id="meetLink" {...register('meetLink')} placeholder="https://meet.google.com/xxx-xxxx-xxx" />
+          <FieldError message={errors.meetLink?.message} />
+        </div>
+        <div>
+          <Label htmlFor="payoutRate">Coach Payout (Rs. per session)</Label>
+          <Input id="payoutRate" type="number" {...register('payoutRate', { valueAsNumber: true })} placeholder="e.g. 500" />
+          <FieldError message={errors.payoutRate?.message} />
+        </div>
       </div>
 
       <div>

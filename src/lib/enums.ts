@@ -26,3 +26,10 @@ export const Weekday = {
 } as const;
 
 export type Weekday = (typeof Weekday)[keyof typeof Weekday];
+
+export const AttendanceStatus = {
+  PRESENT: 'PRESENT',
+  ABSENT: 'ABSENT',
+} as const;
+
+export type AttendanceStatus = (typeof AttendanceStatus)[keyof typeof AttendanceStatus];

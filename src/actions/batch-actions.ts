@@ -20,7 +20,7 @@ export async function createBatch(input: CreateBatchInput): Promise<ActionResult
     return { success: false, error: parsed.error.issues[0]?.message ?? 'Invalid input.' };
   }
 
-  const { name, code, meetLink, coachId, schedules } = parsed.data;
+  const { name, code, meetLink, payoutRate, coachId, schedules } = parsed.data;
 
   const existingCode = await prisma.batch.findUnique({ where: { code } });
   if (existingCode) {
@@ -39,6 +39,7 @@ export async function createBatch(input: CreateBatchInput): Promise<ActionResult
       name,
       code,
       meetLink,
+      payoutRate,
       coachId: coachId || null,
       schedules: {
         create: schedules.map((slot) => ({

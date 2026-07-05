@@ -24,6 +24,7 @@ export const createBatchSchema = z.object({
     .min(2, "Batch code must be at least 2 characters.")
     .regex(/^[A-Z0-9-]+$/, "Use only letters, numbers and dashes."),
   meetLink: z.string().trim().url("Enter a valid URL."),
+  payoutRate: z.number().int().min(0, "Payout rate must be a positive number."),
   coachId: z.string().trim().optional().or(z.literal("")),
   schedules: z
     .array(scheduleSlotSchema)

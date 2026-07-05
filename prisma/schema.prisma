@@ -17,6 +17,11 @@ enum Role {
   STUDENT
 }
 
+enum AttendanceStatus {
+  PRESENT
+  ABSENT
+}
+
 enum Weekday {
   MONDAY
   TUESDAY
@@ -52,6 +57,9 @@ model User {
   enrollments    BatchStudent[]
   otpCodes       OtpCode[]
   refreshTokens  RefreshToken[]
+
+  classLogs      ClassLog[]
+  attendanceRecords AttendanceRecord[]
 
   // Profiles
   studentProfile StudentProfile?
@@ -153,12 +161,14 @@ model Batch {
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  payoutRate Int     @default(0)
 
   coachId String?
   coach   User?   @relation("BatchCoach", fields: [coachId], references: [id], onDelete: SetNull)
 
   schedules BatchSchedule[]
   students  BatchStudent[]
+  classLogs ClassLog[]
 
   @@map("batches")
 }
@@ -202,4 +212,39 @@ model CoachAvailability {
   updatedAt DateTime @updatedAt
 
   @@map("coach_availability")
+}
+
+/// A log of a single class session, created by the coach (Module 4)
+model ClassLog {
+  id           String   @id @default(cuid())
+  batchId      String
+  batch        Batch    @relation(fields: [batchId], references: [id], onDelete: Cascade)
+  coachId      String
+  coach        User     @relation(fields: [coachId], references: [id], onDelete: Cascade)
+  
+  date         DateTime
+  topicCovered String
+  durationMins Int
+  payoutAmount Int      @default(0) // snapshot of batch payout rate at time of class
+  
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  attendance   AttendanceRecord[]
+
+  @@map("class_logs")
+}
+
+/// Attendance for a single student in a specific class log (Module 4)
+model AttendanceRecord {
+  id         String   @id @default(cuid())
+  classLogId String
+  classLog   ClassLog @relation(fields: [classLogId], references: [id], onDelete: Cascade)
+  studentId  String
+  student    User     @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  
+  status     AttendanceStatus
+
+  @@unique([classLogId, studentId])
+  @@map("attendance_records")
 }

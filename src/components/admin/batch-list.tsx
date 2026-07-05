@@ -11,6 +11,7 @@ import { WEEKDAY_LABEL } from "@/lib/constants";
 import type { Weekday } from "@/lib/enums";
 import { AssignCoachDialog } from "./assign-coach-dialog";
 import { ManageStudentsDialog } from "./manage-students-dialog";
+import { AttendanceViewerDialog } from "./attendance-viewer-dialog";
 
 interface PersonOption {
   id: string;
@@ -147,6 +148,10 @@ export function BatchList({
                 batchName={batch.name}
                 enrolledStudents={batch.students}
                 allStudents={students}
+              />
+              <AttendanceViewerDialog
+                batchId={batch.id}
+                batchName={batch.name}
               />
             </div>
           </div>
