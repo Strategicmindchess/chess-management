@@ -17,6 +17,20 @@ export const createStaffUserSchema = z.object({
     .regex(/[a-zA-Z]/, "Password must contain at least one letter.")
     .regex(/[0-9]/, "Password must contain at least one number."),
   role: z.enum(["TEACHER", "STUDENT"], "Select a role."),
+  // --- Module 7 Student Fields ---
+  parentName: z.string().trim().optional().or(z.literal("")),
+  parentPhone: z
+    .string()
+    .trim()
+    .regex(/^[0-9+\-\s]{7,15}$/, "Enter a valid phone number.")
+    .optional()
+    .or(z.literal("")),
+  city: z.string().trim().optional().or(z.literal("")),
+  chessComId: z.string().trim().optional().or(z.literal("")),
+  lichessId: z.string().trim().optional().or(z.literal("")),
+  rating: z.coerce.number().min(0).max(4000).optional(),
+  monthlyFee: z.coerce.number().min(0).optional(),
+  perSessionFee: z.coerce.number().min(0).optional(),
 });
 
 export type CreateStaffUserInput = z.infer<typeof createStaffUserSchema>;

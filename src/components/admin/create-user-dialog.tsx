@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useRouter } from 'next/navigation';
 import { Plus } from 'lucide-react';
@@ -46,12 +46,15 @@ function CreateUserForm({ onSuccess }: { onSuccess: () => void }) {
   const [serverError, setServerError] = useState<string | null>(null);
   const {
     register,
+    control,
     handleSubmit,
     formState: { errors, isSubmitting },
-  } = useForm<CreateStaffUserInput>({
+  } = useForm({
     resolver: zodResolver(createStaffUserSchema),
     defaultValues: { name: '', email: '', phone: '', password: '', role: 'STUDENT' },
   });
+
+  const role = useWatch({ control, name: 'role' });
 
   async function onSubmit(values: CreateStaffUserInput) {
     setServerError(null);
@@ -98,6 +101,57 @@ function CreateUserForm({ onSuccess }: { onSuccess: () => void }) {
         />
         <FieldError message={errors.password?.message} />
       </div>
+
+      {role === 'STUDENT' && (
+        <>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="parentName">Parent Name</Label>
+              <Input id="parentName" {...register('parentName')} placeholder="e.g. Ramesh Sharma" />
+              <FieldError message={errors.parentName?.message} />
+            </div>
+            <div>
+              <Label htmlFor="parentPhone">Parent Phone</Label>
+              <Input id="parentPhone" {...register('parentPhone')} placeholder="98765 43210" />
+              <FieldError message={errors.parentPhone?.message} />
+            </div>
+          </div>
+          <div>
+            <Label htmlFor="city">City</Label>
+            <Input id="city" {...register('city')} placeholder="e.g. Jhansi" />
+            <FieldError message={errors.city?.message} />
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="chessComId">Chess.com ID</Label>
+              <Input id="chessComId" {...register('chessComId')} placeholder="username" />
+              <FieldError message={errors.chessComId?.message} />
+            </div>
+            <div>
+              <Label htmlFor="lichessId">Lichess ID</Label>
+              <Input id="lichessId" {...register('lichessId')} placeholder="username" />
+              <FieldError message={errors.lichessId?.message} />
+            </div>
+          </div>
+          <div className="grid grid-cols-3 gap-4">
+            <div>
+              <Label htmlFor="rating">Rating</Label>
+              <Input id="rating" type="number" {...register('rating')} placeholder="1200" />
+              <FieldError message={errors.rating?.message} />
+            </div>
+            <div>
+              <Label htmlFor="monthlyFee">Monthly Fee</Label>
+              <Input id="monthlyFee" type="number" {...register('monthlyFee')} placeholder="2000" />
+              <FieldError message={errors.monthlyFee?.message} />
+            </div>
+            <div>
+              <Label htmlFor="perSessionFee">Session Fee</Label>
+              <Input id="perSessionFee" type="number" {...register('perSessionFee')} placeholder="300" />
+              <FieldError message={errors.perSessionFee?.message} />
+            </div>
+          </div>
+        </>
+      )}
       {serverError && <Alert variant="error">{serverError}</Alert>}
       <div className="flex justify-end gap-2 pt-2">
         <Button type="submit" disabled={isSubmitting}>

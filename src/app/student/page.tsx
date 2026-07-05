@@ -10,7 +10,12 @@ import { WEEKDAY_LABEL } from "@/lib/constants";
 export default async function StudentDashboardPage() {
   const user = await requireRole([Role.STUDENT]);
 
-  const enrollments = await prisma.batchStudent.findMany({
+  const [studentDetails, enrollments] = await Promise.all([
+    prisma.user.findUnique({
+      where: { id: user.id },
+      select: { chessComId: true, lichessId: true, rating: true, city: true },
+    }),
+    prisma.batchStudent.findMany({
     where: { studentId: user.id, batch: { isActive: true } },
     include: {
       batch: {
@@ -21,7 +26,8 @@ export default async function StudentDashboardPage() {
       },
     },
     orderBy: { batch: { name: "asc" } },
-  });
+    }),
+  ]);
 
   return (
     <div className="space-y-6">
@@ -34,6 +40,34 @@ export default async function StudentDashboardPage() {
         </p>
       </div>
 
+      {studentDetails && (
+        <Card>
+          <CardHeader>
+            <CardTitle>My Profile</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 gap-4 text-sm sm:grid-cols-4">
+              <div>
+                <p className="text-slate-500">City</p>
+                <p className="font-medium text-slate-900">{studentDetails.city || "—"}</p>
+              </div>
+              <div>
+                <p className="text-slate-500">Rating</p>
+                <p className="font-medium text-slate-900">{studentDetails.rating ?? "—"}</p>
+              </div>
+              <div>
+                <p className="text-slate-500">Chess.com</p>
+                <p className="font-medium text-slate-900">{studentDetails.chessComId || "—"}</p>
+              </div>
+              <div>
+                <p className="text-slate-500">Lichess</p>
+                <p className="font-medium text-slate-900">{studentDetails.lichessId || "—"}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       <Card>
         <CardHeader>
           <CardTitle>My classes</CardTitle>
@@ -45,7 +79,7 @@ export default async function StudentDashboardPage() {
               description="Once an admin enrolls you in a batch, it will show up here."
             />
           ) : (
-            <div className="divide-y divide-slate-100">
+            <div className="max-h-[600px] overflow-y-auto divide-y divide-slate-100 pr-2">
               {enrollments.map(({ batch }) => (
                 <div
                   key={batch.id}

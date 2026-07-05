@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useFieldArray, useForm } from 'react-hook-form';
+import { useFieldArray, useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useRouter } from 'next/navigation';
 import { Plus, Trash2 } from 'lucide-react';
@@ -20,6 +20,7 @@ interface CoachOption {
   id: string;
   name: string;
   email: string;
+  availabilities?: { day: string; startTime: string; endTime: string }[];
 }
 
 export function CreateBatchButton({ coaches }: { coaches: CoachOption[] }) {
@@ -76,6 +77,7 @@ function CreateBatchForm({
   });
 
   const { fields, append, remove } = useFieldArray({ control, name: 'schedules' });
+  const selectedCoachId = useWatch({ control, name: 'coachId' });
 
   async function onSubmit(values: CreateBatchInput) {
     setServerError(null);
@@ -118,6 +120,33 @@ function CreateBatchForm({
             </option>
           ))}
         </Select>
+        {selectedCoachId && (
+          (() => {
+            const selectedCoach = coaches.find(c => c.id === selectedCoachId);
+            if (selectedCoach && selectedCoach.availabilities && selectedCoach.availabilities.length > 0) {
+              return (
+                <div className="mt-3 text-sm text-slate-600 rounded-md bg-slate-50 border border-slate-100 p-3">
+                  <p className="mb-1 font-medium text-slate-900">Available Times:</p>
+                  <ul className="space-y-1">
+                    {selectedCoach.availabilities.map((slot, i) => (
+                      <li key={i}>
+                        {WEEKDAY_OPTIONS.find(o => o.value === slot.day)?.label} {slot.startTime}–{slot.endTime}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              );
+            }
+            if (selectedCoach) {
+              return (
+                <div className="mt-3 text-sm text-slate-500 rounded-md bg-slate-50 border border-slate-100 p-3">
+                  This coach has not set any availability.
+                </div>
+              );
+            }
+            return null;
+          })()
+        )}
       </div>
 
       <div>

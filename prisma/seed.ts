@@ -61,6 +61,14 @@ async function main() {
       passwordHash: await hashPassword("Student@123"),
       role: Role.STUDENT,
       emailVerified: true,
+      parentName: "Demo Parent",
+      parentPhone: "9123456781",
+      city: "Jhansi",
+      chessComId: "demo_student",
+      lichessId: "demo_student_lichess",
+      rating: 1200,
+      monthlyFee: 2000,
+      perSessionFee: 300,
     },
   });
   console.log(`Demo student ready: ${student.email} / Student@123`);

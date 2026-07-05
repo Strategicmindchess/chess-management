@@ -68,7 +68,7 @@ export function BatchList({
   }
 
   return (
-    <div className="divide-y divide-slate-100">
+    <div className="max-h-[600px] overflow-y-auto divide-y divide-slate-100 pr-2">
       {error && <p className="px-5 py-3 text-sm text-rose-600">{error}</p>}
       {batches.map((batch) => (
         <div key={batch.id} className="space-y-3 px-5 py-4">

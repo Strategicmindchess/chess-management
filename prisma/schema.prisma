@@ -53,6 +53,20 @@ model User {
   otpCodes       OtpCode[]
   refreshTokens  RefreshToken[]
 
+  // --- Module 6: Coach Availability ---
+  availabilities CoachAvailability[] @relation("CoachAvailability")
+
+  // --- Module 7: Student Profile & Fees ---
+  parentName    String?
+  parentPhone   String?
+  city          String?
+  chessComId    String?
+  lichessId     String?
+  rating        Int?
+  joiningDate   DateTime?
+  monthlyFee    Int?
+  perSessionFee Int?
+
   @@map("users")
 }
 
@@ -138,4 +152,16 @@ model BatchStudent {
 
   @@unique([batchId, studentId])
   @@map("batch_students")
+}
+
+/// A coach's weekly availability slot (Module 6).
+model CoachAvailability {
+  id        String   @id @default(cuid())
+  coachId   String
+  coach     User     @relation("CoachAvailability", fields: [coachId], references: [id], onDelete: Cascade)
+  day       Weekday
+  startTime String   // 24h "HH:mm"
+  endTime   String   // 24h "HH:mm"
+
+  @@map("coach_availability")
 }

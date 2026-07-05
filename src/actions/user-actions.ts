@@ -28,7 +28,21 @@ export async function createStaffUser(
     };
   }
 
-  const { name, email, phone, password, role } = parsed.data;
+  const {
+    name,
+    email,
+    phone,
+    password,
+    role,
+    parentName,
+    parentPhone,
+    city,
+    chessComId,
+    lichessId,
+    rating,
+    monthlyFee,
+    perSessionFee,
+  } = parsed.data;
 
   const existing = await prisma.user.findUnique({ where: { email } });
   if (existing) {
@@ -45,6 +59,19 @@ export async function createStaffUser(
       passwordHash,
       role,
       emailVerified: true,
+      ...(role === "STUDENT"
+        ? {
+            parentName: parentName || null,
+            parentPhone: parentPhone || null,
+            city: city || null,
+            chessComId: chessComId || null,
+            lichessId: lichessId || null,
+            rating: isNaN(rating as number) ? null : rating,
+            monthlyFee: isNaN(monthlyFee as number) ? null : monthlyFee,
+            perSessionFee: isNaN(perSessionFee as number) ? null : perSessionFee,
+            joiningDate: new Date(),
+          }
+        : {}),
     },
   });
 

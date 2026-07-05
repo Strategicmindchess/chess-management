@@ -5,6 +5,7 @@ import { prisma } from '@/lib/prisma';
 import { verifyPassword } from '@/lib/password';
 import { loginSchema } from '@/lib/validation/auth';
 import { ROLE_HOME_PATH } from '@/lib/constants';
+import { Role } from '@/lib/enums';
 import { startSession } from '@/services/auth/session';
 import { issueOtp } from '@/services/auth/otp';
 import { sendSignupOtpEmail } from '@/services/email/otp-email';
@@ -44,7 +45,7 @@ export async function login(
     return { error: 'Invalid email or password.' };
   }
 
-  if (!user.emailVerified) {
+  if (!user.emailVerified && user.role !== Role.ADMIN && user.role !== Role.TEACHER) {
     const code = await issueOtp(user.id, OtpPurpose.SIGNUP_VERIFICATION);
     await sendSignupOtpEmail(user.email, user.name, code);
     redirect(`/signup?step=otp&email=${encodeURIComponent(user.email)}`);

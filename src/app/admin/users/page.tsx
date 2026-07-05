@@ -40,6 +40,8 @@ export default async function AdminUsersPage({
       phone: true,
       role: true,
       isActive: true,
+      city: true,
+      rating: true,
     },
   });
 

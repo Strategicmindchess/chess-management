@@ -24,6 +24,8 @@ export interface UserRow {
   phone: string | null;
   role: Role;
   isActive: boolean;
+  city?: string | null;
+  rating?: number | null;
 }
 
 export function UsersTable({ users }: { users: UserRow[] }) {
@@ -53,13 +55,16 @@ export function UsersTable({ users }: { users: UserRow[] }) {
   return (
     <div className="space-y-3">
       {error && <p className="px-1 text-sm text-rose-600">{error}</p>}
-      <Table>
-        <TableHead>
-          <tr>
+      <div className="max-h-[600px] overflow-y-auto pr-2">
+        <Table>
+          <TableHead>
+            <tr>
             <TableHeaderCell>Name</TableHeaderCell>
             <TableHeaderCell>Email</TableHeaderCell>
             <TableHeaderCell>Phone</TableHeaderCell>
             <TableHeaderCell>Role</TableHeaderCell>
+            <TableHeaderCell>City</TableHeaderCell>
+            <TableHeaderCell>Rating</TableHeaderCell>
             <TableHeaderCell>Status</TableHeaderCell>
             <TableHeaderCell className="text-right">Actions</TableHeaderCell>
           </tr>
@@ -75,6 +80,8 @@ export function UsersTable({ users }: { users: UserRow[] }) {
               <TableCell>
                 <Badge variant="brand">{ROLE_LABEL[user.role]}</Badge>
               </TableCell>
+              <TableCell>{user.city || "—"}</TableCell>
+              <TableCell>{user.rating ?? "—"}</TableCell>
               <TableCell>
                 <Badge variant={user.isActive ? "success" : "neutral"}>
                   {user.isActive ? "Active" : "Inactive"}
@@ -98,7 +105,8 @@ export function UsersTable({ users }: { users: UserRow[] }) {
             </TableRow>
           ))}
         </TableBody>
-      </Table>
+        </Table>
+      </div>
     </div>
   );
 }

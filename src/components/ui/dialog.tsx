@@ -34,11 +34,9 @@ export function Dialog({ open, onClose, title, description, children, className 
 
   return (
     <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto p-4 sm:items-center">
-      <button
-        type="button"
-        aria-label="Close dialog"
+      <div
         className="fixed inset-0 bg-slate-900/50"
-        onClick={onClose}
+        aria-hidden="true"
       />
       <div
         role="dialog"
