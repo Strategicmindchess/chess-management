@@ -19,31 +19,42 @@ const TABS = [
 export default async function AdminUsersPage({
   searchParams,
 }: {
-  searchParams: Promise<{ role?: string }>;
+  searchParams: Promise<{ role?: string; page?: string }>;
 }) {
   await requireRole([Role.ADMIN]);
 
-  const { role } = await searchParams;
+  const { role, page } = await searchParams;
   const activeTab =
     role === Role.TEACHER || role === Role.STUDENT ? role : "ALL";
 
-  const usersData = await prisma.user.findMany({
-    where:
-      activeTab === "ALL"
-        ? { role: { in: [Role.TEACHER, Role.STUDENT] } }
-        : { role: activeTab },
-    orderBy: [{ isActive: "desc" }, { name: "asc" }],
-    select: {
-      id: true,
-      name: true,
-      email: true,
-      phone: true,
-      role: true,
-      isActive: true,
-      studentProfile: { select: { city: true, rating: true } },
-      coachProfile: { select: { city: true } },
-    },
-  });
+  const currentPage = Math.max(1, parseInt(page || "1", 10));
+  const take = 20;
+  const skip = (currentPage - 1) * take;
+
+  const whereClause =
+    activeTab === "ALL"
+      ? { role: { in: [Role.TEACHER, Role.STUDENT] } }
+      : { role: activeTab };
+
+  const [usersData, totalUsers] = await Promise.all([
+    prisma.user.findMany({
+      where: whereClause,
+      orderBy: [{ isActive: "desc" }, { name: "asc" }],
+      take,
+      skip,
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        phone: true,
+        role: true,
+        isActive: true,
+        studentProfile: { select: { city: true, rating: true } },
+        coachProfile: { select: { city: true } },
+      },
+    }),
+    prisma.user.count({ where: whereClause }),
+  ]);
 
   const users = usersData.map((u) => ({
     id: u.id,
@@ -55,6 +66,8 @@ export default async function AdminUsersPage({
     city: u.studentProfile?.city || u.coachProfile?.city || null,
     rating: u.studentProfile?.rating ?? null,
   }));
+
+  const totalPages = Math.ceil(totalUsers / take);
 
   return (
     <div className="space-y-6">
@@ -95,8 +108,13 @@ export default async function AdminUsersPage({
             );
           })}
         </div>
-        <div className="p-5">
-          <UsersTable users={users} />
+        <div className="p-0">
+          <UsersTable 
+            users={users} 
+            currentPage={currentPage}
+            totalPages={totalPages}
+            searchParams={{ ...(role ? { role } : {}) }}
+          />
         </div>
       </Card>
     </div>

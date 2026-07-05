@@ -8,12 +8,23 @@ import { BatchList } from "@/components/admin/batch-list";
 
 export const metadata: Metadata = { title: "Batches · SMC CRM" };
 
-export default async function AdminBatchesPage() {
+export default async function AdminBatchesPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ page?: string }>;
+}) {
   await requireRole([Role.ADMIN]);
 
-  const [batches, coachesData, students] = await Promise.all([
+  const { page } = await searchParams;
+  const currentPage = Math.max(1, parseInt(page || "1", 10));
+  const take = 20;
+  const skip = (currentPage - 1) * take;
+
+  const [batches, totalBatches, coachesData, students] = await Promise.all([
     prisma.batch.findMany({
       orderBy: [{ isActive: "desc" }, { name: "asc" }],
+      take,
+      skip,
       include: {
         coach: { select: { id: true, name: true, email: true } },
         schedules: { orderBy: { startTime: "asc" } },
@@ -24,6 +35,7 @@ export default async function AdminBatchesPage() {
         },
       },
     }),
+    prisma.batch.count(),
     prisma.user.findMany({
       where: { role: Role.TEACHER, isActive: true },
       select: { 
@@ -71,6 +83,8 @@ export default async function AdminBatchesPage() {
     students: batch.students.map((enrollment) => enrollment.student),
   }));
 
+  const totalPages = Math.ceil(totalBatches / take);
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -84,7 +98,13 @@ export default async function AdminBatchesPage() {
       </div>
 
       <Card className="overflow-hidden">
-        <BatchList batches={batchItems} coaches={coaches} students={students} />
+        <BatchList 
+          batches={batchItems} 
+          coaches={coaches} 
+          students={students} 
+          currentPage={currentPage}
+          totalPages={totalPages}
+        />
       </Card>
     </div>
   );
