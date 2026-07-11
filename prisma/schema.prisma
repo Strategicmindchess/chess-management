@@ -199,18 +199,19 @@ model BatchStudent {
   @@map("batch_students")
 }
 
-/// A coach's weekly availability slot (Module 6).
+/// A coach's specific availability slot (Module 6 redesign).
 model CoachAvailability {
   id        String   @id @default(cuid())
   coachId   String
   coach     CoachProfile @relation("CoachAvailability", fields: [coachId], references: [id], onDelete: Cascade)
-  dayOfWeek Weekday
+  date      DateTime
   startTime String   // 24h "HH:mm"
   endTime   String   // 24h "HH:mm"
   
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  @@unique([coachId, date, startTime, endTime])
   @@map("coach_availability")
 }
 

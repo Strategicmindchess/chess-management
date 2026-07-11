@@ -42,14 +42,6 @@ export default async function AdminBatchesPage({
         id: true, 
         name: true, 
         email: true,
-        coachProfile: {
-          select: {
-            availabilities: {
-              select: { dayOfWeek: true, startTime: true, endTime: true },
-              orderBy: [{ dayOfWeek: 'asc' }, { startTime: 'asc' }]
-            }
-          }
-        }
       },
       orderBy: { name: "asc" },
     }),
@@ -64,7 +56,6 @@ export default async function AdminBatchesPage({
     id: coach.id,
     name: coach.name,
     email: coach.email,
-    availabilities: coach.coachProfile?.availabilities || []
   }));
 
   const batchItems = batches.map((batch) => ({

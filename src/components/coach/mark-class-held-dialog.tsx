@@ -19,10 +19,14 @@ export function MarkClassHeldDialog({
   batchId,
   batchName,
   students,
+  scheduleStartTime,
+  scheduleEndTime,
 }: {
   batchId: string;
   batchName: string;
   students: StudentOption[];
+  scheduleStartTime: string;
+  scheduleEndTime: string;
 }) {
   const [open, setOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
@@ -30,17 +34,31 @@ export function MarkClassHeldDialog({
 
   // Form state
   const [topicCovered, setTopicCovered] = useState("");
-  const [durationMins, setDurationMins] = useState<number | "">("");
-  const [date, setDate] = useState(() => new Date().toISOString().slice(0, 16)); // YYYY-MM-DDThh:mm
+  const [durationMins, setDurationMins] = useState<number | "">(60);
+  
+  // Format today's date for display
+  const today = new Date();
+  const dateStr = today.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+  
   const [attendance, setAttendance] = useState<Record<string, AttendanceStatus>>(() => {
     const initial: Record<string, AttendanceStatus> = {};
     students.forEach((s) => (initial[s.id] = AttendanceStatus.PRESENT));
     return initial;
   });
 
+  // Check if class has finished
+  const currentHour = today.getHours();
+  const currentMin = today.getMinutes();
+  const [endHourStr, endMinStr] = scheduleEndTime.split(':');
+  const endHour = parseInt(endHourStr, 10);
+  const endMin = parseInt(endMinStr, 10);
+  
+  // Disable if current time < end time
+  const isTimeValid = currentHour > endHour || (currentHour === endHour && currentMin >= endMin);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!topicCovered.trim() || !durationMins || !date) {
+    if (!topicCovered.trim() || !durationMins) {
       setError("Please fill in all fields.");
       return;
     }
@@ -56,7 +74,7 @@ export function MarkClassHeldDialog({
         batchId,
         topicCovered,
         durationMins: Number(durationMins),
-        date: new Date(date).toISOString(),
+        date: new Date().toISOString(),
         attendance: attendanceArr,
       });
 
@@ -66,8 +84,7 @@ export function MarkClassHeldDialog({
         setOpen(false);
         // Reset form
         setTopicCovered("");
-        setDurationMins("");
-        setDate(new Date().toISOString().slice(0, 16));
+        setDurationMins(60);
         const initial: Record<string, AttendanceStatus> = {};
         students.forEach((s) => (initial[s.id] = AttendanceStatus.PRESENT));
         setAttendance(initial);
@@ -87,9 +104,9 @@ export function MarkClassHeldDialog({
 
   return (
     <>
-      <Button variant="secondary" size="sm" onClick={() => setOpen(true)}>
+      <Button variant="secondary" size="sm" onClick={() => setOpen(true)} disabled={!isTimeValid}>
         <CheckSquare className="h-3.5 w-3.5" />
-        Mark Class Held
+        {isTimeValid ? "Mark Class Held" : `Available after ${scheduleEndTime}`}
       </Button>
       <Dialog
         open={open}
@@ -101,27 +118,30 @@ export function MarkClassHeldDialog({
         <form onSubmit={handleSubmit} className="space-y-5">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="date">Date & Time</Label>
-              <Input
-                id="date"
-                type="datetime-local"
-                value={date}
-                onChange={(e) => setDate(e.target.value)}
-                required
-              />
+              <Label>Date</Label>
+              <div className="p-2 bg-slate-100 rounded-md border border-slate-200 text-sm text-slate-700 font-medium">
+                {dateStr}
+              </div>
             </div>
             <div>
-              <Label htmlFor="duration">Duration (minutes)</Label>
-              <Input
-                id="duration"
-                type="number"
-                min={1}
-                value={durationMins}
-                onChange={(e) => setDurationMins(Number(e.target.value) || "")}
-                required
-              />
+              <Label>Time</Label>
+              <div className="p-2 bg-slate-100 rounded-md border border-slate-200 text-sm text-slate-700 font-medium">
+                {scheduleStartTime} - {scheduleEndTime}
+              </div>
             </div>
           </div>
+          <div>
+            <Label htmlFor="duration">Duration (minutes)</Label>
+            <Input
+              id="duration"
+              type="number"
+              min={1}
+              value={durationMins}
+              onChange={(e) => setDurationMins(Number(e.target.value) || "")}
+              required
+            />
+          </div>
+
           <div>
             <Label htmlFor="topic">Topic Covered</Label>
             <Input

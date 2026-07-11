@@ -16,7 +16,6 @@ interface CoachOption {
   id: string;
   name: string;
   email: string;
-  availabilities?: { day: string; startTime: string; endTime: string }[];
 }
 
 export function AssignCoachDialog({
@@ -74,33 +73,6 @@ export function AssignCoachDialog({
                 </option>
               ))}
             </Select>
-            {coachId && (
-              (() => {
-                const selectedCoach = coaches.find(c => c.id === coachId);
-                if (selectedCoach && selectedCoach.availabilities && selectedCoach.availabilities.length > 0) {
-                  return (
-                    <div className="mt-3 text-sm text-slate-600 rounded-md bg-slate-50 border border-slate-100 p-3">
-                      <p className="mb-1 font-medium text-slate-900">Available Times:</p>
-                      <ul className="space-y-1">
-                        {selectedCoach.availabilities.map((slot, i) => (
-                          <li key={i}>
-                            {WEEKDAY_LABEL[slot.day as keyof typeof WEEKDAY_LABEL]} {slot.startTime}–{slot.endTime}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  );
-                }
-                if (selectedCoach) {
-                  return (
-                    <div className="mt-3 text-sm text-slate-500 rounded-md bg-slate-50 border border-slate-100 p-3">
-                      This coach has not set any availability.
-                    </div>
-                  );
-                }
-                return null;
-              })()
-            )}
           </div>
           {error && <Alert variant="error">{error}</Alert>}
           <div className="flex justify-end gap-2 pt-2">

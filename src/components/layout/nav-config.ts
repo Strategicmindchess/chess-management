@@ -15,6 +15,10 @@ export const NAV_ITEMS: Record<Role, NavItem[]> = {
   ],
   [Role.TEACHER]: [
     { href: "/teacher", label: "Dashboard", icon: LayoutDashboard },
+    { href: "/teacher/batches", label: "My Batches", icon: Users },
+    { href: "/teacher/attendance", label: "Attendance", icon: CalendarDays },
+    { href: "/teacher/availability", label: "Availability", icon: CalendarDays },
+    { href: "/teacher/payouts", label: "Payouts", icon: LayoutDashboard },
   ],
   [Role.STUDENT]: [
     { href: "/student", label: "Dashboard", icon: LayoutDashboard },

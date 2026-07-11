@@ -1,7 +1,7 @@
 import { PrismaPg } from '@prisma/adapter-pg';
 import { PrismaClient } from '@/generated/prisma/client';
 
-const globalForPrisma = globalThis as unknown as { prisma_v2?: PrismaClient };
+const globalForPrisma = globalThis as unknown as { prisma_v3?: PrismaClient };
 
 function createPrismaClient() {
   const connectionString = process.env.DATABASE_URL;
@@ -14,10 +14,10 @@ function createPrismaClient() {
   return new PrismaClient({ adapter });
 }
 
-export const prisma = globalForPrisma.prisma_v2 ?? createPrismaClient();
+export const prisma = globalForPrisma.prisma_v3 ?? createPrismaClient();
 
 // Reuse the same client across hot-reloads in development instead of
 // creating a new connection pool on every file change.
 if (process.env.NODE_ENV !== 'production') {
-  globalForPrisma.prisma_v2 = prisma;
+  globalForPrisma.prisma_v3 = prisma;
 }

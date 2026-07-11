@@ -3,16 +3,16 @@
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { requireRole } from "@/lib/dal";
-import { Role, Weekday } from "@/lib/enums";
+import { Role } from "@/lib/enums";
 import type { ActionResult } from "@/lib/types";
 
-export interface AvailabilitySlot {
-  dayOfWeek: Weekday;
+export interface DateAvailabilitySlot {
+  date: string; // ISO string
   startTime: string; // "HH:mm"
   endTime: string;   // "HH:mm"
 }
 
-export async function updateAvailability(slots: AvailabilitySlot[]): Promise<ActionResult> {
+export async function addAvailabilitySlots(slots: DateAvailabilitySlot[]): Promise<ActionResult> {
   const user = await requireRole([Role.TEACHER]);
 
   const coachProfile = await prisma.coachProfile.findUnique({
@@ -23,30 +23,44 @@ export async function updateAvailability(slots: AvailabilitySlot[]): Promise<Act
     return { success: false, error: "Coach profile not found." };
   }
 
-  // Deduplicate slots to prevent the same day and time from appearing multiple times
-  const uniqueSlots = slots.filter((slot, index, self) =>
-    index === self.findIndex((t) => (
-      t.dayOfWeek === slot.dayOfWeek && 
-      t.startTime === slot.startTime && 
-      t.endTime === slot.endTime
-    ))
-  );
-
-  // Use a transaction to delete old availability and insert new ones
-  await prisma.$transaction([
-    prisma.coachAvailability.deleteMany({
-      where: { coachId: coachProfile.id },
-    }),
-    prisma.coachAvailability.createMany({
-      data: uniqueSlots.map(slot => ({
+  try {
+    // Upsert or create many. createMany with skipDuplicates is available in Postgres
+    await prisma.coachAvailability.createMany({
+      data: slots.map(slot => ({
         coachId: coachProfile.id,
-        dayOfWeek: slot.dayOfWeek,
+        date: new Date(slot.date),
         startTime: slot.startTime,
         endTime: slot.endTime,
       })),
-    }),
-  ]);
+      skipDuplicates: true, // Prevents crashing on the @@unique constraint
+    });
 
-  revalidatePath("/teacher");
-  return { success: true };
+    revalidatePath("/teacher/availability");
+    return { success: true };
+  } catch (err: any) {
+    console.error("Error adding availability:", err);
+    return { success: false, error: err.message || "Failed to save availability." };
+  }
+}
+
+export async function deleteAvailabilitySlot(id: string): Promise<ActionResult> {
+  const user = await requireRole([Role.TEACHER]);
+  
+  const coachProfile = await prisma.coachProfile.findUnique({
+    where: { userId: user.id }
+  });
+  
+  if (!coachProfile) return { success: false, error: "Profile not found" };
+
+  try {
+    await prisma.coachAvailability.delete({
+      where: { id, coachId: coachProfile.id }
+    });
+    
+    revalidatePath("/teacher/availability");
+    return { success: true };
+  } catch (err: any) {
+    console.error("Error deleting slot:", err);
+    return { success: false, error: "Failed to delete slot." };
+  }
 }
