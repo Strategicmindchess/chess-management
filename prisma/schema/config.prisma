@@ -1,0 +1,13 @@
+// SMC CRM - Chess Academy Management System
+// Phase 1 schema: Auth + Admin (batch creation & coach assignment)
+// Additional models will be added incrementally as later modules are built.
+
+generator client {
+  provider = "prisma-client"
+  // Output is relative to this file's directory (prisma/schema), so we go up two levels to reach the root, then into src
+  output   = "../../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}

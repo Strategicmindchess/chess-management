@@ -1,0 +1,116 @@
+enum AttendanceStatus {
+  PRESENT
+  ABSENT
+}
+
+enum Weekday {
+  MONDAY
+  TUESDAY
+  WEDNESDAY
+  THURSDAY
+  FRIDAY
+  SATURDAY
+  SUNDAY
+}
+
+/// A recurring class batch created by an Admin/Management user.
+model Batch {
+  id        String   @id @default(cuid())
+  name      String
+  code      String   @unique
+  meetLink  String
+  startDate DateTime?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  payoutRate Int     @default(0)
+
+  coachProfileId String?
+  coach   CoachProfile?   @relation("BatchCoach", fields: [coachProfileId], references: [id], onDelete: SetNull)
+
+  schedules BatchSchedule[]
+  students  BatchStudent[]
+  classLogs ClassLog[]
+
+  @@map("batches")
+}
+
+/// A single weekly recurring slot for a batch (a batch can meet on multiple days).
+
+model BatchSchedule {
+  id        String  @id @default(cuid())
+  batchId   String
+  batch     Batch   @relation(fields: [batchId], references: [id], onDelete: Cascade)
+  day       Weekday
+  startTime String // 24h "HH:mm", e.g. "16:00"
+  endTime   String // 24h "HH:mm", e.g. "17:00"
+
+  @@unique([batchId, day, startTime])
+  @@map("batch_schedules")
+}
+
+/// Enrollment join table between a Batch and a Student (User with role = STUDENT).
+
+model BatchStudent {
+  id        String   @id @default(cuid())
+  batchId   String   
+  batch     Batch    @relation(fields: [batchId], references: [id], onDelete: Cascade)
+  studentProfileId String  
+  student   StudentProfile     @relation(fields: [studentProfileId], references: [id], onDelete: Cascade)
+  joinedAt  DateTime @default(now())
+
+  @@unique([batchId, studentProfileId])
+  @@map("batch_students")
+}
+
+/// A coach's specific availability slot (Module 6 redesign).
+
+model CoachAvailability {
+  id        String   @id @default(cuid())
+  coachId   String
+  coach     CoachProfile @relation("CoachAvailability", fields: [coachId], references: [id], onDelete: Cascade)
+  date      DateTime
+  startTime String   // 24h "HH:mm"
+  endTime   String   // 24h "HH:mm"
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([coachId, date, startTime, endTime])
+  @@map("coach_availability")
+}
+
+/// A log of a single class session, created by the coach (Module 4)
+model ClassLog {
+  id           String   @id @default(cuid())
+  batchId      String
+  batch        Batch    @relation(fields: [batchId], references: [id], onDelete: Cascade)
+  coachProfileId String
+  coach CoachProfile @relation(fields: [coachProfileId], references: [id], onDelete: Cascade)
+  
+  date         DateTime
+  topicCovered String
+  durationMins Int
+  payoutAmount Int      @default(0) // snapshot of batch payout rate at time of class
+  
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  attendance   AttendanceRecord[]
+
+  @@map("class_logs")
+}
+
+/// Attendance for a single student in a specific class log (Module 4)
+model AttendanceRecord {
+  id         String   @id @default(cuid())
+  classLogId String
+  classLog   ClassLog @relation(fields: [classLogId], references: [id], onDelete: Cascade)
+  studentProfileId  String
+  student    StudentProfile @relation(fields: [studentProfileId], references: [id], onDelete: Cascade)
+  
+  status     AttendanceStatus
+
+  @@unique([classLogId, studentProfileId])
+  @@map("attendance_records")
+}

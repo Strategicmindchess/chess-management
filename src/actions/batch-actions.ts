@@ -22,7 +22,7 @@ export async function createBatch(input: CreateBatchInput): Promise<ActionResult
     return { success: false, error: parsed.error.issues[0]?.message ?? 'Invalid input.' };
   }
 
-  const { name, code, meetLink, payoutRate, coachId, schedules } = parsed.data;
+  const { name, code, meetLink, payoutRate, coachId, schedules,startDate } = parsed.data;
 
   const existingCode = await prisma.batch.findUnique({ where: { code } });
   if (existingCode) {
@@ -30,8 +30,8 @@ export async function createBatch(input: CreateBatchInput): Promise<ActionResult
   }
 
   if (coachId) {
-    const coach = await prisma.user.findUnique({ where: { id: coachId } });
-    if (!coach || coach.role !== 'TEACHER') {
+    const coach = await prisma.coachProfile.findUnique({ where: { id: coachId } });
+    if (!coach) {
       return { success: false, error: 'Selected coach is not valid.' };
     }
   }
@@ -41,8 +41,9 @@ export async function createBatch(input: CreateBatchInput): Promise<ActionResult
       name,
       code,
       meetLink,
+      startDate: startDate ? new Date(startDate) : null,
       payoutRate,
-      coachId: coachId || null,
+      coachProfileId: coachId ,
       schedules: {
         create: schedules.map((slot) => ({
           day: slot.day,
@@ -57,6 +58,7 @@ export async function createBatch(input: CreateBatchInput): Promise<ActionResult
   return { success: true };
 }
 
+// reassign or update the batch teacher
 export async function assignCoach(input: { batchId: string; coachId?: string }): Promise<ActionResult> {
   await requireRole(['ADMIN']);
 
@@ -73,15 +75,15 @@ export async function assignCoach(input: { batchId: string; coachId?: string }):
   }
 
   if (coachId) {
-    const coach = await prisma.user.findUnique({ where: { id: coachId } });
-    if (!coach || coach.role !== 'TEACHER') {
+    const coach = await prisma.coachProfile.findUnique({ where: { id: coachId } });
+    if (!coach) {
       return { success: false, error: 'Selected coach is not valid.' };
     }
   }
 
   await prisma.batch.update({
     where: { id: batchId },
-    data: { coachId: coachId || null },
+    data: { coachProfileId: coachId },
   });
 
   revalidatePath('/admin/batches');
@@ -106,8 +108,8 @@ export async function enrollStudents(input: {
     return { success: false, error: 'Batch not found.' };
   }
 
-  const students = await prisma.user.findMany({
-    where: { id: { in: studentIds }, role: 'STUDENT' },
+  const students = await prisma.studentProfile.findMany({
+    where: { id: { in: studentIds } },
     select: { id: true },
   });
 
@@ -116,13 +118,14 @@ export async function enrollStudents(input: {
   }
 
   await prisma.batchStudent.createMany({
-    data: students.map((student) => ({ batchId, studentId: student.id })),
+    data: students.map((student) => ({ batchId, studentProfileId: student.id })),
     skipDuplicates: true,
   });
 
   revalidatePath('/admin/batches');
   return { success: true };
 }
+
 
 export async function unenrollStudent(input: {
   batchId: string;
@@ -136,7 +139,7 @@ export async function unenrollStudent(input: {
   }
 
   await prisma.batchStudent.deleteMany({
-    where: { batchId: parsed.data.batchId, studentId: parsed.data.studentId },
+    where: { batchId: parsed.data.batchId, studentProfileId: parsed.data.studentId },
   });
 
   revalidatePath('/admin/batches');
@@ -168,8 +171,8 @@ export async function updateBatch(input: z.infer<typeof updateBatchSchema>): Pro
   }
 
   if (coachId) {
-    const coach = await prisma.user.findUnique({ where: { id: coachId } });
-    if (!coach || coach.role !== 'TEACHER') {
+    const coach = await prisma.coachProfile.findUnique({ where: { id: coachId } });
+    if (!coach) {
       return { success: false, error: 'Selected coach is not valid.' };
     }
   }
@@ -189,7 +192,7 @@ export async function updateBatch(input: z.infer<typeof updateBatchSchema>): Pro
         code,
         meetLink,
         startDate: parsedStartDate,
-        coachId: coachId || null,
+        coachProfileId: coachId || null,
       },
     });
 
@@ -200,14 +203,14 @@ export async function updateBatch(input: z.infer<typeof updateBatchSchema>): Pro
 
     // 3. Sync students: Re-create enrollments for selected students
     if (studentIds.length > 0) {
-      const validStudents = await tx.user.findMany({
-        where: { id: { in: studentIds }, role: 'STUDENT' },
+      const validStudents = await tx.studentProfile.findMany({
+        where: { id: { in: studentIds } },
         select: { id: true },
       });
       
       if (validStudents.length > 0) {
         await tx.batchStudent.createMany({
-          data: validStudents.map((s) => ({ batchId, studentId: s.id })),
+          data: validStudents.map((s) => ({ batchId, studentProfileId: s.id })),
           skipDuplicates: true,
         });
       }

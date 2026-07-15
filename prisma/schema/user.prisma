@@ -1,0 +1,98 @@
+enum Role {
+  ADMIN
+  TEACHER
+  STUDENT
+}
+
+/// A platform user. `role` determines which dashboard and permissions apply.
+model User {
+  id           String   @id @default(cuid())
+  name         String
+  email        String   @unique
+  
+  passwordHash String?
+  // Set once a signup OTP (or Google sign-in) has verified the email.
+  // Admin-created Coach/Student accounts are verified immediately.
+  emailVerified Boolean @default(false)
+  // Present once this account has been linked to a Google account.
+  googleId     String?  @unique
+  role         Role
+  phone        String?
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  
+  otpCodes       OtpCode[]
+  refreshTokens  RefreshToken[]
+
+  // Profiles
+  studentProfile StudentProfile?
+  coachProfile   CoachProfile?
+
+  @@map("users")
+}
+
+model StudentProfile {
+
+  id            String    @id @default(cuid())
+  userId        String    @unique
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  parentName    String?
+  parentPhone   String?
+  city          String?
+  chessComId    String?
+  lichessId     String?
+  rating        Int?
+  joiningDate   DateTime?
+  monthlyFee    Int?
+  perSessionFee Int?
+
+  assignedCoachId String?
+  assignedCoach   CoachProfile? @relation("StudentAssignedCoach", fields: [assignedCoachId], references: [id], onDelete: SetNull)
+
+  enrollments       BatchStudent[]
+  attendanceRecords AttendanceRecord[]
+
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@map("student_profiles")
+}
+
+model CoachProfile {
+  id            String    @id @default(cuid())
+  userId        String    @unique
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  bio           String?
+  experience    String?
+  city          String?
+
+  availabilities  CoachAvailability[] @relation("CoachAvailability")
+  assignedStudents StudentProfile[]   @relation("StudentAssignedCoach")
+  rates           CoachRate?
+  
+
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  batches     Batch[]        @relation("BatchCoach")
+  classLogs   ClassLog[]     
+  @@map("coach_profiles")
+}
+
+/// A coach's specific payout rates
+model CoachRate {
+  id               String       @id @default(cuid())
+  coachId          String       @unique
+  coach            CoachProfile @relation(fields: [coachId], references: [id], onDelete: Cascade)
+  
+  groupSessionRate Int          @default(0) // Standard rate per group batch session
+  privateRate      Int          @default(0) // Standard rate per 1-to-1 private session
+  
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+
+  @@map("coach_rates")
+}

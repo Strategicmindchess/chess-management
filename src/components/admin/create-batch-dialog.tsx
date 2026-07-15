@@ -71,6 +71,7 @@ function CreateBatchForm({
       name: '',
       code: '',
       meetLink: '',
+      startDate: '',
       payoutRate: 0,
       coachId: '',
       schedules: [{ day: 'MONDAY', startTime: '16:00', endTime: '17:00' }],
@@ -119,7 +120,12 @@ function CreateBatchForm({
       </div>
 
       <div>
-        <Label htmlFor="coachId">Coach (optional)</Label>
+        <Label htmlFor="startDate">Start date (optional)</Label>
+        <Input id="startDate" type="date" {...register('startDate')} />
+        <FieldError message={errors.startDate?.message} />
+      </div>
+
+      <div>
         <Select id="coachId" {...register('coachId')}>
           <option value="">Unassigned — assign later</option>
           {coaches.map((coach) => (
