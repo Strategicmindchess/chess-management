@@ -12,18 +12,20 @@ export function DashboardShell({
   role,
   roleLabel,
   userName,
+  userEmail,
   children,
 }: {
   role: Role;
   roleLabel: string;
   userName: string;
+  userEmail: string;
   children: ReactNode;
 }) {
   return (
     <div className="flex min-h-screen bg-slate-50">
       <Sidebar role={role} roleLabel={roleLabel} />
       <div className="flex min-w-0 flex-1 flex-col">
-        <Topbar userName={userName} roleLabel={roleLabel} role={role} />
+        <Topbar userName={userName} userEmail={userEmail} roleLabel={roleLabel} role={role} />
         <main className="flex-1 px-4 py-6 sm:px-6 lg:px-8">{children}</main>
       </div>
     </div>

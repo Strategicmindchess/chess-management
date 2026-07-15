@@ -16,6 +16,7 @@ export default async function AdminLayout({
       role={Role.ADMIN}
       roleLabel={ROLE_LABEL.ADMIN}
       userName={user.name}
+      userEmail={user.email}
     >
       {children}
     </DashboardShell>

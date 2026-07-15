@@ -19,11 +19,11 @@ const TABS = [
 export default async function AdminUsersPage({
   searchParams,
 }: {
-  searchParams: Promise<{ role?: string; page?: string }>;
+  searchParams: Promise<{ role?: string; page?: string; query?: string }>;
 }) {
   await requireRole([Role.ADMIN]);
 
-  const { role, page } = await searchParams;
+  const { role, page, query } = await searchParams;
   const activeTab =
     role === Role.TEACHER || role === Role.STUDENT ? role : "ALL";
 
@@ -31,10 +31,17 @@ export default async function AdminUsersPage({
   const take = 20;
   const skip = (currentPage - 1) * take;
 
-  const whereClause =
+  const whereClause: import("@prisma/client").Prisma.UserWhereInput =
     activeTab === "ALL"
       ? { role: { in: [Role.TEACHER, Role.STUDENT] } }
       : { role: activeTab };
+
+  if (query) {
+    whereClause.OR = [
+      { name: { contains: query, mode: "insensitive" } },
+      { email: { contains: query, mode: "insensitive" } },
+    ];
+  }
 
   const [usersData, totalUsers] = await Promise.all([
     prisma.user.findMany({
@@ -49,8 +56,8 @@ export default async function AdminUsersPage({
         phone: true,
         role: true,
         isActive: true,
-        studentProfile: { select: { city: true, rating: true } },
-        coachProfile: { select: { city: true } },
+        studentProfile: { select: { city: true, rating: true, monthlyFee: true, perSessionFee: true } },
+        coachProfile: { select: { city: true, bio: true, experience: true, rates: { select: { groupSessionRate: true, privateRate: true } } } },
       },
     }),
     prisma.user.count({ where: whereClause }),
@@ -65,6 +72,12 @@ export default async function AdminUsersPage({
     isActive: u.isActive,
     city: u.studentProfile?.city || u.coachProfile?.city || null,
     rating: u.studentProfile?.rating ?? null,
+    monthlyFee: u.studentProfile?.monthlyFee ?? null,
+    perSessionFee: u.studentProfile?.perSessionFee ?? null,
+    groupSessionRate: u.coachProfile?.rates?.groupSessionRate ?? null,
+    privateRate: u.coachProfile?.rates?.privateRate ?? null,
+    bio: u.coachProfile?.bio ?? null,
+    experience: u.coachProfile?.experience ?? null,
   }));
 
   const totalPages = Math.ceil(totalUsers / take);
@@ -113,7 +126,7 @@ export default async function AdminUsersPage({
             users={users} 
             currentPage={currentPage}
             totalPages={totalPages}
-            searchParams={{ ...(role ? { role } : {}) }}
+            searchParams={{ ...(role ? { role } : {}), ...(query ? { query } : {}) }}
           />
         </div>
       </Card>

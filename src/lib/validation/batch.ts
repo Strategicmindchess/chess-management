@@ -24,6 +24,7 @@ export const createBatchSchema = z.object({
     .min(2, "Batch code must be at least 2 characters.")
     .regex(/^[A-Z0-9-]+$/, "Use only letters, numbers and dashes."),
   meetLink: z.string().trim().url("Enter a valid URL."),
+  startDate: z.string().optional(),
   payoutRate: z.number().int().min(0, "Payout rate must be a positive number."),
   coachId: z.string().trim().optional().or(z.literal("")),
   schedules: z
@@ -46,4 +47,19 @@ export const enrollStudentsSchema = z.object({
 export const unenrollStudentSchema = z.object({
   batchId: z.string().min(1),
   studentId: z.string().min(1),
+});
+
+export const updateBatchSchema = z.object({
+  batchId: z.string().min(1),
+  name: z.string().trim().min(2, "Batch name must be at least 2 characters."),
+  code: z
+    .string()
+    .trim()
+    .toUpperCase()
+    .min(2, "Batch code must be at least 2 characters.")
+    .regex(/^[A-Z0-9-]+$/, "Use only letters, numbers and dashes."),
+  meetLink: z.string().trim().url("Enter a valid URL."),
+  startDate: z.string().optional().or(z.literal("")),
+  coachId: z.string().trim().optional().or(z.literal("")),
+  studentIds: z.array(z.string()),
 });

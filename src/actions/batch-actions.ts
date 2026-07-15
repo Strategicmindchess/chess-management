@@ -1,5 +1,6 @@
 'use server';
 
+import { z } from 'zod';
 import { revalidatePath } from 'next/cache';
 import { prisma } from '@/lib/prisma';
 import { requireRole } from '@/lib/dal';
@@ -8,6 +9,7 @@ import {
   createBatchSchema,
   enrollStudentsSchema,
   unenrollStudentSchema,
+  updateBatchSchema,
   type CreateBatchInput,
 } from '@/lib/validation/batch';
 import type { ActionResult } from '@/lib/types';
@@ -145,6 +147,72 @@ export async function setBatchActiveState(batchId: string, isActive: boolean): P
   await requireRole(['ADMIN']);
 
   await prisma.batch.update({ where: { id: batchId }, data: { isActive } });
+
+  revalidatePath('/admin/batches');
+  return { success: true };
+}
+
+export async function updateBatch(input: z.infer<typeof updateBatchSchema>): Promise<ActionResult> {
+  await requireRole(['ADMIN']);
+
+  const parsed = updateBatchSchema.safeParse(input);
+  if (!parsed.success) {
+    return { success: false, error: parsed.error.issues[0]?.message ?? 'Invalid input.' };
+  }
+
+  const { batchId, name, code, meetLink, startDate, coachId, studentIds } = parsed.data;
+
+  const existingCode = await prisma.batch.findUnique({ where: { code } });
+  if (existingCode && existingCode.id !== batchId) {
+    return { success: false, error: 'A batch with this code already exists.' };
+  }
+
+  if (coachId) {
+    const coach = await prisma.user.findUnique({ where: { id: coachId } });
+    if (!coach || coach.role !== 'TEACHER') {
+      return { success: false, error: 'Selected coach is not valid.' };
+    }
+  }
+  
+  // Set the start date based on the input
+  let parsedStartDate: Date | null = null;
+  if (startDate) {
+    parsedStartDate = new Date(startDate);
+  }
+
+  await prisma.$transaction(async (tx) => {
+    // 1. Update batch details
+    await tx.batch.update({
+      where: { id: batchId },
+      data: {
+        name,
+        code,
+        meetLink,
+        startDate: parsedStartDate,
+        coachId: coachId || null,
+      },
+    });
+
+    // 2. Sync students: Delete all existing enrollments
+    await tx.batchStudent.deleteMany({
+      where: { batchId },
+    });
+
+    // 3. Sync students: Re-create enrollments for selected students
+    if (studentIds.length > 0) {
+      const validStudents = await tx.user.findMany({
+        where: { id: { in: studentIds }, role: 'STUDENT' },
+        select: { id: true },
+      });
+      
+      if (validStudents.length > 0) {
+        await tx.batchStudent.createMany({
+          data: validStudents.map((s) => ({ batchId, studentId: s.id })),
+          skipDuplicates: true,
+        });
+      }
+    }
+  });
 
   revalidatePath('/admin/batches');
   return { success: true };

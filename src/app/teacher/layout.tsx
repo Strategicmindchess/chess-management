@@ -16,6 +16,7 @@ export default async function TeacherLayout({
       role={Role.TEACHER}
       roleLabel={ROLE_LABEL.TEACHER}
       userName={user.name}
+      userEmail={user.email}
     >
       {children}
     </DashboardShell>

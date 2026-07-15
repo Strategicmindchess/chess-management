@@ -22,5 +22,7 @@ export const NAV_ITEMS: Record<Role, NavItem[]> = {
   ],
   [Role.STUDENT]: [
     { href: "/student", label: "Dashboard", icon: LayoutDashboard },
+    { href: "/student/my-classes", label: "My Classes", icon: CalendarDays },
+    { href: "/student/profile", label: "Profile", icon: Users },
   ],
 };

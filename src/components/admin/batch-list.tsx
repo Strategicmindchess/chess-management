@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, useRef } from "react";
 import { Ban, CheckCircle2, ExternalLink } from "lucide-react";
 import { setBatchActiveState } from "@/actions/batch-actions";
 import { Badge } from "@/components/ui/badge";
@@ -9,8 +9,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { Pagination } from "@/components/ui/pagination";
 import { WEEKDAY_LABEL } from "@/lib/constants";
 import type { Weekday } from "@/lib/enums";
-import { AssignCoachDialog } from "./assign-coach-dialog";
-import { ManageStudentsDialog } from "./manage-students-dialog";
+import { UpdateBatchDialog } from "./update-batch-dialog";
 import { AttendanceViewerDialog } from "./attendance-viewer-dialog";
 
 interface PersonOption {
@@ -35,6 +34,7 @@ export interface BatchItem {
   coach: PersonOption | null;
   schedules: ScheduleItem[];
   students: PersonOption[];
+  startDate?: Date | string | null;
 }
 
 export function BatchList({
@@ -66,7 +66,9 @@ export function BatchList({
     });
   }
 
-  if (batches.length === 0) {
+  const [searchValue, setSearchValue] = useState(searchParams?.query || "");
+
+  if (batches.length === 0 && !searchParams?.query) {
     return (
       <EmptyState
         title="No batches yet"
@@ -75,9 +77,45 @@ export function BatchList({
     );
   }
 
+  const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
   return (
     <div className="flex flex-col min-h-[640px] justify-between">
-      <div className="overflow-y-auto divide-y divide-slate-100 pr-2 pb-4">
+      <div className="space-y-3 p-5 border-b border-slate-100">
+        <div className="flex items-center gap-2 max-w-sm mb-2">
+          <form 
+            onSubmit={(e) => {
+              e.preventDefault();
+              const formData = new FormData(e.currentTarget);
+              const query = formData.get("query") as string;
+              const params = new URLSearchParams();
+              if (query) params.set("query", query);
+              window.location.href = `/admin/batches?${params.toString()}`;
+            }}
+            className="flex w-full gap-2"
+          >
+            <input
+              type="text"
+              name="query"
+              placeholder="Search by name or code..."
+              className="flex h-10 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm ring-offset-white file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-slate-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+              value={searchValue}
+              onChange={(e) => {
+                setSearchValue(e.target.value);
+                const form = e.currentTarget.form;
+                if (form) {
+                  if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
+                  searchTimeoutRef.current = setTimeout(() => {
+                    form.requestSubmit();
+                  }, 500);
+                }
+              }}
+            />
+            <Button type="submit" variant="secondary">Search</Button>
+          </form>
+        </div>
+      </div>
+      <div className="overflow-y-auto divide-y divide-slate-100 pr-2 pb-4 flex-1">
         {error && <p className="px-5 py-3 text-sm text-rose-600">{error}</p>}
         {batches.map((batch) => (
           <div key={batch.id} className="space-y-3 px-5 py-4">
@@ -137,16 +175,9 @@ export function BatchList({
             </div>
 
             <div className="flex flex-wrap gap-2 pt-1">
-              <AssignCoachDialog
-                batchId={batch.id}
-                batchName={batch.name}
-                currentCoachId={batch.coach?.id ?? null}
+              <UpdateBatchDialog
+                batch={batch as any}
                 coaches={coaches}
-              />
-              <ManageStudentsDialog
-                batchId={batch.id}
-                batchName={batch.name}
-                enrolledStudents={batch.students}
                 allStudents={students}
               />
               <AttendanceViewerDialog

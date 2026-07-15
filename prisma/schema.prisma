@@ -103,6 +103,7 @@ model CoachProfile {
 
   availabilities  CoachAvailability[] @relation("CoachAvailability")
   assignedStudents StudentProfile[]   @relation("StudentAssignedCoach")
+  rates           CoachRate?
   
   // Note: Batch coach relations are still linked directly to User to minimize refactoring, 
   // but if needed they can be migrated later.
@@ -111,6 +112,21 @@ model CoachProfile {
   updatedAt     DateTime  @updatedAt
 
   @@map("coach_profiles")
+}
+
+/// A coach's specific payout rates
+model CoachRate {
+  id               String       @id @default(cuid())
+  coachId          String       @unique
+  coach            CoachProfile @relation(fields: [coachId], references: [id], onDelete: Cascade)
+  
+  groupSessionRate Int          @default(0) // Standard rate per group batch session
+  privateRate      Int          @default(0) // Standard rate per 1-to-1 private session
+  
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+
+  @@map("coach_rates")
 }
 
 enum OtpPurpose {
@@ -158,6 +174,7 @@ model Batch {
   name      String
   code      String   @unique
   meetLink  String
+  startDate DateTime?
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
