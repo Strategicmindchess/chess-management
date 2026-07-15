@@ -9,6 +9,7 @@ import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { FieldError } from '@/components/ui/field-error';
 import { Input } from '@/components/ui/input';
+import { PasswordInput } from '@/components/ui/password-input';
 import { Label } from '@/components/ui/label';
 
 export function ChangePasswordForm() {
@@ -40,14 +41,13 @@ export function ChangePasswordForm() {
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
       <div>
         <Label htmlFor="currentPassword">Current password</Label>
-        <Input id="currentPassword" type="password" {...register('currentPassword')} />
+        <PasswordInput id="currentPassword" {...register('currentPassword')} />
         <FieldError message={errors.currentPassword?.message} />
       </div>
       <div>
         <Label htmlFor="newPassword">New password</Label>
-        <Input
+        <PasswordInput
           id="newPassword"
-          type="password"
           {...register('newPassword')}
           placeholder="At least 8 characters"
         />

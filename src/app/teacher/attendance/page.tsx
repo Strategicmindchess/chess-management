@@ -27,10 +27,13 @@ export default async function TeacherAttendancePage() {
   const today = new Date();
   const currentWeekday = getJsDayToEnum(today.getDay());
 
+  const coachProfile = user.coachProfile;
+  if (!coachProfile) return <div>Coach profile not found.</div>;
+
   // Get all batches for this coach that have a schedule TODAY
   const batches = await prisma.batch.findMany({
     where: {
-      coachId: user.id,
+      coachProfileId: coachProfile.id,
       isActive: true,
       schedules: {
         some: { day: currentWeekday }
@@ -42,7 +45,11 @@ export default async function TeacherAttendancePage() {
       },
       students: {
         include: {
-          student: { select: { id: true, name: true, email: true } }
+          student: {
+            include: {
+              user: { select: { id: true, name: true, email: true } }
+            }
+          }
         }
       }
     },
@@ -88,7 +95,7 @@ export default async function TeacherAttendancePage() {
                       <MarkClassHeldDialog 
                         batchId={batch.id}
                         batchName={batch.name}
-                        students={batch.students.map(s => s.student)}
+                        students={batch.students.map(s => ({ id: s.student.id, name: s.student.user.name }))}
                         scheduleStartTime={schedule.startTime}
                         scheduleEndTime={schedule.endTime}
                       />

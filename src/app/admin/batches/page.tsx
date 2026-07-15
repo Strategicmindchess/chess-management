@@ -29,43 +29,53 @@ export default async function AdminBatchesPage({
       }
     : {};
 
-  const [batches, totalBatches, coachesData, students] = await Promise.all([
+  const [batches, totalBatches, coachesData, studentsData] = await Promise.all([
     prisma.batch.findMany({
       where,
       orderBy: [{ isActive: "desc" }, { name: "asc" }],
       take,
       skip,
       include: {
-        coach: { select: { id: true, name: true, email: true } },
+        coach: { include: { user: { select: { id: true, name: true, email: true } } } },
         schedules: { orderBy: { startTime: "asc" } },
         students: {
           include: {
-            student: { select: { id: true, name: true, email: true } },
+            student: { include: { user: { select: { id: true, name: true, email: true } } } },
           },
         },
       },
     }),
     prisma.batch.count({ where }),
-    prisma.user.findMany({
-      where: { role: Role.TEACHER, isActive: true },
-      select: { 
-        id: true, 
-        name: true, 
-        email: true,
+    prisma.coachProfile.findMany({
+      where: { user: { isActive: true } },
+      include: { 
+        user: { select: { name: true, email: true } },
+        availabilities: true
       },
-      orderBy: { name: "asc" },
+      orderBy: { user: { name: "asc" } },
     }),
-    prisma.user.findMany({
-      where: { role: Role.STUDENT, isActive: true },
-      select: { id: true, name: true, email: true },
-      orderBy: { name: "asc" },
+    prisma.studentProfile.findMany({
+      where: { user: { isActive: true } },
+      include: { user: { select: { name: true, email: true } } },
+      orderBy: { user: { name: "asc" } },
     })
   ]);
 
-  const coaches = coachesData.map(coach => ({
-    id: coach.id,
-    name: coach.name,
-    email: coach.email,
+  const coaches = coachesData.map(c => ({
+    id: c.id,
+    name: c.user.name,
+    email: c.user.email,
+    availabilities: c.availabilities.map(a => ({
+      date: a.date.toISOString(),
+      startTime: a.startTime,
+      endTime: a.endTime,
+    })),
+  }));
+
+  const students = studentsData.map((s) => ({
+    id: s.id,
+    name: s.user.name,
+    email: s.user.email,
   }));
 
   const batchItems = batches.map((batch) => ({
@@ -75,14 +85,14 @@ export default async function AdminBatchesPage({
     meetLink: batch.meetLink,
     isActive: batch.isActive,
     startDate: batch.startDate,
-    coach: batch.coach,
+    coach: batch.coach ? { id: batch.coach.id, name: batch.coach.user.name, email: batch.coach.user.email } : null,
     schedules: batch.schedules.map((slot) => ({
       id: slot.id,
       day: slot.day,
       startTime: slot.startTime,
       endTime: slot.endTime,
     })),
-    students: batch.students.map((enrollment) => enrollment.student),
+    students: batch.students.map((bs) => ({ id: bs.student.id, name: bs.student.user.name, email: bs.student.user.email })),
   }));
 
   const totalPages = Math.ceil(totalBatches / take);

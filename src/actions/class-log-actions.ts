@@ -36,14 +36,14 @@ export async function submitClassLog(input: SubmitClassLogInput) {
   try {
     const batch = await prisma.batch.findUnique({
       where: { id: data.batchId },
-      select: { coachId: true, payoutRate: true },
+      select: { coachProfileId: true, payoutRate: true },
     });
 
     if (!batch) {
       return { success: false, error: "Batch not found" };
     }
 
-    if (batch.coachId !== user.id) {
+    if (!user.coachProfile || batch.coachProfileId !== user.coachProfile.id) {
       return { success: false, error: "You are not assigned to this batch" };
     }
 
@@ -51,7 +51,7 @@ export async function submitClassLog(input: SubmitClassLogInput) {
       const classLog = await tx.classLog.create({
         data: {
           batchId: data.batchId,
-          coachId: user.id,
+          coachProfileId: user.coachProfile!.id,
           date: new Date(data.date),
           topicCovered: data.topicCovered,
           durationMins: data.durationMins,
@@ -63,7 +63,7 @@ export async function submitClassLog(input: SubmitClassLogInput) {
         await tx.attendanceRecord.createMany({
           data: data.attendance.map((att) => ({
             classLogId: classLog.id,
-            studentId: att.studentId,
+            studentProfileId: att.studentId,
             status: att.status,
           })),
         });
@@ -88,10 +88,10 @@ export async function getBatchClassLogs(batchId: string) {
     const logs = await prisma.classLog.findMany({
       where: { batchId },
       include: {
-        coach: { select: { name: true } },
+        coach: { include: { user: { select: { name: true } } } },
         attendance: {
           include: {
-            student: { select: { name: true } },
+            student: { include: { user: { select: { name: true } } } },
           },
         },
       },

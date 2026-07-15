@@ -8,8 +8,11 @@ import { Badge } from "@/components/ui/badge";
 export default async function TeacherPayoutsPage() {
   const user = await requireRole([Role.TEACHER]);
 
+  const coachProfile = user.coachProfile;
+  if (!coachProfile) return <div>Coach profile not found.</div>;
+
   const classLogs = await prisma.classLog.findMany({
-    where: { coachId: user.id },
+    where: { coachProfileId: coachProfile.id },
     include: {
       batch: { select: { id: true, name: true, code: true } },
       attendance: { select: { id: true } }, // just to get student count

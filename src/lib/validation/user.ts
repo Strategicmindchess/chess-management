@@ -3,12 +3,12 @@ import { z } from "zod";
 const TIME_REGEX = /^([01]\d|2[0-3]):([0-5]\d)$/;
 
 export const createStaffUserSchema = z.object({
-  name: z.string().trim().min(2, "Name must be at least 2 characters."),
+  name: z.string().trim().min(2, "Name must be at least 2 characters.").max(20, "Name must be at most 20 characters.").refine(val => !val.startsWith('_'), "Name cannot start with an underscore."),
   email: z.string().trim().toLowerCase().email("Enter a valid email address."),
   phone: z
     .string()
     .trim()
-    .regex(/^[0-9+\-\s]{7,15}$/, "Enter a valid phone number.")
+    .regex(/^\d{10}$/, "Phone number must be exactly 10 digits.")
     .optional()
     .or(z.literal("")),
   password: z
@@ -22,7 +22,7 @@ export const createStaffUserSchema = z.object({
   parentPhone: z
     .string()
     .trim()
-    .regex(/^[0-9+\-\s]{7,15}$/, "Enter a valid phone number.")
+    .regex(/^\d{10}$/, "Phone number must be exactly 10 digits.")
     .optional()
     .or(z.literal("")),
   city: z.string().trim().optional().or(z.literal("")),

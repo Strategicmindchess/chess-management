@@ -5,6 +5,7 @@ import { login, type LoginActionState } from "@/actions/auth/login";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
 import { GoogleButton } from "./google-button";
 
@@ -46,10 +47,9 @@ export function LoginForm() {
               Forgot password?
             </a>
           </div>
-          <Input
+          <PasswordInput
             id="password"
             name="password"
-            type="password"
             autoComplete="current-password"
             required
             placeholder="••••••••"

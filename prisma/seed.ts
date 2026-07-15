@@ -55,15 +55,10 @@ async function main() {
           create: {
             bio: `Experienced chess coach ${i}`,
             city: "Jhansi",
-            availabilities: {
-              create: [
-                { dayOfWeek: Weekday.MONDAY, startTime: "16:00", endTime: "18:00" },
-                { dayOfWeek: Weekday.WEDNESDAY, startTime: "16:00", endTime: "18:00" },
-              ]
-            }
           }
         }
       },
+      include: { coachProfile: true },
     });
     coaches.push(coach);
   }
@@ -96,6 +91,7 @@ async function main() {
           }
         }
       },
+      include: { studentProfile: true },
     });
     students.push(student);
   }
@@ -113,7 +109,7 @@ async function main() {
         name: `Batch ${i} Beginners`,
         code: batchCode,
         meetLink: `https://meet.google.com/demo-batch-${i}`,
-        coachId: assignedCoach.id,
+        coachProfileId: assignedCoach.coachProfile?.id,
         schedules: {
           create: [
             { day: Weekday.SATURDAY, startTime: "10:00", endTime: "11:00" },
@@ -124,16 +120,13 @@ async function main() {
     });
 
     // Enroll 10 distinct students in this batch
-    // We'll just slice the students array: batch 1 gets 0-9, batch 2 gets 10-19, etc.
-    const batchStudents = students.slice((i - 1) * 5, (i - 1) * 5 + 10); // Wait, 10*5 = 50. Wait! If I take 10 students per batch, batch 1 gets 0-9, batch 2 gets 10-19... batch 5 gets 40-49. What about batches 6-10?
-    // Let's just cycle them or enroll randomly. Using modulo:
     for (let j = 0; j < 10; j++) {
       const studentIndex = ((i - 1) * 10 + j) % 50;
       const student = students[studentIndex];
       await prisma.batchStudent.upsert({
-        where: { batchId_studentId: { batchId: batch.id, studentId: student.id } },
+        where: { batchId_studentProfileId: { batchId: batch.id, studentProfileId: student.studentProfile?.id! } },
         update: {},
-        create: { batchId: batch.id, studentId: student.id },
+        create: { batchId: batch.id, studentProfileId: student.studentProfile?.id! },
       });
     }
   }

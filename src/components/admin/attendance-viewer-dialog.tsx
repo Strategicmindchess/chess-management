@@ -20,10 +20,10 @@ type ClassLog = {
   topicCovered: string;
   durationMins: number;
   payoutAmount: number;
-  coach: { name: string };
+  coach: { user: { name: string } };
   attendance: {
     status: string;
-    student: { name: string };
+    student: { user: { name: string } };
   }[];
 };
 
@@ -86,7 +86,7 @@ export function AttendanceViewerDialog({ batchId, batchName }: AttendanceViewerP
                     </div>
                     <div className="text-right flex flex-col items-end gap-1">
                       <Badge variant="neutral">{log.durationMins} mins</Badge>
-                      <p className="text-xs text-slate-500">Coach: {log.coach.name}</p>
+                      <p className="text-xs text-slate-500">Coach: {log.coach.user.name}</p>
                     </div>
                   </div>
                   
@@ -100,7 +100,7 @@ export function AttendanceViewerDialog({ batchId, batchName }: AttendanceViewerP
                       <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                         {log.attendance.map((att, i) => (
                           <li key={i} className="flex items-center justify-between text-sm">
-                            <span className="text-slate-700">{att.student.name}</span>
+                            <span className="text-slate-700">{att.student.user.name}</span>
                             <Badge variant={att.status === AttendanceStatus.PRESENT ? "success" : "danger"}>
                               {att.status === AttendanceStatus.PRESENT ? "Present" : "Absent"}
                             </Badge>

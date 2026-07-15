@@ -20,7 +20,7 @@ interface CoachOption {
   id: string;
   name: string;
   email: string;
-  availabilities?: { dayOfWeek: string; startTime: string; endTime: string }[];
+  availabilities?: { date: string; startTime: string; endTime: string }[];
 }
 
 export function CreateBatchButton({ coaches }: { coaches: CoachOption[] }) {
@@ -80,6 +80,10 @@ function CreateBatchForm({
 
   const { fields, append, remove } = useFieldArray({ control, name: 'schedules' });
   const selectedCoachId = useWatch({ control, name: 'coachId' });
+console.log("selectedCoachId:", selectedCoachId);
+  function handleCreateMeetLink() {
+    window.open('https://meet.google.com/new', '_blank');
+  }
 
   async function onSubmit(values: CreateBatchInput) {
     setServerError(null);
@@ -109,7 +113,16 @@ function CreateBatchForm({
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div>
           <Label htmlFor="meetLink">Google Meet link</Label>
-          <Input id="meetLink" {...register('meetLink')} placeholder="https://meet.google.com/xxx-xxxx-xxx" />
+          <div className="flex gap-2">
+            <Input id="meetLink" {...register('meetLink')} placeholder="https://meet.google.com/xxx-xxxx-xxx" />
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={handleCreateMeetLink}
+            >
+              Get Link
+            </Button>
+          </div>
           <FieldError message={errors.meetLink?.message} />
         </div>
         <div>
@@ -134,6 +147,7 @@ function CreateBatchForm({
             </option>
           ))}
         </Select>
+
         {selectedCoachId && (
           (() => {
             const selectedCoach = coaches.find(c => c.id === selectedCoachId);
@@ -144,7 +158,7 @@ function CreateBatchForm({
                   <ul className="space-y-1">
                     {selectedCoach.availabilities.map((slot, i) => (
                       <li key={i}>
-                        {WEEKDAY_OPTIONS.find(o => o.value === slot.dayOfWeek)?.label} {slot.startTime}–{slot.endTime}
+                        {new Date(slot.date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })} {slot.startTime}–{slot.endTime}
                       </li>
                     ))}
                   </ul>

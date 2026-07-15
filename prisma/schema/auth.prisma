@@ -1,21 +1,16 @@
-enum OtpPurpose {
-  SIGNUP_VERIFICATION
-  PASSWORD_RESET
-}
-
 /// A short-lived one-time code emailed to a user, used for signup email
 /// verification and for password resets. The code itself is never stored in
 /// plain text.
 model OtpCode {
   id         String     @id @default(cuid())
   userId     String
-  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
   purpose    OtpPurpose
   codeHash   String
   attempts   Int        @default(0)
   consumedAt DateTime?
   expiresAt  DateTime
   createdAt  DateTime   @default(now())
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, purpose])
   @@map("otp_codes")
@@ -27,12 +22,17 @@ model OtpCode {
 model RefreshToken {
   id        String    @id @default(cuid())
   userId    String
-  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   tokenHash String    @unique
   expiresAt DateTime
   revokedAt DateTime?
   createdAt DateTime  @default(now())
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@map("refresh_tokens")
+}
+
+enum OtpPurpose {
+  SIGNUP_VERIFICATION
+  PASSWORD_RESET
 }

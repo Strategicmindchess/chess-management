@@ -13,26 +13,23 @@ import { StartBatchButton } from "@/components/coach/start-batch-button";
 export default async function TeacherBatchesPage() {
   const user = await requireRole([Role.TEACHER]);
 
+  const coachProfile = user.coachProfile;
+  if (!coachProfile) return <div>Coach profile not found.</div>;
+
   const batches = await prisma.batch.findMany({
-    where: { coachId: user.id, isActive: true },
+    where: { coachProfileId: coachProfile.id, isActive: true },
     include: {
       schedules: { orderBy: { startTime: "asc" } },
       students: {
         include: {
           student: {
-            select: {
-              id: true,
-              name: true,
-              email: true,
-              phone: true,
-              studentProfile: {
+            include: {
+              user: {
                 select: {
-                  chessComId: true,
-                  lichessId: true,
-                  rating: true,
-                  city: true,
-                  parentName: true,
-                  parentPhone: true,
+                  id: true,
+                  name: true,
+                  email: true,
+                  phone: true,
                 },
               },
             },
@@ -85,7 +82,20 @@ export default async function TeacherBatchesPage() {
                     <div className="grid grid-cols-2 gap-2">
                       <ViewStudentsDialog 
                         batchName={batch.name}
-                        students={batch.students.map((s) => s.student)}
+                        students={batch.students.map((s) => ({
+                          id: s.student.id,
+                          name: s.student.user.name,
+                          email: s.student.user.email,
+                          phone: s.student.user.phone,
+                          studentProfile: {
+                            chessComId: s.student.chessComId,
+                            lichessId: s.student.lichessId,
+                            rating: s.student.rating,
+                            city: s.student.city,
+                            parentName: s.student.parentName,
+                            parentPhone: s.student.parentPhone,
+                          },
+                        }))}
                       />
                       <Button variant="secondary" size="sm" className="w-full text-xs">
                         <CalendarSync className="mr-1 h-3.5 w-3.5" />

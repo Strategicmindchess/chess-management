@@ -12,7 +12,7 @@ export default async function AdminDashboardPage() {
       prisma.user.count({ where: { role: Role.STUDENT, isActive: true } }),
       prisma.user.count({ where: { role: Role.TEACHER, isActive: true } }),
       prisma.batch.count({ where: { isActive: true } }),
-      prisma.batch.count({ where: { isActive: true, coachId: null } }),
+      prisma.batch.count({ where: { isActive: true, coachProfileId: null } }),
     ]);
 
   const stats = [

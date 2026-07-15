@@ -6,6 +6,7 @@ import { resetPassword } from '@/actions/auth/reset-password';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { PasswordInput } from '@/components/ui/password-input';
 import { Label } from '@/components/ui/label';
 import { OtpInput } from './otp-input';
 
@@ -45,9 +46,8 @@ export function ResetPasswordForm() {
       </div>
       <div>
         <Label htmlFor="password">New password</Label>
-        <Input
+        <PasswordInput
           id="password"
-          type="password"
           value={password}
           onChange={(event) => setPassword(event.target.value)}
           placeholder="At least 8 characters"

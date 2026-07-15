@@ -10,12 +10,19 @@ import { WEEKDAY_LABEL } from "@/lib/constants";
 export default async function StudentMyClassesPage() {
   const user = await requireRole([Role.STUDENT]);
 
+  const studentProfile = user.studentProfile;
+  if (!studentProfile) return <div>Student profile not found.</div>;
+
   const enrollments = await prisma.batchStudent.findMany({
-    where: { studentId: user.id, batch: { isActive: true } },
+    where: { studentProfileId: studentProfile.id, batch: { isActive: true } },
     include: {
       batch: {
         include: {
-          coach: { select: { name: true } },
+          coach: {
+            include: {
+              user: { select: { name: true } },
+            },
+          },
           schedules: { orderBy: { startTime: "asc" } },
         },
       },
@@ -58,7 +65,7 @@ export default async function StudentMyClassesPage() {
                   <p className="text-sm text-slate-500">
                     Coach:{" "}
                     <span className="font-medium text-slate-700">
-                      {batch.coach?.name ?? "To be announced"}
+                      {batch.coach?.user?.name ?? "To be announced"}
                     </span>
                   </p>
                   <div className="flex flex-wrap gap-1.5">

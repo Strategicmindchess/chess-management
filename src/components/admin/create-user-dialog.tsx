@@ -10,8 +10,10 @@ import { createStaffUserSchema, type CreateStaffUserInput } from '@/lib/validati
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Dialog } from '@/components/ui/dialog';
+import { Checkbox } from '@/components/ui/checkbox';
 import { FieldError } from '@/components/ui/field-error';
 import { Input } from '@/components/ui/input';
+import { PasswordInput } from '@/components/ui/password-input';
 import { Label } from '@/components/ui/label';
 import { Select } from '@/components/ui/select';
 
@@ -93,9 +95,8 @@ function CreateUserForm({ onSuccess }: { onSuccess: () => void }) {
       </div>
       <div>
         <Label htmlFor="password">Temporary password</Label>
-        <Input
+        <PasswordInput
           id="password"
-          type="password"
           {...register('password')}
           placeholder="At least 8 characters"
         />
