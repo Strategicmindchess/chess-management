@@ -31,7 +31,7 @@ export default async function AdminUsersPage({
   const take = 20;
   const skip = (currentPage - 1) * take;
 
-  const whereClause: import("@prisma/client").Prisma.UserWhereInput =
+  const whereClause: import("@/generated/prisma/client").Prisma.UserWhereInput =
     activeTab === "ALL"
       ? { role: { in: [Role.TEACHER, Role.STUDENT] } }
       : { role: activeTab };
@@ -57,7 +57,7 @@ export default async function AdminUsersPage({
         role: true,
         isActive: true,
         studentProfile: { select: { city: true, chessComRating: true, lichessRating: true } },
-        coachProfile: { select: { city: true, bio: true, experience: true, rates: { select: { groupSessionRate: true, privateRate: true } } } },
+        coachProfile: { select: { city: true, bio: true, experience: true, chessComRating: true, lichessRating: true } },
       },
     }),
     prisma.user.count({ where: whereClause }),
@@ -71,10 +71,8 @@ export default async function AdminUsersPage({
     role: u.role,
     isActive: u.isActive,
     city: u.studentProfile?.city || u.coachProfile?.city || null,
-    chessComRating: u.studentProfile?.chessComRating ?? null,
-    lichessRating: u.studentProfile?.lichessRating ?? null,
-    groupSessionRate: u.coachProfile?.rates?.groupSessionRate ?? null,
-    privateRate: u.coachProfile?.rates?.privateRate ?? null,
+    chessComRating: u.studentProfile?.chessComRating ?? u.coachProfile?.chessComRating ?? null,
+    lichessRating: u.studentProfile?.lichessRating ?? u.coachProfile?.lichessRating ?? null,
     bio: u.coachProfile?.bio ?? null,
     experience: u.coachProfile?.experience ?? null,
   }));

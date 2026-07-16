@@ -15,7 +15,8 @@ const updateProfileSchema = z.object({
   city: z.string().optional().or(z.literal("")),
   chessComId: z.string().optional().or(z.literal("")),
   lichessId: z.string().optional().or(z.literal("")),
-  rating: z.string().optional().transform(v => v ? parseInt(v, 10) : null),
+  chessComRating: z.string().optional().transform(v => v ? parseInt(v, 10) : null),
+  lichessRating: z.string().optional().transform(v => v ? parseInt(v, 10) : null),
   // Coach fields
   bio: z.string().optional().or(z.literal("")),
   experience: z.string().optional().or(z.literal("")),
@@ -31,7 +32,8 @@ export async function updateProfile(formData: FormData) {
     city: formData.get("city"),
     chessComId: formData.get("chessComId"),
     lichessId: formData.get("lichessId"),
-    rating: formData.get("rating"),
+    chessComRating: formData.get("chessComRating"),
+    lichessRating: formData.get("lichessRating"),
     bio: formData.get("bio"),
     experience: formData.get("experience"),
   });
@@ -62,7 +64,8 @@ export async function updateProfile(formData: FormData) {
           city: data.city || null,
           chessComId: data.chessComId || null,
           lichessId: data.lichessId || null,
-          rating: data.rating,
+          chessComRating: data.chessComRating,
+          lichessRating: data.lichessRating,
         },
       });
     } else if (user.role === Role.TEACHER && user.coachProfile) {

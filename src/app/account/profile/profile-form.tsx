@@ -21,12 +21,17 @@ export function ProfileForm({
       parentPhone: string | null;
       chessComId: string | null;
       lichessId: string | null;
-      rating: number | null;
+      chessComRating: number | null;
+      lichessRating: number | null;
     } | null;
     coachProfile?: {
       bio: string | null;
       experience: string | null;
       city: string | null;
+      chessComId: string | null;
+      lichessId: string | null;
+      chessComRating: number | null;
+      lichessRating: number | null;
     } | null;
   };
 }) {
@@ -101,17 +106,26 @@ export function ProfileForm({
         </div>
       </div>
 
-      {user.role === Role.STUDENT && (
+      {(user.role === Role.STUDENT || user.role === Role.TEACHER) && (
         <>
           <div className="space-y-4 pt-2">
             <h3 className="text-sm font-medium text-slate-900 border-b pb-2">Chess Details</h3>
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="chessComId">Chess.com ID</Label>
                 <Input
                   id="chessComId"
                   name="chessComId"
-                  defaultValue={user.studentProfile?.chessComId || ""}
+                  defaultValue={user.studentProfile?.chessComId || user.coachProfile?.chessComId || ""}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="chessComRating">Chess.com Rating</Label>
+                <Input
+                  id="chessComRating"
+                  name="chessComRating"
+                  type="number"
+                  defaultValue={user.studentProfile?.chessComRating || user.coachProfile?.chessComRating || ""}
                 />
               </div>
               <div className="space-y-2">
@@ -119,16 +133,16 @@ export function ProfileForm({
                 <Input
                   id="lichessId"
                   name="lichessId"
-                  defaultValue={user.studentProfile?.lichessId || ""}
+                  defaultValue={user.studentProfile?.lichessId || user.coachProfile?.lichessId || ""}
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="rating">Current Rating</Label>
+                <Label htmlFor="lichessRating">Lichess Rating</Label>
                 <Input
-                  id="rating"
-                  name="rating"
+                  id="lichessRating"
+                  name="lichessRating"
                   type="number"
-                  defaultValue={user.studentProfile?.rating || ""}
+                  defaultValue={user.studentProfile?.lichessRating || user.coachProfile?.lichessRating || ""}
                 />
               </div>
             </div>

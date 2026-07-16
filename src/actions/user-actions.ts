@@ -79,6 +79,10 @@ export async function createStaffUser(
             coachProfile: {
               create: {
                 city: city || null,
+                chessComId: chessComId || null,
+                lichessId: lichessId || null,
+                chessComRating: isNaN(chessComRating as number) ? null : chessComRating,
+                lichessRating: isNaN(lichessRating as number) ? null : lichessRating,
               },
             },
           }

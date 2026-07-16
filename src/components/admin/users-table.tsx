@@ -28,8 +28,6 @@ export interface UserRow {
   city?: string | null;
   chessComRating?: number | null;
   lichessRating?: number | null;
-  groupSessionRate?: number | null;
-  privateRate?: number | null;
   bio?: string | null;
   experience?: string | null;
 }

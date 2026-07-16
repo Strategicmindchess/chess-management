@@ -41,32 +41,22 @@ model StudentProfile {
   @@map("student_profiles")
 }
 
-/// A coach's specific payout rates
-model CoachRate {
-  id               String       @id @default(cuid())
-  coachId          String       @unique
-  groupSessionRate Int          @default(0)
-  privateRate      Int          @default(0)
-  createdAt        DateTime     @default(now())
-  updatedAt        DateTime     @updatedAt
-  coach            CoachProfile @relation(fields: [coachId], references: [id], onDelete: Cascade)
-
-  @@map("coach_rates")
-}
-
 model CoachProfile {
   id               String              @id @default(cuid())
   userId           String              @unique
   bio              String?
   experience       String?
   city             String?
+  chessComId       String?
+  lichessId        String?
+  chessComRating   Int?
+  lichessRating    Int?
   createdAt        DateTime            @default(now())
   updatedAt        DateTime            @updatedAt
   batches          Batch[]             @relation("BatchCoach")
   classLogs        ClassLog[]
   availabilities   CoachAvailability[] @relation("CoachAvailability")
   user             User                @relation(fields: [userId], references: [id], onDelete: Cascade)
-  rates            CoachRate?
   assignedStudents StudentProfile[]    @relation("StudentAssignedCoach")
 
   @@map("coach_profiles")

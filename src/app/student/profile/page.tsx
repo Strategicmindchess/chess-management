@@ -8,7 +8,7 @@ export default async function StudentProfilePage() {
 
   const userWithProfile = await prisma.user.findUnique({
     where: { id: user.id },
-    include: { studentProfile: { select: { chessComId: true, lichessId: true, rating: true, city: true } } },
+    include: { studentProfile: { select: { chessComId: true, lichessId: true, chessComRating: true, lichessRating: true, city: true } } },
   });
 
   const studentDetails = userWithProfile?.studentProfile;
@@ -33,16 +33,20 @@ export default async function StudentProfilePage() {
                 <p className="font-medium text-slate-900">{studentDetails.city || "—"}</p>
               </div>
               <div>
-                <p className="text-slate-500">Rating</p>
-                <p className="font-medium text-slate-900">{studentDetails.rating ?? "—"}</p>
-              </div>
-              <div>
-                <p className="text-slate-500">Chess.com</p>
+                <p className="text-slate-500">Chess.com ID</p>
                 <p className="font-medium text-slate-900">{studentDetails.chessComId || "—"}</p>
               </div>
               <div>
-                <p className="text-slate-500">Lichess</p>
+                <p className="text-slate-500">Chess.com Rating</p>
+                <p className="font-medium text-slate-900">{studentDetails.chessComRating ?? "—"}</p>
+              </div>
+              <div>
+                <p className="text-slate-500">Lichess ID</p>
                 <p className="font-medium text-slate-900">{studentDetails.lichessId || "—"}</p>
+              </div>
+              <div>
+                <p className="text-slate-500">Lichess Rating</p>
+                <p className="font-medium text-slate-900">{studentDetails.lichessRating ?? "—"}</p>
               </div>
             </div>
           </CardContent>

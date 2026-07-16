@@ -128,7 +128,8 @@ export default async function TeacherBatchesPage() {
                           studentProfile: {
                             chessComId: s.student.chessComId,
                             lichessId: s.student.lichessId,
-                            rating: s.student.rating,
+                            chessComRating: s.student.chessComRating,
+                            lichessRating: s.student.lichessRating,
                             city: s.student.city,
                             parentName: s.student.parentName,
                             parentPhone: s.student.parentPhone,

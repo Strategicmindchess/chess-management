@@ -90,7 +90,7 @@ export function UserDetailDialog({
             </div>
           </div>
 
-          {user.role === Role.STUDENT && (
+          {(user.role === Role.STUDENT || user.role === Role.TEACHER) && (
             <>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
@@ -107,30 +107,6 @@ export function UserDetailDialog({
 
           {user.role === Role.TEACHER && (
             <>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="groupSessionRate">Group Session Rate (₹)</Label>
-                  <Input
-                    id="groupSessionRate"
-                    name="groupSessionRate"
-                    type="number"
-                    min="0"
-                    defaultValue={user.groupSessionRate ?? ""}
-                    placeholder="e.g. 300"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="privateRate">1-to-1 Private Rate (₹)</Label>
-                  <Input
-                    id="privateRate"
-                    name="privateRate"
-                    type="number"
-                    min="0"
-                    defaultValue={user.privateRate ?? ""}
-                    placeholder="e.g. 600"
-                  />
-                </div>
-              </div>
               <div className="space-y-2">
                 <Label htmlFor="experience">Experience</Label>
                 <Input

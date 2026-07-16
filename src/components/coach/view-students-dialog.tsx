@@ -13,7 +13,8 @@ type StudentDetails = {
   studentProfile: {
     chessComId: string | null;
     lichessId: string | null;
-    rating: number | null;
+    chessComRating: number | null;
+    lichessRating: number | null;
     city: string | null;
     parentName: string | null;
     parentPhone: string | null;
@@ -70,9 +71,14 @@ export function ViewStudentsDialog({ batchName, students }: ViewStudentsDialogPr
                         <span className="font-medium">City:</span> {student.studentProfile.city}
                       </div>
                     )}
-                    {student.studentProfile?.rating && (
-                      <div>
-                        <span className="font-medium">Rating:</span> {student.studentProfile.rating}
+                    {(student.studentProfile?.chessComRating || student.studentProfile?.lichessRating) && (
+                      <div className="flex gap-4">
+                        <div>
+                          <span className="font-medium">Chess.com:</span> {student.studentProfile.chessComRating ?? "N/A"}
+                        </div>
+                        <div>
+                          <span className="font-medium">Lichess:</span> {student.studentProfile.lichessRating ?? "N/A"}
+                        </div>
                       </div>
                     )}
                     {student.studentProfile?.chessComId && (
