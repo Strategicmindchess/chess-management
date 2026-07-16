@@ -3,7 +3,7 @@
 import { z } from 'zod';
 import { revalidatePath } from 'next/cache';
 import { prisma } from '@/lib/prisma';
-import { requireRole } from '@/lib/dal';
+import { requireRole, getCurrentUser } from '@/lib/dal';
 import { Weekday } from '@/lib/enums';
 import { addWeeks, nextDay, startOfDay } from 'date-fns';
 import type { Day } from 'date-fns';
@@ -194,14 +194,23 @@ export async function setBatchActiveState(batchId: string, isActive: boolean): P
 }
 
 export async function updateBatch(input: z.infer<typeof updateBatchSchema>): Promise<ActionResult> {
-  await requireRole(['ADMIN']);
+  // Let this action be called, but we will explicitly check roles for sensitive operations
+  const user = await getCurrentUser();
+  if (user.role !== 'ADMIN' && user.role !== 'TEACHER') {
+    return { success: false, error: 'Unauthorized' };
+  }
 
   const parsed = updateBatchSchema.safeParse(input);
   if (!parsed.success) {
     return { success: false, error: parsed.error.issues[0]?.message ?? 'Invalid input.' };
   }
 
-  const { batchId, name, code, meetLink, startDate, coachId, studentIds } = parsed.data;
+  const { batchId, name, code, meetLink, startDate, coachId, studentIds, payoutRate } = parsed.data;
+
+  const existingBatch = await prisma.batch.findUnique({ where: { id: batchId } });
+  if (!existingBatch) {
+    return { success: false, error: 'Batch not found.' };
+  }
 
   const existingCode = await prisma.batch.findUnique({ where: { code } });
   if (existingCode && existingCode.id !== batchId) {
@@ -215,10 +224,19 @@ export async function updateBatch(input: z.infer<typeof updateBatchSchema>): Pro
     }
   }
 
-  // Set the start date based on the input
   let parsedStartDate: Date | null = null;
   if (startDate) {
     parsedStartDate = new Date(startDate);
+  }
+
+  // Security check: Payouts can never be decreased. Only Admins can increase them.
+  if (payoutRate !== undefined) {
+    if (payoutRate < existingBatch.payoutRate) {
+      return { success: false, error: 'Payout rate cannot be decreased.' };
+    }
+    if (payoutRate > existingBatch.payoutRate && user.role !== 'ADMIN') {
+      return { success: false, error: 'Only an admin can increase the payout rate.' };
+    }
   }
 
   await prisma.$transaction(async (tx) => {
@@ -231,6 +249,7 @@ export async function updateBatch(input: z.infer<typeof updateBatchSchema>): Pro
         meetLink,
         startDate: parsedStartDate,
         coachProfileId: coachId || null,
+        ...(payoutRate !== undefined ? { payoutRate } : {}),
       },
     });
 

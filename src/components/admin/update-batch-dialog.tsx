@@ -65,6 +65,7 @@ export function UpdateBatchDialog({
       code: formData.get("code") as string,
       meetLink: formData.get("meetLink") as string,
       startDate: formData.get("startDate") as string,
+      payoutRate: formData.get("payoutRate") ? Number(formData.get("payoutRate")) : undefined,
       coachId: coachId,
       studentIds: Array.from(selectedStudents),
     };
@@ -133,6 +134,18 @@ export function UpdateBatchDialog({
                   defaultValue={batch.startDate ? new Date(batch.startDate).toISOString().split('T')[0] : ""}
                 />
               </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="payoutRate">Payout Rate (Rs. per session)</Label>
+              <Input
+                id="payoutRate"
+                name="payoutRate"
+                type="number"
+                min={batch.payoutRate || 0}
+                // @ts-ignore
+                defaultValue={batch.payoutRate || 0}
+              />
             </div>
           </div>
 

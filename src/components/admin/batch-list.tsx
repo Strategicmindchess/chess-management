@@ -34,6 +34,7 @@ export interface BatchItem {
   coach: PersonOption | null;
   schedules: ScheduleItem[];
   students: PersonOption[];
+  payoutRate: number;
   startDate?: Date | string | null;
 }
 

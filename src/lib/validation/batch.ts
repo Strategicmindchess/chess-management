@@ -61,5 +61,6 @@ export const updateBatchSchema = z.object({
   meetLink: z.string().trim().url("Enter a valid URL."),
   startDate: z.string().optional().or(z.literal("")),
   coachId: z.string().trim().optional().or(z.literal("")),
+  payoutRate: z.coerce.number().min(0, "Payout rate must be at least 0.").optional(),
   studentIds: z.array(z.string()),
 });

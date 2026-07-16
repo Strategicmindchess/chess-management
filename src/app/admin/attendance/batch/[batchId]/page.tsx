@@ -7,20 +7,33 @@ import { ChevronLeft } from "lucide-react";
 import { ClassLogExpandableRow } from "./class-log-row";
 import { Badge } from "@/components/ui/badge";
 
+import { startOfMonth, endOfMonth, parseISO } from "date-fns";
+import { MonthPicker } from "@/components/ui/month-picker";
+
 export default async function BatchAttendanceDetailsPage({
   params,
+  searchParams
 }: {
   params: Promise<{ batchId: string }>;
+  searchParams: Promise<{ month?: string }>;
 }) {
   await requireRole([Role.ADMIN]);
   
   const { batchId } = await params;
+  const { month } = await searchParams;
+
+  const targetMonth = month ? parseISO(`${month}-01`) : new Date();
+  const startDate = startOfMonth(targetMonth);
+  const endDate = endOfMonth(targetMonth);
 
   const batch = await prisma.batch.findUnique({
     where: { id: batchId },
     include: {
       coach: { include: { user: true } },
       classLogs: {
+        where: {
+          date: { gte: startDate, lte: endDate }
+        },
         orderBy: { date: "desc" },
         include: {
           coach: { include: { user: true } },
@@ -46,11 +59,16 @@ export default async function BatchAttendanceDetailsPage({
           <ChevronLeft className="w-4 h-4 mr-1" />
           Back to Batches
         </Link>
-        <div className="flex items-center gap-3">
-          <h1 className="text-2xl font-bold text-slate-900">{batch.name} Attendance</h1>
-          <Badge variant="neutral">{batch.code}</Badge>
+        <div className="flex items-center justify-between">
+          <div>
+            <div className="flex items-center gap-3">
+              <h1 className="text-2xl font-bold text-slate-900">{batch.name} Attendance</h1>
+              <Badge variant="neutral">{batch.code}</Badge>
+            </div>
+            <p className="text-sm text-slate-500 mt-1">Coach: {batch.coach?.user.name}</p>
+          </div>
+          <MonthPicker />
         </div>
-        <p className="text-sm text-slate-500 mt-1">Coach: {batch.coach.user.name}</p>
       </div>
 
       <div className="bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden">

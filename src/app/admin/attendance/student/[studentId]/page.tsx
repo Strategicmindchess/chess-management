@@ -5,16 +5,24 @@ import { requireRole } from "@/lib/dal";
 import { Role } from "@/lib/enums";
 import { ChevronLeft } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { format } from "date-fns";
+import { startOfMonth, endOfMonth, parseISO, format } from "date-fns";
+import { MonthPicker } from "@/components/ui/month-picker";
 
 export default async function StudentAttendanceLedgerPage({
   params,
+  searchParams
 }: {
   params: Promise<{ studentId: string }>;
+  searchParams: Promise<{ month?: string }>;
 }) {
   await requireRole([Role.ADMIN]);
   
   const { studentId } = await params;
+  const { month } = await searchParams;
+
+  const targetMonth = month ? parseISO(`${month}-01`) : new Date();
+  const startDate = startOfMonth(targetMonth);
+  const endDate = endOfMonth(targetMonth);
 
   const student = await prisma.user.findUnique({
     where: { id: studentId, role: Role.STUDENT },
@@ -22,6 +30,11 @@ export default async function StudentAttendanceLedgerPage({
       studentProfile: {
         include: {
           attendanceRecords: {
+            where: {
+              classLog: {
+                date: { gte: startDate, lte: endDate }
+              }
+            },
             orderBy: { classLog: { date: "desc" } },
             include: {
               classLog: {
@@ -57,10 +70,13 @@ export default async function StudentAttendanceLedgerPage({
             <h1 className="text-2xl font-bold text-slate-900">{student.name}'s Ledger</h1>
             <p className="text-sm text-slate-500 mt-1">{student.email}</p>
           </div>
-          <div className="text-right">
-            <div className="text-sm font-medium text-slate-500">Attendance</div>
-            <div className="text-lg font-bold text-slate-900">
-              {records.length > 0 ? Math.round((presentCount / records.length) * 100) : 0}%
+          <div className="flex gap-6 items-center">
+            <MonthPicker />
+            <div className="text-right">
+              <div className="text-sm font-medium text-slate-500">Attendance</div>
+              <div className="text-lg font-bold text-slate-900">
+                {records.length > 0 ? Math.round((presentCount / records.length) * 100) : 0}%
+              </div>
             </div>
           </div>
         </div>

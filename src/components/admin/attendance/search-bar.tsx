@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
-import { useTransition, useState, useEffect } from "react";
+import { useTransition, useState, useEffect, useRef } from "react";
 import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 
@@ -12,7 +12,14 @@ export function AttendanceSearchBar({ placeholder = "Search..." }: { placeholder
   const [isPending, startTransition] = useTransition();
   const [value, setValue] = useState(searchParams?.get("query") || "");
 
+  const initialMount = useRef(true);
+
   useEffect(() => {
+    if (initialMount.current) {
+      initialMount.current = false;
+      return;
+    }
+
     const delayDebounceFn = setTimeout(() => {
       const params = new URLSearchParams(searchParams?.toString() || "");
       if (value) {
@@ -26,7 +33,7 @@ export function AttendanceSearchBar({ placeholder = "Search..." }: { placeholder
     }, 300);
 
     return () => clearTimeout(delayDebounceFn);
-  }, [value, router, pathname, searchParams]);
+  }, [value, pathname, router]); // omitted searchParams to avoid infinite loop when url updates
 
   return (
     <div className="relative w-full max-w-sm">

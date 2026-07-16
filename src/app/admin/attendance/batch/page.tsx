@@ -5,6 +5,7 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
 import { ChevronRight, CalendarDays, Users } from "lucide-react";
+import { Suspense } from "react";
 import { AttendanceSearchBar } from "@/components/admin/attendance/search-bar";
 
 export default async function AttendanceBatchListPage({
@@ -46,7 +47,9 @@ export default async function AttendanceBatchListPage({
       </div>
       
       <div className="pt-2">
-        <AttendanceSearchBar placeholder="Search batches..." />
+        <Suspense fallback={<div className="h-10 w-full max-w-sm bg-slate-100 animate-pulse rounded-md"></div>}>
+          <AttendanceSearchBar placeholder="Search batches..." />
+        </Suspense>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

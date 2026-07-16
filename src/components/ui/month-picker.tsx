@@ -1,12 +1,13 @@
 "use client";
 
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { format, subMonths, addMonths, parseISO } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
 export function MonthPicker() {
   const router = useRouter();
+  const pathname = usePathname();
   const searchParams = useSearchParams();
   
   const currentMonthParam = searchParams?.get("month");
@@ -17,16 +18,20 @@ export function MonthPicker() {
 
   const handlePreviousMonth = () => {
     const prev = subMonths(currentDate, 1);
-    router.push(`/admin/payouts?month=${format(prev, "yyyy-MM")}`);
+    const params = new URLSearchParams(searchParams?.toString() || "");
+    params.set("month", format(prev, "yyyy-MM"));
+    router.push(`${pathname}?${params.toString()}`);
   };
 
   const handleNextMonth = () => {
     const next = addMonths(currentDate, 1);
-    router.push(`/admin/payouts?month=${format(next, "yyyy-MM")}`);
+    const params = new URLSearchParams(searchParams?.toString() || "");
+    params.set("month", format(next, "yyyy-MM"));
+    router.push(`${pathname}?${params.toString()}`);
   };
 
   return (
-    <div className="flex items-center gap-4 bg-white px-4 py-2 rounded-md shadow-sm border border-slate-200">
+    <div className="flex items-center gap-4 bg-white px-4 py-2 rounded-md shadow-sm border border-slate-200 w-fit">
       <Button variant="ghost" size="sm" className="px-2" onClick={handlePreviousMonth}>
         <ChevronLeft className="h-5 w-5" />
       </Button>

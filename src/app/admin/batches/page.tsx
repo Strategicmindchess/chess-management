@@ -93,6 +93,7 @@ export default async function AdminBatchesPage({
       endTime: slot.endTime,
     })),
     students: batch.students.map((bs) => ({ id: bs.student.id, name: bs.student.user.name, email: bs.student.user.email })),
+    payoutRate: batch.payoutRate,
   }));
 
   const totalPages = Math.ceil(totalBatches / take);

@@ -1,5 +1,5 @@
 import { getAdminPayoutSummary } from "@/actions/payout-actions";
-import { MonthPicker } from "@/components/admin/payouts/month-picker";
+import { MonthPicker } from "@/components/ui/month-picker";
 import { PayoutBatchCard } from "@/components/admin/payouts/payout-batch-card";
 import { format } from "date-fns";
 
