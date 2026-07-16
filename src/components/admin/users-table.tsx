@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition, useRef } from "react";
+import { useRouter } from "next/navigation";
 import { Ban, CheckCircle2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -43,6 +44,7 @@ export function UsersTable({
   totalPages?: number;
   searchParams?: Record<string, string>;
 }) {
+  const router = useRouter();
   const [editingUser, setEditingUser] = useState<UserRow | null>(null);
 
   const [searchValue, setSearchValue] = useState(searchParams?.query || "");
@@ -110,7 +112,11 @@ export function UsersTable({
           </TableHead>
           <TableBody>
             {users.map((user) => (
-              <TableRow key={user.id}>
+              <TableRow 
+                key={user.id} 
+                className="cursor-pointer hover:bg-slate-50 transition-colors"
+                onClick={() => router.push(`/admin/users/${user.id}`)}
+              >
                 <TableCell className="font-medium text-slate-900">
                   {user.name}
                 </TableCell>
@@ -131,7 +137,10 @@ export function UsersTable({
                   <Button
                     variant="secondary"
                     size="sm"
-                    onClick={() => setEditingUser(user)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setEditingUser(user);
+                    }}
                   >
                     Edit
                   </Button>
