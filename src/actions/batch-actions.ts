@@ -4,6 +4,9 @@ import { z } from 'zod';
 import { revalidatePath } from 'next/cache';
 import { prisma } from '@/lib/prisma';
 import { requireRole } from '@/lib/dal';
+import { Weekday } from '@/lib/enums';
+import { addWeeks, nextDay, startOfDay } from 'date-fns';
+import type { Day } from 'date-fns';
 import {
   assignCoachSchema,
   createBatchSchema,
@@ -22,7 +25,7 @@ export async function createBatch(input: CreateBatchInput): Promise<ActionResult
     return { success: false, error: parsed.error.issues[0]?.message ?? 'Invalid input.' };
   }
 
-  const { name, code, meetLink, payoutRate, coachId, schedules,startDate } = parsed.data;
+  const { name, code, meetLink, payoutRate, coachId, schedules, startDate } = parsed.data;
 
   const existingCode = await prisma.batch.findUnique({ where: { code } });
   if (existingCode) {
@@ -36,14 +39,14 @@ export async function createBatch(input: CreateBatchInput): Promise<ActionResult
     }
   }
 
-  await prisma.batch.create({
+  const createdBatch = await prisma.batch.create({
     data: {
       name,
       code,
       meetLink,
       startDate: startDate ? new Date(startDate) : null,
       payoutRate,
-      coachProfileId: coachId ,
+      coachProfileId: coachId,
       schedules: {
         create: schedules.map((slot) => ({
           day: slot.day,
@@ -53,6 +56,41 @@ export async function createBatch(input: CreateBatchInput): Promise<ActionResult
       },
     },
   });
+
+  const WEEKDAY_MAP: Record<Weekday, Day> = {
+    SUNDAY: 0,
+    MONDAY: 1,
+    TUESDAY: 2,
+    WEDNESDAY: 3,
+    THURSDAY: 4,
+    FRIDAY: 5,
+    SATURDAY: 6,
+  };
+
+  const WEEKS_TO_GENERATE = 10; // 6 months
+  const baseDate = startOfDay(startDate ? new Date(startDate) : new Date());
+
+  const classInstancesData: any[] = [];
+  for (const schedule of schedules) {
+    const targetDay = WEEKDAY_MAP[schedule.day as Weekday];
+    let current = baseDate.getDay() === targetDay ? baseDate : nextDay(baseDate, targetDay);
+
+    for (let i = 0; i < WEEKS_TO_GENERATE; i++) {
+      classInstancesData.push({
+        batchId: createdBatch.id,
+        date: current,
+        startTime: schedule.startTime,
+        endTime: schedule.endTime,
+      });
+      current = addWeeks(current, 1);
+    }
+  }
+
+  if (classInstancesData.length > 0) {
+    await prisma.classInstance.createMany({
+      data: classInstancesData,
+    });
+  }
 
   revalidatePath('/admin/batches');
   return { success: true };
@@ -176,7 +214,7 @@ export async function updateBatch(input: z.infer<typeof updateBatchSchema>): Pro
       return { success: false, error: 'Selected coach is not valid.' };
     }
   }
-  
+
   // Set the start date based on the input
   let parsedStartDate: Date | null = null;
   if (startDate) {
@@ -207,7 +245,7 @@ export async function updateBatch(input: z.infer<typeof updateBatchSchema>): Pro
         where: { id: { in: studentIds } },
         select: { id: true },
       });
-      
+
       if (validStudents.length > 0) {
         await tx.batchStudent.createMany({
           data: validStudents.map((s) => ({ batchId, studentProfileId: s.id })),

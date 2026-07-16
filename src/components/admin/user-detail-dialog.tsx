@@ -94,31 +94,13 @@ export function UserDetailDialog({
             <>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="rating">Chess Rating</Label>
-                  <Input id="rating" name="rating" type="number" defaultValue={user.rating ?? ""} />
+                  <Label htmlFor="chessComRating">Chess.com Rating</Label>
+                  <Input id="chessComRating" name="chessComRating" type="number" defaultValue={user.chessComRating ?? ""} placeholder="e.g. 1200" />
                 </div>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="monthlyFee">Monthly Fee (₹)</Label>
-                <Input
-                  id="monthlyFee"
-                  name="monthlyFee"
-                  type="number"
-                  min="0"
-                  defaultValue={user.monthlyFee ?? ""}
-                  placeholder="e.g. 2000"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="perSessionFee">Per Session Fee (₹)</Label>
-                <Input
-                  id="perSessionFee"
-                  name="perSessionFee"
-                  type="number"
-                  min="0"
-                  defaultValue={user.perSessionFee ?? ""}
-                  placeholder="e.g. 500"
-                />
+                <div className="space-y-2">
+                  <Label htmlFor="lichessRating">Lichess Rating</Label>
+                  <Input id="lichessRating" name="lichessRating" type="number" defaultValue={user.lichessRating ?? ""} placeholder="e.g. 1500" />
+                </div>
               </div>
             </>
           )}

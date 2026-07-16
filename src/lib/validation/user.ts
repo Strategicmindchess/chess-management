@@ -28,9 +28,8 @@ export const createStaffUserSchema = z.object({
   city: z.string().trim().optional().or(z.literal("")),
   chessComId: z.string().trim().optional().or(z.literal("")),
   lichessId: z.string().trim().optional().or(z.literal("")),
-  rating: z.coerce.number().min(0).max(4000).optional(),
-  monthlyFee: z.coerce.number().min(0).optional(),
-  perSessionFee: z.coerce.number().min(0).optional(),
+  chessComRating: z.coerce.number().min(0).optional(),
+  lichessRating: z.coerce.number().min(0).optional(),
 });
 
 export type CreateStaffUserInput = z.infer<typeof createStaffUserSchema>;

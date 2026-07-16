@@ -26,9 +26,8 @@ export interface UserRow {
   role: Role;
   isActive: boolean;
   city?: string | null;
-  rating?: number | null;
-  monthlyFee?: number | null;
-  perSessionFee?: number | null;
+  chessComRating?: number | null;
+  lichessRating?: number | null;
   groupSessionRate?: number | null;
   privateRate?: number | null;
   bio?: string | null;
@@ -105,7 +104,8 @@ export function UsersTable({
               <TableHeaderCell>Phone</TableHeaderCell>
               <TableHeaderCell>Role</TableHeaderCell>
               <TableHeaderCell>City</TableHeaderCell>
-              <TableHeaderCell>Rating</TableHeaderCell>
+              <TableHeaderCell>Chess.com</TableHeaderCell>
+              <TableHeaderCell>Lichess</TableHeaderCell>
               <TableHeaderCell>Status</TableHeaderCell>
               <TableHeaderCell className="text-right">Actions</TableHeaderCell>
             </tr>
@@ -122,7 +122,8 @@ export function UsersTable({
                   <Badge variant="brand">{ROLE_LABEL[user.role]}</Badge>
                 </TableCell>
                 <TableCell>{user.city || "—"}</TableCell>
-                <TableCell>{user.rating ?? "—"}</TableCell>
+                <TableCell>{user.chessComRating ?? "—"}</TableCell>
+                <TableCell>{user.lichessRating ?? "—"}</TableCell>
                 <TableCell>
                   <Badge variant={user.isActive ? "success" : "neutral"}>
                     {user.isActive ? "Active" : "Inactive"}

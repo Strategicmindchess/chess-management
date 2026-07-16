@@ -7,8 +7,7 @@ import { getCurrentUser } from "@/lib/dal";
 import { Role, AttendanceStatus } from "@/lib/enums";
 
 const submitClassLogSchema = z.object({
-  batchId: z.string().min(1),
-  date: z.string().datetime(),
+  classInstanceId: z.string().min(1),
   topicCovered: z.string().min(3),
   durationMins: z.number().int().min(1),
   attendance: z.array(
@@ -34,29 +33,47 @@ export async function submitClassLog(input: SubmitClassLogInput) {
   const data = result.data;
 
   try {
-    const batch = await prisma.batch.findUnique({
-      where: { id: data.batchId },
-      select: { coachProfileId: true, payoutRate: true },
+    const classInstance = await prisma.classInstance.findUnique({
+      where: { id: data.classInstanceId },
+      include: {
+        batch: { select: { id: true, coachProfileId: true, payoutRate: true } }
+      }
     });
 
-    if (!batch) {
-      return { success: false, error: "Batch not found" };
+    if (!classInstance) {
+      return { success: false, error: "Class instance not found" };
     }
+
+    if (classInstance.status === "COMPLETED") {
+      return { success: false, error: "Attendance already marked for this class" };
+    }
+
+    const batch = classInstance.batch;
 
     if (!user.coachProfile || batch.coachProfileId !== user.coachProfile.id) {
       return { success: false, error: "You are not assigned to this batch" };
     }
 
     await prisma.$transaction(async (tx) => {
+      // Create the class log
       const classLog = await tx.classLog.create({
         data: {
-          batchId: data.batchId,
+          batchId: batch.id,
           coachProfileId: user.coachProfile!.id,
-          date: new Date(data.date),
+          date: classInstance.date,
           topicCovered: data.topicCovered,
           durationMins: data.durationMins,
           payoutAmount: batch.payoutRate, // Snapshot of current rate
         },
+      });
+
+      // Update the class instance status and link to log
+      await tx.classInstance.update({
+        where: { id: classInstance.id },
+        data: {
+          status: "COMPLETED",
+          classLogId: classLog.id
+        }
       });
 
       if (data.attendance.length > 0) {

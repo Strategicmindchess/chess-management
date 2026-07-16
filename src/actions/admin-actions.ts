@@ -14,9 +14,8 @@ const updateSchema = z.object({
   phone: z.string().optional(),
   city: z.string().optional(),
   isActive: z.string().optional().transform(v => v === "true"),
-  rating: z.string().optional().transform(v => v ? parseInt(v, 10) : null),
-  monthlyFee: z.string().optional().transform(v => v ? parseInt(v, 10) : null),
-  perSessionFee: z.string().optional().transform(v => v ? parseInt(v, 10) : null),
+  chessComRating: z.string().optional().transform(v => v ? parseInt(v, 10) : null),
+  lichessRating: z.string().optional().transform(v => v ? parseInt(v, 10) : null),
   groupSessionRate: z.string().optional().transform(v => v ? parseInt(v, 10) : null),
   privateRate: z.string().optional().transform(v => v ? parseInt(v, 10) : null),
   bio: z.string().optional(),
@@ -26,7 +25,8 @@ const updateSchema = z.object({
 export async function updateAdminUserFields(formData: FormData) {
   try {
     await requireRole([Role.ADMIN]);
-
+    console.log(formData);
+ 
     const parsed = updateSchema.safeParse({
       userId: formData.get("userId"),
       role: formData.get("role"),
@@ -35,18 +35,20 @@ export async function updateAdminUserFields(formData: FormData) {
       phone: formData.get("phone"),
       city: formData.get("city"),
       isActive: formData.get("isActive"),
-      rating: formData.get("rating"),
-      monthlyFee: formData.get("monthlyFee"),
-      perSessionFee: formData.get("perSessionFee"),
+      chessComRating: formData.get("chessComRating") ?? undefined,
+      lichessRating: formData.get("lichessRating") ?? undefined,
       groupSessionRate: formData.get("groupSessionRate"),
       privateRate: formData.get("privateRate"),
       bio: formData.get("bio"),
       experience: formData.get("experience"),
     });
-
-    if (!parsed.success) {
-      return { error: "Invalid form data" };
-    }
+     console.log(parsed);
+  if (!parsed.success) {
+  console.log(parsed.error.flatten());
+  return {
+    error: parsed.error.issues.map(i => `${i.path.join(".")}: ${i.message}`).join(", "),
+  };
+}
 
     const data = parsed.data;
 
@@ -66,9 +68,8 @@ export async function updateAdminUserFields(formData: FormData) {
         where: { userId: data.userId },
         data: {
           city: data.city || null,
-          rating: data.rating,
-          monthlyFee: data.monthlyFee,
-          perSessionFee: data.perSessionFee,
+          chessComRating: data.chessComRating,
+          lichessRating: data.lichessRating,
         },
       });
     } else if (data.role === Role.TEACHER) {
@@ -77,25 +78,46 @@ export async function updateAdminUserFields(formData: FormData) {
       });
       
       if (coachProfile) {
+        const existingRate = await prisma.coachRate.findUnique({
+          where: { coachId: coachProfile.id },
+        });
+
+        if (!existingRate) {
+          await prisma.coachRate.create({
+            data: {
+              coachId: coachProfile.id,
+              groupSessionRate: data.groupSessionRate ?? 0,
+              privateRate: data.privateRate ?? 0,
+            },
+          });
+        } else {
+          const newGroupRate = data.groupSessionRate ?? existingRate.groupSessionRate;
+          const newPrivateRate = data.privateRate ?? existingRate.privateRate;
+
+          if (
+            newGroupRate < existingRate.groupSessionRate ||
+            newPrivateRate < existingRate.privateRate
+          ) {
+            return {
+              error: "Coach rates cannot be decreased. Rates can only stay the same or increase.",
+            };
+          }
+
+          await prisma.coachRate.update({
+            where: { coachId: coachProfile.id },
+            data: {
+              groupSessionRate: newGroupRate,
+              privateRate: newPrivateRate,
+            },
+          });
+        }
+
         await prisma.coachProfile.update({
           where: { id: coachProfile.id },
           data: {
             city: data.city || null,
             bio: data.bio || null,
             experience: data.experience || null,
-          }
-        });
-
-        await prisma.coachRate.upsert({
-          where: { coachId: coachProfile.id },
-          create: {
-            coachId: coachProfile.id,
-            groupSessionRate: data.groupSessionRate ?? 0,
-            privateRate: data.privateRate ?? 0,
-          },
-          update: {
-            groupSessionRate: data.groupSessionRate ?? 0,
-            privateRate: data.privateRate ?? 0,
           }
         });
       }

@@ -27,19 +27,31 @@ model StudentProfile {
   city              String?
   chessComId        String?
   lichessId         String?
-  rating            Int?
   joiningDate       DateTime?
-  monthlyFee        Int?
-  perSessionFee     Int?
   assignedCoachId   String?
   createdAt         DateTime           @default(now())
   updatedAt         DateTime           @updatedAt
+  chessComRating    Int?
+  lichessRating     Int?
   attendanceRecords AttendanceRecord[]
   enrollments       BatchStudent[]
   assignedCoach     CoachProfile?      @relation("StudentAssignedCoach", fields: [assignedCoachId], references: [id])
   user              User               @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("student_profiles")
+}
+
+/// A coach's specific payout rates
+model CoachRate {
+  id               String       @id @default(cuid())
+  coachId          String       @unique
+  groupSessionRate Int          @default(0)
+  privateRate      Int          @default(0)
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+  coach            CoachProfile @relation(fields: [coachId], references: [id], onDelete: Cascade)
+
+  @@map("coach_rates")
 }
 
 model CoachProfile {
@@ -58,19 +70,6 @@ model CoachProfile {
   assignedStudents StudentProfile[]    @relation("StudentAssignedCoach")
 
   @@map("coach_profiles")
-}
-
-/// A coach's specific payout rates
-model CoachRate {
-  id               String       @id @default(cuid())
-  coachId          String       @unique
-  groupSessionRate Int          @default(0)
-  privateRate      Int          @default(0)
-  createdAt        DateTime     @default(now())
-  updatedAt        DateTime     @updatedAt
-  coach            CoachProfile @relation(fields: [coachId], references: [id], onDelete: Cascade)
-
-  @@map("coach_rates")
 }
 
 enum Role {

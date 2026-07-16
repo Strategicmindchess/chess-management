@@ -134,21 +134,16 @@ function CreateUserForm({ onSuccess }: { onSuccess: () => void }) {
               <FieldError message={errors.lichessId?.message} />
             </div>
           </div>
-          <div className="grid grid-cols-3 gap-4">
-            <div>
-              <Label htmlFor="rating">Rating</Label>
-              <Input id="rating" type="number" {...register('rating')} placeholder="1200" />
-              <FieldError message={errors.rating?.message} />
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-1">
+              <Label htmlFor="chessComRating">Chess.com Rating</Label>
+              <Input id="chessComRating" type="number" {...register('chessComRating')} placeholder="1200" />
+              <FieldError message={errors.chessComRating?.message} />
             </div>
-            <div>
-              <Label htmlFor="monthlyFee">Monthly Fee</Label>
-              <Input id="monthlyFee" type="number" {...register('monthlyFee')} placeholder="2000" />
-              <FieldError message={errors.monthlyFee?.message} />
-            </div>
-            <div>
-              <Label htmlFor="perSessionFee">Session Fee</Label>
-              <Input id="perSessionFee" type="number" {...register('perSessionFee')} placeholder="300" />
-              <FieldError message={errors.perSessionFee?.message} />
+            <div className="space-y-1">
+              <Label htmlFor="lichessRating">Lichess Rating</Label>
+              <Input id="lichessRating" type="number" {...register('lichessRating')} placeholder="1500" />
+              <FieldError message={errors.lichessRating?.message} />
             </div>
           </div>
         </>

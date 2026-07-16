@@ -39,9 +39,8 @@ export async function createStaffUser(
     city,
     chessComId,
     lichessId,
-    rating,
-    monthlyFee,
-    perSessionFee,
+    chessComRating,
+    lichessRating,
   } = parsed.data;
 
   const existing = await prisma.user.findUnique({ where: { email } });
@@ -68,9 +67,8 @@ export async function createStaffUser(
                 city: city || null,
                 chessComId: chessComId || null,
                 lichessId: lichessId || null,
-                rating: isNaN(rating as number) ? null : rating,
-                monthlyFee: isNaN(monthlyFee as number) ? null : monthlyFee,
-                perSessionFee: isNaN(perSessionFee as number) ? null : perSessionFee,
+                chessComRating: isNaN(chessComRating as number) ? null : chessComRating,
+                lichessRating: isNaN(lichessRating as number) ? null : lichessRating,
                 joiningDate: new Date(),
               },
             },

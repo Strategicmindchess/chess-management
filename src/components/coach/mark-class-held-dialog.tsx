@@ -71,10 +71,9 @@ export function MarkClassHeldDialog({
       }));
 
       const result = await submitClassLog({
-        batchId,
+        classInstanceId: batchId,
         topicCovered,
         durationMins: Number(durationMins),
-        date: new Date().toISOString(),
         attendance: attendanceArr,
       });
 
