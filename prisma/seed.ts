@@ -85,9 +85,8 @@ async function main() {
             city: "Jhansi",
             chessComId: `student_${i}`,
             lichessId: `student_${i}_lichess`,
-            rating: 1000 + (i * 10),
-            monthlyFee: 2000,
-            perSessionFee: 300,
+            chessComRating: 1000 + (i * 10),
+            lichessRating: 1000 + (i * 10),
           }
         }
       },
