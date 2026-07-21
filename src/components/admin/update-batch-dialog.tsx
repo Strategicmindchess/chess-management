@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
+import { BatchType } from "@/lib/enums";
 import type { BatchItem } from "./batch-list";
 
 interface PersonOption {
@@ -34,11 +35,13 @@ export function UpdateBatchDialog({
   const [selectedStudents, setSelectedStudents] = useState<Set<string>>(
     new Set(batch.students.map((s) => s.id))
   );
+  const [type, setType] = useState<BatchType>((batch.type as BatchType) ?? "RECURRING");
 
   useEffect(() => {
     if (open) {
       setError(null);
       setCoachId(batch.coach?.id ?? "");
+      setType((batch.type as BatchType) ?? "RECURRING");
       setSelectedStudents(new Set(batch.students.map((s) => s.id)));
     }
   }, [open, batch]);
@@ -68,6 +71,8 @@ export function UpdateBatchDialog({
       payoutRate: formData.get("payoutRate") ? Number(formData.get("payoutRate")) : undefined,
       coachId: coachId,
       studentIds: Array.from(selectedStudents),
+      type: type,
+      addInstancesCount: formData.get("addInstancesCount") ? Number(formData.get("addInstancesCount")) : 0,
     };
 
     startTransition(async () => {
@@ -133,6 +138,38 @@ export function UpdateBatchDialog({
                   // @ts-ignore
                   defaultValue={batch.startDate ? new Date(batch.startDate).toISOString().split('T')[0] : ""}
                 />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="type">Batch Type</Label>
+                <Select
+                  id="type"
+                  name="type"
+                  value={type}
+                  onChange={(e) => setType(e.target.value as BatchType)}
+                >
+                  <option value="RECURRING">Recurring Class</option>
+                  <option value="DEMO">Demo Session (One-off)</option>
+                  <option value="TRIAL">Trial Session (One-off)</option>
+                  <option value="PTM">Parent-Teacher Meeting (PTM)</option>
+                  <option value="REPLACEMENT">Replacement Class (One-off)</option>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="addInstancesCount">Increase class instances by (max 300)</Label>
+                <Input
+                  id="addInstancesCount"
+                  name="addInstancesCount"
+                  type="number"
+                  min="0"
+                  max="300"
+                  defaultValue="0"
+                />
+                <p className="text-xs text-slate-500 mt-1">
+                  Currently: <strong className="text-slate-700">{batch.scheduledInstances} scheduled</strong>, <strong className="text-slate-700">{batch.completedInstances} completed</strong> sessions.
+                </p>
               </div>
             </div>
 

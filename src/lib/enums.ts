@@ -33,3 +33,13 @@ export const AttendanceStatus = {
 } as const;
 
 export type AttendanceStatus = (typeof AttendanceStatus)[keyof typeof AttendanceStatus];
+
+export const BatchType = {
+  RECURRING: 'RECURRING',
+  DEMO: 'DEMO',
+  TRIAL: 'TRIAL',
+  PTM: 'PTM',
+  REPLACEMENT: 'REPLACEMENT',
+} as const;
+
+export type BatchType = (typeof BatchType)[keyof typeof BatchType];

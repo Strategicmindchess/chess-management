@@ -4,6 +4,7 @@ model Batch {
   name           String
   code           String          @unique
   meetLink       String
+  type           BatchType       @default(RECURRING)
   isActive       Boolean         @default(true)
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @updatedAt
@@ -74,7 +75,7 @@ model CoachAvailability {
   @@map("coach_availability")
 }
 
-/// A log of a single class session, created by the coach (Module 4)
+
 model ClassLog {
   id             String             @id @default(cuid())
   batchId        String
@@ -93,7 +94,7 @@ model ClassLog {
   @@map("class_logs")
 }
 
-/// Attendance for a single student in a specific class log (Module 4)
+
 model AttendanceRecord {
   id               String           @id @default(cuid())
   classLogId       String
@@ -126,3 +127,12 @@ enum ClassStatus {
   CANCELLED
   COMPLETED
 }
+
+enum BatchType {
+  RECURRING
+  DEMO
+  TRIAL
+  PTM
+  REPLACEMENT
+}
+

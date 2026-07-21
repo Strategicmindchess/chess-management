@@ -1,5 +1,7 @@
 import { z } from "zod";
-import { Weekday } from "@/lib/enums";
+import { Weekday, BatchType } from "@/lib/enums";
+
+const BATCH_TYPE_VALUES = Object.values(BatchType) as [BatchType, ...BatchType[]];
 
 const TIME_REGEX = /^([01]\d|2[0-3]):([0-5]\d)$/;
 const WEEKDAY_VALUES = Object.values(Weekday) as [Weekday, ...Weekday[]];
@@ -24,6 +26,8 @@ export const createBatchSchema = z.object({
     .min(2, "Batch code must be at least 2 characters.")
     .regex(/^[A-Z0-9-]+$/, "Use only letters, numbers and dashes."),
   meetLink: z.string().trim().url("Enter a valid URL."),
+  type: z.enum(BATCH_TYPE_VALUES),
+  instancesCount: z.number().int().min(1, "Must schedule at least 1 class.").max(300, "Cannot schedule more than 300 classes."),
   startDate: z.string().optional(),
   payoutRate: z.number().int().min(0, "Payout rate must be a positive number."),
   coachId: z.string().trim().optional().or(z.literal("")),
@@ -59,6 +63,8 @@ export const updateBatchSchema = z.object({
     .min(2, "Batch code must be at least 2 characters.")
     .regex(/^[A-Z0-9-]+$/, "Use only letters, numbers and dashes."),
   meetLink: z.string().trim().url("Enter a valid URL."),
+  type: z.enum(BATCH_TYPE_VALUES).optional(),
+  addInstancesCount: z.coerce.number().int().min(0, "Must be 0 or more.").max(300, "Cannot add more than 300 instances at once.").optional().default(0),
   startDate: z.string().optional().or(z.literal("")),
   coachId: z.string().trim().optional().or(z.literal("")),
   payoutRate: z.coerce.number().min(0, "Payout rate must be at least 0.").optional(),

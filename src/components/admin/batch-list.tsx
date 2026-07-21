@@ -11,6 +11,7 @@ import { WEEKDAY_LABEL } from "@/lib/constants";
 import type { Weekday } from "@/lib/enums";
 import { UpdateBatchDialog } from "./update-batch-dialog";
 import { AttendanceViewerDialog } from "./attendance-viewer-dialog";
+import { ManageSessionsDialog } from "./manage-sessions-dialog";
 
 interface PersonOption {
   id: string;
@@ -36,6 +37,11 @@ export interface BatchItem {
   students: PersonOption[];
   payoutRate: number;
   startDate?: Date | string | null;
+  type: string;
+  totalInstances: number;
+  completedInstances: number;
+  scheduledInstances: number;
+  cancelledInstances: number;
 }
 
 export function BatchList({
@@ -127,6 +133,9 @@ export function BatchList({
                     {batch.name}
                   </h3>
                   <Badge variant="neutral">{batch.code}</Badge>
+                  <Badge variant="neutral" className="capitalize font-normal text-xs bg-slate-100 text-slate-700">
+                    {(batch.type || "RECURRING").toLowerCase()}
+                  </Badge>
                   <Badge variant={batch.isActive ? "success" : "neutral"}>
                     {batch.isActive ? "Active" : "Inactive"}
                   </Badge>
@@ -173,13 +182,24 @@ export function BatchList({
               </span>
               <span className="text-slate-300">•</span>
               <span>{batch.students.length} student(s) enrolled</span>
+              <span className="text-slate-300">•</span>
+              <span>
+                Classes:{" "}
+                <span className="font-medium text-slate-900">
+                  {batch.scheduledInstances} scheduled, {batch.completedInstances} completed
+                </span>
+              </span>
             </div>
 
             <div className="flex flex-wrap gap-2 pt-1">
               <UpdateBatchDialog
-                batch={batch as any}
+                batch={batch}
                 coaches={coaches}
                 allStudents={students}
+              />
+              <ManageSessionsDialog
+                batchId={batch.id}
+                batchName={batch.name}
               />
               <AttendanceViewerDialog
                 batchId={batch.id}

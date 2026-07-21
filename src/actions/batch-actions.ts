@@ -4,7 +4,7 @@ import { z } from 'zod';
 import { revalidatePath } from 'next/cache';
 import { prisma } from '@/lib/prisma';
 import { requireRole, getCurrentUser } from '@/lib/dal';
-import { Weekday } from '@/lib/enums';
+import { Weekday, BatchType } from '@/lib/enums';
 import { addWeeks, nextDay, startOfDay } from 'date-fns';
 import type { Day } from 'date-fns';
 import {
@@ -25,7 +25,7 @@ export async function createBatch(input: CreateBatchInput): Promise<ActionResult
     return { success: false, error: parsed.error.issues[0]?.message ?? 'Invalid input.' };
   }
 
-  const { name, code, meetLink, payoutRate, coachId, schedules, startDate } = parsed.data;
+  const { name, code, meetLink, payoutRate, coachId, schedules, startDate, type, instancesCount } = parsed.data;
 
   const existingCode = await prisma.batch.findUnique({ where: { code } });
   if (existingCode) {
@@ -44,6 +44,7 @@ export async function createBatch(input: CreateBatchInput): Promise<ActionResult
       name,
       code,
       meetLink,
+      type: type as any,
       startDate: startDate ? new Date(startDate) : null,
       payoutRate,
       coachProfileId: coachId,
@@ -57,6 +58,52 @@ export async function createBatch(input: CreateBatchInput): Promise<ActionResult
     },
   });
 
+  const baseDate = startOfDay(startDate ? new Date(startDate) : new Date());
+  await generateInstancesInternal(createdBatch.id, instancesCount ?? 10, baseDate);
+
+  revalidatePath('/admin/batches');
+  return { success: true };
+}
+
+async function generateInstancesInternal(batchId: string, count: number, customStartDate?: Date) {
+  const batch = await prisma.batch.findUnique({
+    where: { id: batchId },
+    include: { schedules: true },
+  });
+
+  if (!batch || batch.schedules.length === 0) {
+    return;
+  }
+
+  // Determine starting date
+  let startDate: Date;
+  if (customStartDate) {
+    startDate = startOfDay(customStartDate);
+  } else {
+    const lastInstance = await prisma.classInstance.findFirst({
+      where: { batchId },
+      orderBy: { date: 'desc' },
+    });
+    if (lastInstance) {
+      startDate = startOfDay(new Date(lastInstance.date));
+      startDate.setDate(startDate.getDate() + 1); // Next day after latest
+    } else {
+      startDate = startOfDay(batch.startDate ? new Date(batch.startDate) : new Date());
+    }
+  }
+
+  const existing = await prisma.classInstance.findMany({
+    where: { batchId },
+    select: { date: true, startTime: true },
+  });
+
+  const existingKeys = new Set(
+    existing.map(
+      (inst) =>
+        `${startOfDay(new Date(inst.date)).toISOString().split('T')[0]}|${inst.startTime}`
+    )
+  );
+
   const WEEKDAY_MAP: Record<Weekday, Day> = {
     SUNDAY: 0,
     MONDAY: 1,
@@ -67,33 +114,45 @@ export async function createBatch(input: CreateBatchInput): Promise<ActionResult
     SATURDAY: 6,
   };
 
-  const WEEKS_TO_GENERATE = 10; // 6 months
-  const baseDate = startOfDay(startDate ? new Date(startDate) : new Date());
+  const newInstances: any[] = [];
+  let currentDate = new Date(startDate);
+  let daysInspected = 0;
 
-  const classInstancesData: any[] = [];
-  for (const schedule of schedules) {
-    const targetDay = WEEKDAY_MAP[schedule.day as Weekday];
-    let current = baseDate.getDay() === targetDay ? baseDate : nextDay(baseDate, targetDay);
+  while (newInstances.length < count && daysInspected < 730) {
+    const dayOfWeek = currentDate.getDay();
+    const matchingSchedules = batch.schedules.filter(
+      (s) => WEEKDAY_MAP[s.day as Weekday] === dayOfWeek
+    );
 
-    for (let i = 0; i < WEEKS_TO_GENERATE; i++) {
-      classInstancesData.push({
-        batchId: createdBatch.id,
-        date: current,
-        startTime: schedule.startTime,
-        endTime: schedule.endTime,
-      });
-      current = addWeeks(current, 1);
+    matchingSchedules.sort((a, b) => a.startTime.localeCompare(b.startTime));
+
+    for (const schedule of matchingSchedules) {
+      const dateStr = currentDate.toISOString().split('T')[0];
+      const key = `${dateStr}|${schedule.startTime}`;
+
+      if (!existingKeys.has(key)) {
+        if (newInstances.length < count) {
+          newInstances.push({
+            batchId,
+            date: new Date(currentDate),
+            startTime: schedule.startTime,
+            endTime: schedule.endTime,
+            status: 'SCHEDULED',
+          });
+          existingKeys.add(key);
+        }
+      }
     }
+
+    currentDate.setDate(currentDate.getDate() + 1);
+    daysInspected++;
   }
 
-  if (classInstancesData.length > 0) {
+  if (newInstances.length > 0) {
     await prisma.classInstance.createMany({
-      data: classInstancesData,
+      data: newInstances,
     });
   }
-
-  revalidatePath('/admin/batches');
-  return { success: true };
 }
 
 // reassign or update the batch teacher
@@ -205,7 +264,7 @@ export async function updateBatch(input: z.infer<typeof updateBatchSchema>): Pro
     return { success: false, error: parsed.error.issues[0]?.message ?? 'Invalid input.' };
   }
 
-  const { batchId, name, code, meetLink, startDate, coachId, studentIds, payoutRate } = parsed.data;
+  const { batchId, name, code, meetLink, startDate, coachId, studentIds, payoutRate, type, addInstancesCount } = parsed.data;
 
   const existingBatch = await prisma.batch.findUnique({ where: { id: batchId } });
   if (!existingBatch) {
@@ -247,6 +306,7 @@ export async function updateBatch(input: z.infer<typeof updateBatchSchema>): Pro
         name,
         code,
         meetLink,
+        type: type as any,
         startDate: parsedStartDate,
         coachProfileId: coachId || null,
         ...(payoutRate !== undefined ? { payoutRate } : {}),
@@ -274,6 +334,84 @@ export async function updateBatch(input: z.infer<typeof updateBatchSchema>): Pro
     }
   });
 
+  if (addInstancesCount && addInstancesCount > 0) {
+    await generateInstancesInternal(batchId, addInstancesCount);
+  }
+
   revalidatePath('/admin/batches');
   return { success: true };
+}
+
+export async function generateMoreClassInstances(batchId: string, count: number): Promise<ActionResult> {
+  await requireRole(['ADMIN']);
+
+  if (count <= 0) {
+    return { success: false, error: 'Count must be greater than 0.' };
+  }
+  if (count > 300) {
+    return { success: false, error: 'Cannot generate more than 300 instances.' };
+  }
+
+  try {
+    await generateInstancesInternal(batchId, count);
+    revalidatePath('/admin/batches');
+    return { success: true };
+  } catch (err: any) {
+    console.error('Error generating instances:', err);
+    return { success: false, error: err.message || 'Failed to generate instances.' };
+  }
+}
+
+export async function cancelClassInstance(instanceId: string): Promise<ActionResult> {
+  await requireRole(['ADMIN']);
+
+  try {
+    const instance = await prisma.classInstance.findUnique({
+      where: { id: instanceId },
+    });
+
+    if (!instance) {
+      return { success: false, error: 'Class instance not found.' };
+    }
+
+    if (instance.status === 'COMPLETED') {
+      return { success: false, error: 'Cannot cancel a completed class session.' };
+    }
+
+    await prisma.classInstance.update({
+      where: { id: instanceId },
+      data: { status: 'CANCELLED' },
+    });
+
+    revalidatePath('/admin/batches');
+    return { success: true };
+  } catch (err: any) {
+    console.error('Error cancelling class instance:', err);
+    return { success: false, error: err.message || 'Failed to cancel class instance.' };
+  }
+}
+
+export async function getBatchSessions(batchId: string) {
+  await requireRole(['ADMIN']);
+
+  try {
+    const instances = await prisma.classInstance.findMany({
+      where: { batchId },
+      orderBy: { date: 'asc' },
+    });
+
+    return {
+      success: true,
+      data: instances.map(inst => ({
+        id: inst.id,
+        date: inst.date.toISOString(),
+        startTime: inst.startTime,
+        endTime: inst.endTime,
+        status: inst.status,
+      })),
+    };
+  } catch (err: any) {
+    console.error('Error fetching batch sessions:', err);
+    return { success: false, error: err.message || 'Failed to fetch sessions.' };
+  }
 }

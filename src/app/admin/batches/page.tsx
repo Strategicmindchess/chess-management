@@ -43,6 +43,12 @@ export default async function AdminBatchesPage({
             student: { include: { user: { select: { id: true, name: true, email: true } } } },
           },
         },
+        classInstances: {
+          select: {
+            id: true,
+            status: true,
+          },
+        },
       },
     }),
     prisma.batch.count({ where }),
@@ -78,23 +84,35 @@ export default async function AdminBatchesPage({
     email: s.user.email,
   }));
 
-  const batchItems = batches.map((batch) => ({
-    id: batch.id,
-    name: batch.name,
-    code: batch.code,
-    meetLink: batch.meetLink,
-    isActive: batch.isActive,
-    startDate: batch.startDate,
-    coach: batch.coach ? { id: batch.coach.id, name: batch.coach.user.name, email: batch.coach.user.email } : null,
-    schedules: batch.schedules.map((slot) => ({
-      id: slot.id,
-      day: slot.day,
-      startTime: slot.startTime,
-      endTime: slot.endTime,
-    })),
-    students: batch.students.map((bs) => ({ id: bs.student.id, name: bs.student.user.name, email: bs.student.user.email })),
-    payoutRate: batch.payoutRate,
-  }));
+  const batchItems = batches.map((batch) => {
+    const totalInstances = batch.classInstances.length;
+    const completedInstances = batch.classInstances.filter((i) => i.status === "COMPLETED").length;
+    const scheduledInstances = batch.classInstances.filter((i) => i.status === "SCHEDULED").length;
+    const cancelledInstances = batch.classInstances.filter((i) => i.status === "CANCELLED").length;
+
+    return {
+      id: batch.id,
+      name: batch.name,
+      code: batch.code,
+      meetLink: batch.meetLink,
+      isActive: batch.isActive,
+      startDate: batch.startDate,
+      type: batch.type,
+      coach: batch.coach ? { id: batch.coach.id, name: batch.coach.user.name, email: batch.coach.user.email } : null,
+      schedules: batch.schedules.map((slot) => ({
+        id: slot.id,
+        day: slot.day,
+        startTime: slot.startTime,
+        endTime: slot.endTime,
+      })),
+      students: batch.students.map((bs) => ({ id: bs.student.id, name: bs.student.user.name, email: bs.student.user.email })),
+      payoutRate: batch.payoutRate,
+      totalInstances,
+      completedInstances,
+      scheduledInstances,
+      cancelledInstances,
+    };
+  });
 
   const totalPages = Math.ceil(totalBatches / take);
 

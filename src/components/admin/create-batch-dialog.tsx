@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useFieldArray, useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useRouter } from 'next/navigation';
@@ -64,6 +64,7 @@ function CreateBatchForm({
     register,
     control,
     handleSubmit,
+    setValue,
     formState: { errors, isSubmitting },
   } = useForm<CreateBatchInput>({
     resolver: zodResolver(createBatchSchema),
@@ -71,6 +72,8 @@ function CreateBatchForm({
       name: '',
       code: '',
       meetLink: '',
+      type: 'RECURRING',
+      instancesCount: 10,
       startDate: '',
       payoutRate: 0,
       coachId: '',
@@ -80,6 +83,19 @@ function CreateBatchForm({
 
   const { fields, append, remove } = useFieldArray({ control, name: 'schedules' });
   const selectedCoachId = useWatch({ control, name: 'coachId' });
+  const selectedType = useWatch({ control, name: 'type' });
+  const [prevType, setPrevType] = useState('RECURRING');
+
+  useEffect(() => {
+    if (selectedType && selectedType !== prevType) {
+      if (selectedType !== 'RECURRING') {
+        setValue('instancesCount', 1);
+      } else {
+        setValue('instancesCount', 10);
+      }
+      setPrevType(selectedType);
+    }
+  }, [selectedType, prevType, setValue]);
 console.log("selectedCoachId:", selectedCoachId);
   function handleCreateMeetLink() {
     window.open('https://meet.google.com/new', '_blank');
@@ -107,6 +123,30 @@ console.log("selectedCoachId:", selectedCoachId);
           <Label htmlFor="code">Batch code</Label>
           <Input id="code" {...register('code')} placeholder="e.g. WB-01" />
           <FieldError message={errors.code?.message} />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div>
+          <Label htmlFor="type">Batch Type</Label>
+          <Select id="type" {...register('type')}>
+            <option value="RECURRING">Recurring Class</option>
+            <option value="DEMO">Demo Session (One-off)</option>
+            <option value="TRIAL">Trial Session (One-off)</option>
+            <option value="PTM">Parent-Teacher Meeting (PTM)</option>
+            <option value="REPLACEMENT">Replacement Class (One-off)</option>
+          </Select>
+          <FieldError message={errors.type?.message} />
+        </div>
+        <div>
+          <Label htmlFor="instancesCount">Number of classes to schedule (max 300)</Label>
+          <Input 
+            id="instancesCount" 
+            type="number" 
+            {...register('instancesCount', { valueAsNumber: true })} 
+            placeholder="e.g. 10" 
+          />
+          <FieldError message={errors.instancesCount?.message} />
         </div>
       </div>
 
