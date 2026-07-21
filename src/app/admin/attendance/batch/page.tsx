@@ -63,7 +63,7 @@ export default async function AttendanceBatchListPage({
                   </CardTitle>
                   <ChevronRight className="w-5 h-5 text-slate-400 group-hover:text-brand-500 transition-colors" />
                 </div>
-                <div className="text-sm text-slate-500">Coach: {batch.coach.user.name}</div>
+                <div className="text-sm text-slate-500">Coach: {batch.coach?.user.name || "Unassigned"}</div>
               </CardHeader>
               <CardContent className="pt-4 flex-grow">
                 <div className="flex justify-between items-center text-sm text-slate-600">
