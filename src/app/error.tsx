@@ -32,7 +32,7 @@ export default function GlobalError({
           <Button 
             onClick={() => reset()} 
             className="w-full"
-            variant="default"
+            variant="primary"
           >
             Try Again
           </Button>

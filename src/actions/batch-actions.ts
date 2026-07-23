@@ -206,7 +206,7 @@ export async function enrollStudents(input: {
   }
 
   const students = await prisma.studentProfile.findMany({
-    where: { id: { in: studentIds } },
+    where: { id: { in: studentIds }, user: { emailVerified: true } },
     select: { id: true },
   });
 
@@ -321,7 +321,7 @@ export async function updateBatch(input: z.infer<typeof updateBatchSchema>): Pro
     // 3. Sync students: Re-create enrollments for selected students
     if (studentIds.length > 0) {
       const validStudents = await tx.studentProfile.findMany({
-        where: { id: { in: studentIds } },
+        where: { id: { in: studentIds }, user: { emailVerified: true } },
         select: { id: true },
       });
 

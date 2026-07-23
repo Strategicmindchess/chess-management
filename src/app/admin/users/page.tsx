@@ -33,8 +33,8 @@ export default async function AdminUsersPage({
 
   const whereClause: import("@/generated/prisma/client").Prisma.UserWhereInput =
     activeTab === "ALL"
-      ? { role: { in: [Role.TEACHER, Role.STUDENT] } }
-      : { role: activeTab };
+      ? { role: { in: [Role.TEACHER, Role.STUDENT] }, emailVerified: true }
+      : { role: activeTab, emailVerified: true };
 
   if (query) {
     whereClause.OR = [

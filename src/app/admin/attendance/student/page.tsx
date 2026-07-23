@@ -20,6 +20,7 @@ export default async function AttendanceStudentListPage({
   const students = await prisma.user.findMany({
     where: { 
       role: Role.STUDENT,
+      emailVerified: true,
       ...(query ? { name: { contains: query, mode: "insensitive" } } : {})
     },
     include: {

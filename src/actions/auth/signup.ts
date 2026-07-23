@@ -46,7 +46,7 @@ export async function signup(input: SignupInput): Promise<SignupResult> {
     user = existing
       ? await prisma.user.update({ where: { id: existing.id }, data: { name, passwordHash } })
       : await prisma.user.create({
-          data: { name, email, passwordHash, role: Role.STUDENT, emailVerified: false },
+          data: { name, email, passwordHash, role: Role.STUDENT, emailVerified: false, isActive: false },
         });
 
     const code = await issueOtp(user.id, OtpPurpose.SIGNUP_VERIFICATION);

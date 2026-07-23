@@ -53,7 +53,7 @@ export default async function AdminBatchesPage({
     }),
     prisma.batch.count({ where }),
     prisma.coachProfile.findMany({
-      where: { user: { isActive: true } },
+      where: { user: { isActive: true, emailVerified: true } },
       include: { 
         user: { select: { name: true, email: true } },
         availabilities: true
@@ -61,7 +61,7 @@ export default async function AdminBatchesPage({
       orderBy: { user: { name: "asc" } },
     }),
     prisma.studentProfile.findMany({
-      where: { user: { isActive: true } },
+      where: { user: { isActive: true, emailVerified: true } },
       include: { user: { select: { name: true, email: true } } },
       orderBy: { user: { name: "asc" } },
     })

@@ -33,7 +33,7 @@ export async function verifySignupOtp(input: VerifyOtpInput): Promise<{ error: s
     return { error: OTP_ERROR_MESSAGES[result] };
   }
 
-  await prisma.user.update({ where: { id: user.id }, data: { emailVerified: true } });
+  await prisma.user.update({ where: { id: user.id }, data: { emailVerified: true, isActive: true } });
   await startSession(user.id, user.role);
 
   redirect(ROLE_HOME_PATH[user.role]);
