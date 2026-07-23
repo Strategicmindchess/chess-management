@@ -4,7 +4,7 @@ model Batch {
   name           String
   code           String          @unique
   meetLink       String
-  type           BatchType       @default(RECURRING)
+  type           BatchType       @default(GROUP_SESSION)
   isActive       Boolean         @default(true)
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @updatedAt
@@ -129,10 +129,15 @@ enum ClassStatus {
 }
 
 enum BatchType {
+  GROUP_SESSION
+  ONE_ON_ONE_SESSION
+  DEMO_SESSION
+  SUBSTITUTE_SESSION
+  PTM
+  MASTERCLASS
   RECURRING
   DEMO
   TRIAL
-  PTM
   REPLACEMENT
 }
 

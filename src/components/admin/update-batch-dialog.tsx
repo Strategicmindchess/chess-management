@@ -35,13 +35,20 @@ export function UpdateBatchDialog({
   const [selectedStudents, setSelectedStudents] = useState<Set<string>>(
     new Set(batch.students.map((s) => s.id))
   );
-  const [type, setType] = useState<BatchType>((batch.type as BatchType) ?? "RECURRING");
+  const getInitialType = (t: string) => {
+    if (t === "RECURRING") return "GROUP_SESSION";
+    if (t === "DEMO" || t === "TRIAL") return "DEMO_SESSION";
+    if (t === "REPLACEMENT") return "SUBSTITUTE_SESSION";
+    return (t as BatchType) || "GROUP_SESSION";
+  };
+
+  const [type, setType] = useState<BatchType>(getInitialType(batch.type));
 
   useEffect(() => {
     if (open) {
       setError(null);
       setCoachId(batch.coach?.id ?? "");
-      setType((batch.type as BatchType) ?? "RECURRING");
+      setType(getInitialType(batch.type));
       setSelectedStudents(new Set(batch.students.map((s) => s.id)));
     }
   }, [open, batch]);
@@ -150,11 +157,12 @@ export function UpdateBatchDialog({
                   value={type}
                   onChange={(e) => setType(e.target.value as BatchType)}
                 >
-                  <option value="RECURRING">Recurring Class</option>
-                  <option value="DEMO">Demo Session (One-off)</option>
-                  <option value="TRIAL">Trial Session (One-off)</option>
-                  <option value="PTM">Parent-Teacher Meeting (PTM)</option>
-                  <option value="REPLACEMENT">Replacement Class (One-off)</option>
+                  <option value="GROUP_SESSION">Group session</option>
+                  <option value="ONE_ON_ONE_SESSION">1-1 session</option>
+                  <option value="DEMO_SESSION">Demo session</option>
+                  <option value="SUBSTITUTE_SESSION">Substitute session</option>
+                  <option value="PTM">PTM</option>
+                  <option value="MASTERCLASS">Masterclass</option>
                 </Select>
               </div>
               <div className="space-y-2">

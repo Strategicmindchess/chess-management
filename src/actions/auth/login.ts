@@ -30,7 +30,13 @@ export async function login(
 
   const { email, password } = parsed.data;
 
-  const user = await prisma.user.findUnique({ where: { email } });
+  let user;
+  try {
+    user = await prisma.user.findUnique({ where: { email } });
+  } catch (error) {
+    console.error("Login DB Error:", error);
+    return { error: 'Service temporarily unavailable. Please try again.' };
+  }
 
   if (!user || !user.isActive) {
     return { error: 'Invalid email or password.' };
@@ -40,17 +46,34 @@ export async function login(
     return { error: 'This account uses Google sign-in. Use "Continue with Google" instead.' };
   }
 
-  const isValidPassword = await verifyPassword(password, user.passwordHash);
+  let isValidPassword;
+  try {
+    isValidPassword = await verifyPassword(password, user.passwordHash);
+  } catch (error) {
+    console.error("Password verify error:", error);
+    return { error: 'Service temporarily unavailable.' };
+  }
+
   if (!isValidPassword) {
     return { error: 'Invalid email or password.' };
   }
 
   if (!user.emailVerified && user.role !== Role.ADMIN && user.role !== Role.TEACHER) {
-    const code = await issueOtp(user.id, OtpPurpose.SIGNUP_VERIFICATION);
-    await sendSignupOtpEmail(user.email, user.name, code);
+    try {
+      const code = await issueOtp(user.id, OtpPurpose.SIGNUP_VERIFICATION);
+      await sendSignupOtpEmail(user.email, user.name, code);
+    } catch (error) {
+      console.error("OTP issue error:", error);
+      return { error: 'Could not send verification code. Please try again.' };
+    }
     redirect(`/signup?step=otp&email=${encodeURIComponent(user.email)}`);
   }
 
-  await startSession(user.id, user.role);
+  try {
+    await startSession(user.id, user.role);
+  } catch (error) {
+    console.error("Session start error:", error);
+    return { error: 'Could not start session. Please try again.' };
+  }
   redirect(ROLE_HOME_PATH[user.role]);
 }

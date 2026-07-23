@@ -72,7 +72,7 @@ function CreateBatchForm({
       name: '',
       code: '',
       meetLink: '',
-      type: 'RECURRING',
+      type: 'GROUP_SESSION',
       instancesCount: 10,
       startDate: '',
       payoutRate: 0,
@@ -84,11 +84,11 @@ function CreateBatchForm({
   const { fields, append, remove } = useFieldArray({ control, name: 'schedules' });
   const selectedCoachId = useWatch({ control, name: 'coachId' });
   const selectedType = useWatch({ control, name: 'type' });
-  const [prevType, setPrevType] = useState('RECURRING');
+  const [prevType, setPrevType] = useState('GROUP_SESSION');
 
   useEffect(() => {
     if (selectedType && selectedType !== prevType) {
-      if (selectedType !== 'RECURRING') {
+      if (selectedType !== 'GROUP_SESSION') {
         setValue('instancesCount', 1);
       } else {
         setValue('instancesCount', 10);
@@ -130,11 +130,12 @@ console.log("selectedCoachId:", selectedCoachId);
         <div>
           <Label htmlFor="type">Batch Type</Label>
           <Select id="type" {...register('type')}>
-            <option value="RECURRING">Recurring Class</option>
-            <option value="DEMO">Demo Session (One-off)</option>
-            <option value="TRIAL">Trial Session (One-off)</option>
-            <option value="PTM">Parent-Teacher Meeting (PTM)</option>
-            <option value="REPLACEMENT">Replacement Class (One-off)</option>
+            <option value="GROUP_SESSION">Group session</option>
+            <option value="ONE_ON_ONE_SESSION">1-1 session</option>
+            <option value="DEMO_SESSION">Demo session</option>
+            <option value="SUBSTITUTE_SESSION">Substitute session</option>
+            <option value="PTM">PTM</option>
+            <option value="MASTERCLASS">Masterclass</option>
           </Select>
           <FieldError message={errors.type?.message} />
         </div>

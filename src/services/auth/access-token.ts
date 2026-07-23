@@ -22,11 +22,16 @@ export interface AccessTokenPayload extends JWTPayload {
 
 /** Signs a short-lived JWT that Server Components/Actions trust without a DB call. */
 export async function createAccessToken(userId: string, role: Role): Promise<string> {
-  return new SignJWT({ userId, role })
-    .setProtectedHeader({ alg: 'HS256' })
-    .setIssuedAt()
-    .setExpirationTime(`${ACCESS_TOKEN_TTL_SECONDS}s`)
-    .sign(getEncodedSecretKey());
+  try {
+    return await new SignJWT({ userId, role })
+      .setProtectedHeader({ alg: 'HS256' })
+      .setIssuedAt()
+      .setExpirationTime(`${ACCESS_TOKEN_TTL_SECONDS}s`)
+      .sign(getEncodedSecretKey());
+  } catch (error) {
+    console.error("Failed to create access token:", error);
+    throw new Error("Could not create access token");
+  }
 }
 
 /** Verifies an access token. Returns `null` (never throws) if invalid/expired. */

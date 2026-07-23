@@ -35,10 +35,15 @@ export const AttendanceStatus = {
 export type AttendanceStatus = (typeof AttendanceStatus)[keyof typeof AttendanceStatus];
 
 export const BatchType = {
+  GROUP_SESSION: 'GROUP_SESSION',
+  ONE_ON_ONE_SESSION: 'ONE_ON_ONE_SESSION',
+  DEMO_SESSION: 'DEMO_SESSION',
+  SUBSTITUTE_SESSION: 'SUBSTITUTE_SESSION',
+  PTM: 'PTM',
+  MASTERCLASS: 'MASTERCLASS',
   RECURRING: 'RECURRING',
   DEMO: 'DEMO',
   TRIAL: 'TRIAL',
-  PTM: 'PTM',
   REPLACEMENT: 'REPLACEMENT',
 } as const;
 

@@ -13,8 +13,13 @@ import { readAuthCookies, resolveSession } from "@/services/auth/session";
  * call from multiple places.
  */
 export const verifySession = cache(async () => {
-  const { accessToken, refreshToken } = await readAuthCookies();
-  const session = await resolveSession(accessToken, refreshToken);
+  let session = null;
+  try {
+    const { accessToken, refreshToken } = await readAuthCookies();
+    session = await resolveSession(accessToken, refreshToken);
+  } catch (error) {
+    console.error("Error verifying session:", error);
+  }
 
   if (!session) {
     redirect("/login");
@@ -31,21 +36,26 @@ export const verifySession = cache(async () => {
 export const getCurrentUser = cache(async () => {
   const session = await verifySession();
 
-  const user = await prisma.user.findUnique({
-    where: { id: session.userId },
-    select: {
-      id: true,
-      name: true,
-      email: true,
-      role: true,
-      phone: true,
-      isActive: true,
-      emailVerified: true,
-      createdAt: true,
-      studentProfile: true,
-      coachProfile: true,
-    },
-  });
+  let user = null;
+  try {
+    user = await prisma.user.findUnique({
+      where: { id: session.userId },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        phone: true,
+        isActive: true,
+        emailVerified: true,
+        createdAt: true,
+        studentProfile: true,
+        coachProfile: true,
+      },
+    });
+  } catch (error) {
+    console.error("Error fetching current user:", error);
+  }
 
   if (!user || !user.isActive) {
     redirect("/api/auth/clear-session");

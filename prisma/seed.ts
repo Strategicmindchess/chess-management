@@ -18,11 +18,13 @@ async function hashPassword(password: string) {
 }
 
 async function main() {
-  const adminName = process.env.ADMIN_NAME || "Super Admin";
-  const adminEmail = (
-    process.env.ADMIN_EMAIL || "admin@strategicmindchess.com"
-  ).toLowerCase();
-  const adminPassword = process.env.ADMIN_PASSWORD || "ChangeMe@123";
+  const adminName = process.env.ADMIN_NAME;
+  const adminEmail = process.env.ADMIN_EMAIL?.toLowerCase();
+  const adminPassword = process.env.ADMIN_PASSWORD;
+
+  if (!adminName || !adminEmail || !adminPassword) {
+    throw new Error("ADMIN_NAME, ADMIN_EMAIL, or ADMIN_PASSWORD is not set.");
+  }
 
   const admin = await prisma.user.upsert({
     where: { email: adminEmail },
@@ -38,97 +40,98 @@ async function main() {
   console.log(`Admin ready: ${admin.email} / (password set from .env)`);
 
   // 1. Generate 10 Coaches with availability
-  const coaches = [];
-  for (let i = 1; i <= 10; i++) {
-    const coachEmail = `coach${i}@strategicmindchess.com`;
-    const coach = await prisma.user.upsert({
-      where: { email: coachEmail },
-      update: {},
-      create: {
-        name: `Coach ${i}`,
-        email: coachEmail,
-        phone: `98765432${i.toString().padStart(2, "0")}`,
-        passwordHash: await hashPassword("Coach@123"),
-        role: Role.TEACHER,
-        emailVerified: true,
-        coachProfile: {
-          create: {
-            bio: `Experienced chess coach ${i}`,
-            city: "Jhansi",
-          }
-        }
-      },
-      include: { coachProfile: true },
-    });
-    coaches.push(coach);
-  }
+  //const coaches = [];
+  // for (let i = 1; i <= 10; i++) {
+  //   const coachEmail = `coach${i}@strategicmindchess.com`;
+  //   const coach = await prisma.user.upsert({
+  //     where: { email: coachEmail },
+  //     update: {},
+  //     create: {
+  //       name: `Coach ${i}`,
+  //       email: coachEmail,
+  //       phone: `98765432${i.toString().padStart(2, "0")}`,
+  //       passwordHash: await hashPassword("Coach@123"),
+  //       role: Role.TEACHER,
+  //       emailVerified: true,
+  //       coachProfile: {
+  //         create: {
+  //           bio: `Experienced chess coach ${i}`,
+  //           city: "Jhansi",
+  //         }
+  //       }
+  //     },
+  //     include: { coachProfile: true },
+  //   });
+  //   //coaches.push(coach);
+  // }
   console.log("Seeded 10 coaches.");
 
   // 2. Generate 50 Students
-  const students = [];
-  for (let i = 1; i <= 50; i++) {
-    const studentEmail = `student${i}@strategicmindchess.com`;
-    const student = await prisma.user.upsert({
-      where: { email: studentEmail },
-      update: {},
-      create: {
-        name: `Student ${i}`,
-        email: studentEmail,
-        phone: `91234567${i.toString().padStart(2, "0")}`,
-        passwordHash: await hashPassword("Student@123"),
-        role: Role.STUDENT,
-        emailVerified: true,
-        studentProfile: {
-          create: {
-            parentName: `Parent ${i}`,
-            parentPhone: `91234567${i.toString().padStart(2, "0")}P`,
-            city: "Jhansi",
-            chessComId: `student_${i}`,
-            lichessId: `student_${i}_lichess`,
-            chessComRating: 1000 + (i * 10),
-            lichessRating: 1000 + (i * 10),
-          }
-        }
-      },
-      include: { studentProfile: true },
-    });
-    students.push(student);
-  }
+  //const students = [];
+  // for (let i = 1; i <= 50; i++) {
+  //   const studentEmail = `student${i}@strategicmindchess.com`;
+  //   const student = await prisma.user.upsert({
+  //     where: { email: studentEmail },
+  //     update: {},
+  //     create: {
+  //       name: `Student ${i}`,
+  //       email: studentEmail,
+  //       phone: `91234567${i.toString().padStart(2, "0")}`,
+  //       passwordHash: await hashPassword("Student@123"),
+  //       role: Role.STUDENT,
+  //       emailVerified: true,
+  //       studentProfile: {
+  //         create: {
+  //           parentName: `Parent ${i}`,
+  //           parentPhone: `91234567${i.toString().padStart(2, "0")}P`,
+  //           city: "Jhansi",
+  //           chessComId: `student_${i}`,
+  //           lichessId: `student_${i}_lichess`,
+  //           chessComRating: 1000 + (i * 10),
+  //           lichessRating: 1000 + (i * 10),
+  //         }
+  //       }
+  //     },
+  //     include: { studentProfile: true },
+  //   });
+  //   students.push(student);
+  // }
+
   console.log("Seeded 50 students.");
 
   // 3. Generate 10 Batches and enroll 10 students per batch
-  for (let i = 1; i <= 10; i++) {
-    const batchCode = `BATCH-${i.toString().padStart(2, "0")}`;
-    const assignedCoach = coaches[i - 1]; // 10 batches, 10 coaches -> 1 coach per batch
+  // for (let i = 1; i <= 10; i++) {
+  //   const batchCode = `BATCH-${i.toString().padStart(2, "0")}`;
+  //   const assignedCoach = coaches[i - 1]; // 10 batches, 10 coaches -> 1 coach per batch
     
-    const batch = await prisma.batch.upsert({
-      where: { code: batchCode },
-      update: {},
-      create: {
-        name: `Batch ${i} Beginners`,
-        code: batchCode,
-        meetLink: `https://meet.google.com/demo-batch-${i}`,
-        coachProfileId: assignedCoach.coachProfile?.id,
-        schedules: {
-          create: [
-            { day: Weekday.SATURDAY, startTime: "10:00", endTime: "11:00" },
-            { day: Weekday.SUNDAY, startTime: "10:00", endTime: "11:00" },
-          ],
-        },
-      },
-    });
+  //   const batch = await prisma.batch.upsert({
+  //     where: { code: batchCode },
+  //     update: {},
+  //     create: {
+  //       name: `Batch ${i} Beginners`,
+  //       code: batchCode,
+  //       meetLink: `https://meet.google.com/demo-batch-${i}`,
+  //       coachProfileId: assignedCoach.coachProfile?.id,
+  //       schedules: {
+  //         create: [
+  //           { day: Weekday.SATURDAY, startTime: "10:00", endTime: "11:00" },
+  //           { day: Weekday.SUNDAY, startTime: "10:00", endTime: "11:00" },
+  //         ],
+  //       },
+  //     },
+  //   });
 
-    // Enroll 10 distinct students in this batch
-    for (let j = 0; j < 10; j++) {
-      const studentIndex = ((i - 1) * 10 + j) % 50;
-      const student = students[studentIndex];
-      await prisma.batchStudent.upsert({
-        where: { batchId_studentProfileId: { batchId: batch.id, studentProfileId: student.studentProfile?.id! } },
-        update: {},
-        create: { batchId: batch.id, studentProfileId: student.studentProfile?.id! },
-      });
-    }
-  }
+  //   // Enroll 10 distinct students in this batch
+  //   for (let j = 0; j < 10; j++) {
+  //     const studentIndex = ((i - 1) * 10 + j) % 50;
+  //     const student = students[studentIndex];
+  //     await prisma.batchStudent.upsert({
+  //       where: { batchId_studentProfileId: { batchId: batch.id, studentProfileId: student.studentProfile?.id! } },
+  //       update: {},
+  //       create: { batchId: batch.id, studentProfileId: student.studentProfile?.id! },
+  //     });
+  //   }
+  // }
   console.log("Seeded 10 batches with 10 students each.");
 }
 

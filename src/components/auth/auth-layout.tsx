@@ -1,6 +1,5 @@
 import type { ReactNode } from "react";
-
-export function AuthLayout({
+import Image from "next/image";export function AuthLayout({
   title,
   subtitle,
   children,
@@ -17,8 +16,8 @@ export function AuthLayout({
 
       <div className="relative w-full max-w-md">
         <div className="mb-6 text-center text-white">
-          <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-white/15 text-2xl backdrop-blur-sm">
-            ♟
+          <div className="mx-auto mb-3 flex h-16 w-16 items-center justify-center overflow-hidden rounded-2xl bg-white/15 backdrop-blur-sm">
+            <Image src="/image.png" alt="SMC Logo" width={64} height={64} className="h-full w-full object-contain" />
           </div>
           <p className="text-sm font-medium text-white/80">
             Strategic Mind Chess

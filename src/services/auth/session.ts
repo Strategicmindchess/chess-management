@@ -30,50 +30,68 @@ export async function resolveSession(
   accessToken: string | undefined,
   refreshToken: string | undefined,
 ): Promise<ResolvedSession | null> {
-  const accessPayload = await verifyAccessToken(accessToken);
-  if (accessPayload) {
-    return { userId: accessPayload.userId, role: accessPayload.role };
+  try {
+    const accessPayload = await verifyAccessToken(accessToken);
+    if (accessPayload) {
+      return { userId: accessPayload.userId, role: accessPayload.role };
+    }
+    return await verifyRefreshToken(refreshToken);
+  } catch (error) {
+    console.error("Error in resolveSession:", error);
+    return null;
   }
-
-  return verifyRefreshToken(refreshToken);
 }
 
 /** Issues a fresh access + refresh token pair and stores both as cookies. Call only from a Server Action/Route Handler. */
 export async function startSession(userId: string, role: Role): Promise<void> {
-  const [accessToken, refreshToken] = await Promise.all([
-    createAccessToken(userId, role),
-    issueRefreshToken(userId),
-  ]);
+  try {
+    const [accessToken, refreshToken] = await Promise.all([
+      createAccessToken(userId, role),
+      issueRefreshToken(userId),
+    ]);
 
-  const cookieStore = await cookies();
-  cookieStore.set(ACCESS_TOKEN_COOKIE, accessToken, accessTokenCookieOptions());
-  cookieStore.set(
-    REFRESH_TOKEN_COOKIE,
-    refreshToken,
-    refreshTokenCookieOptions(),
-  );
+    const cookieStore = await cookies();
+    cookieStore.set(ACCESS_TOKEN_COOKIE, accessToken, accessTokenCookieOptions());
+    cookieStore.set(
+      REFRESH_TOKEN_COOKIE,
+      refreshToken,
+      refreshTokenCookieOptions(),
+    );
+  } catch (error) {
+    console.error("Error in startSession:", error);
+    throw new Error("Could not start session");
+  }
 }
 
 /** Ends the current session: revokes the refresh token and clears both cookies. */
 export async function endSession(): Promise<void> {
-  const cookieStore = await cookies();
-  const refreshToken = cookieStore.get(REFRESH_TOKEN_COOKIE)?.value;
+  try {
+    const cookieStore = await cookies();
+    const refreshToken = cookieStore.get(REFRESH_TOKEN_COOKIE)?.value;
 
-  await revokeRefreshToken(refreshToken);
+    await revokeRefreshToken(refreshToken);
 
-  cookieStore.delete(ACCESS_TOKEN_COOKIE);
-  cookieStore.delete(REFRESH_TOKEN_COOKIE);
+    cookieStore.delete(ACCESS_TOKEN_COOKIE);
+    cookieStore.delete(REFRESH_TOKEN_COOKIE);
+  } catch (error) {
+    console.error("Error in endSession:", error);
+  }
 }
 
 export async function readAuthCookies(): Promise<{
   accessToken?: string;
   refreshToken?: string;
 }> {
-  const cookieStore = await cookies();
-  return {
-    accessToken: cookieStore.get(ACCESS_TOKEN_COOKIE)?.value,
-    refreshToken: cookieStore.get(REFRESH_TOKEN_COOKIE)?.value,
-  };
+  try {
+    const cookieStore = await cookies();
+    return {
+      accessToken: cookieStore.get(ACCESS_TOKEN_COOKIE)?.value,
+      refreshToken: cookieStore.get(REFRESH_TOKEN_COOKIE)?.value,
+    };
+  } catch (error) {
+    console.error("Error in readAuthCookies:", error);
+    return {};
+  }
 }
 
 /**
@@ -86,6 +104,11 @@ export async function invalidateOtherSessionsAndRestart(
   userId: string,
   role: Role,
 ): Promise<void> {
-  await revokeAllRefreshTokensForUser(userId);
-  await startSession(userId, role);
+  try {
+    await revokeAllRefreshTokensForUser(userId);
+    await startSession(userId, role);
+  } catch (error) {
+    console.error("Error in invalidateOtherSessionsAndRestart:", error);
+    throw new Error("Could not invalidate sessions");
+  }
 }

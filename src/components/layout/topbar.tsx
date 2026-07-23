@@ -3,6 +3,7 @@
 import { useTransition, useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { LogOut, User } from "lucide-react";
 import { logout } from "@/actions/auth/logout";
 import { Button } from "@/components/ui/button";
@@ -44,12 +45,12 @@ export function Topbar({
     .toUpperCase();
 
   return (
-    <header className="sticky top-0 z-30 flex h-16 items-center justify-between gap-4 border-b border-slate-200 bg-white/80 px-4 backdrop-blur-sm sm:px-6">
+    <header className="sticky top-0 z-30 flex h-16 items-center justify-between gap-4 border-b border-slate-800 bg-slate-950/80 px-4 backdrop-blur-sm sm:px-6">
       <div className="flex items-center gap-3 lg:hidden">
-        <span className="text-xl">♟</span>
+        <Image src="/image.png" alt="SMC Logo" width={100} height={32} className="h-8 w-auto object-contain" />
         <select
           aria-label="Navigate"
-          className="rounded-md border border-slate-300 bg-white px-2 py-1.5 text-sm"
+          className="rounded-md border border-slate-700 bg-slate-900 text-white px-2 py-1.5 text-sm"
           onChange={(event) => {
             if (event.target.value) router.push(event.target.value);
           }}
@@ -68,8 +69,8 @@ export function Topbar({
       <div className="hidden lg:block" />
       <div className="flex items-center gap-4 relative" ref={dropdownRef}>
         <div className="hidden text-right sm:block">
-          <p className="text-sm font-medium text-slate-900">{userName}</p>
-          <p className="text-xs text-slate-500">{roleLabel}</p>
+          <p className="text-sm font-medium text-white">{userName}</p>
+          <p className="text-xs text-slate-400">{roleLabel}</p>
         </div>
         
         <button

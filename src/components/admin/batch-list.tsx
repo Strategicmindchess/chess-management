@@ -134,7 +134,7 @@ export function BatchList({
                   </h3>
                   <Badge variant="neutral">{batch.code}</Badge>
                   <Badge variant="neutral" className="capitalize font-normal text-xs bg-slate-100 text-slate-700">
-                    {(batch.type || "RECURRING").toLowerCase()}
+                    {(batch.type || "GROUP_SESSION").replace(/_/g, ' ').toLowerCase()}
                   </Badge>
                   <Badge variant={batch.isActive ? "success" : "neutral"}>
                     {batch.isActive ? "Active" : "Inactive"}

@@ -24,7 +24,13 @@ export async function signup(input: SignupInput): Promise<SignupResult> {
 
   const { name, email, password } = parsed.data;
 
-  const existing = await prisma.user.findUnique({ where: { email } });
+  let existing;
+  try {
+    existing = await prisma.user.findUnique({ where: { email } });
+  } catch (error) {
+    console.error("Signup DB Check Error:", error);
+    return { success: false, error: 'Service temporarily unavailable.' };
+  }
 
   if (existing?.emailVerified) {
     return {
@@ -33,16 +39,22 @@ export async function signup(input: SignupInput): Promise<SignupResult> {
     };
   }
 
-  const passwordHash = await hashPassword(password);
+  let user;
+  try {
+    const passwordHash = await hashPassword(password);
 
-  const user = existing
-    ? await prisma.user.update({ where: { id: existing.id }, data: { name, passwordHash } })
-    : await prisma.user.create({
-        data: { name, email, passwordHash, role: Role.STUDENT, emailVerified: false },
-      });
+    user = existing
+      ? await prisma.user.update({ where: { id: existing.id }, data: { name, passwordHash } })
+      : await prisma.user.create({
+          data: { name, email, passwordHash, role: Role.STUDENT, emailVerified: false },
+        });
 
-  const code = await issueOtp(user.id, OtpPurpose.SIGNUP_VERIFICATION);
-  await sendSignupOtpEmail(user.email, user.name, code);
+    const code = await issueOtp(user.id, OtpPurpose.SIGNUP_VERIFICATION);
+    await sendSignupOtpEmail(user.email, user.name, code);
+  } catch (error) {
+    console.error("Signup Create Error:", error);
+    return { success: false, error: 'Could not create account. Please try again later.' };
+  }
 
   return { success: true, email: user.email };
 }
