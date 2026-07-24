@@ -43,12 +43,7 @@ export default async function AdminBatchesPage({
             student: { include: { user: { select: { id: true, name: true, email: true } } } },
           },
         },
-        classInstances: {
-          select: {
-            id: true,
-            status: true,
-          },
-        },
+        _count: { select: { classInstances: true } },
       },
     }),
     prisma.batch.count({ where }),
@@ -66,6 +61,25 @@ export default async function AdminBatchesPage({
       orderBy: { user: { name: "asc" } },
     })
   ]);
+
+  // Batch status counts via groupBy — one query instead of loading all instances
+  const batchIds = batches.map((b) => b.id);
+  const statusCounts = batchIds.length > 0
+    ? await prisma.classInstance.groupBy({
+        by: ['batchId', 'status'],
+        _count: true,
+        where: { batchId: { in: batchIds } },
+      })
+    : [];
+
+  // Build a lookup map: batchId → { SCHEDULED: n, COMPLETED: n, CANCELLED: n }
+  const statusMap = new Map<string, Record<string, number>>();
+  for (const row of statusCounts) {
+    if (!statusMap.has(row.batchId)) {
+      statusMap.set(row.batchId, {});
+    }
+    statusMap.get(row.batchId)![row.status] = row._count;
+  }
 
   const coaches = coachesData.map(c => ({
     id: c.id,
@@ -85,10 +99,11 @@ export default async function AdminBatchesPage({
   }));
 
   const batchItems = batches.map((batch) => {
-    const totalInstances = batch.classInstances.length;
-    const completedInstances = batch.classInstances.filter((i) => i.status === "COMPLETED").length;
-    const scheduledInstances = batch.classInstances.filter((i) => i.status === "SCHEDULED").length;
-    const cancelledInstances = batch.classInstances.filter((i) => i.status === "CANCELLED").length;
+    const counts = statusMap.get(batch.id) ?? {};
+    const completedInstances = counts['COMPLETED'] ?? 0;
+    const scheduledInstances = counts['SCHEDULED'] ?? 0;
+    const cancelledInstances = counts['CANCELLED'] ?? 0;
+    const totalInstances = batch._count.classInstances;
 
     return {
       id: batch.id,

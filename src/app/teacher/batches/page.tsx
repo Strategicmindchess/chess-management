@@ -14,7 +14,9 @@ import { StartBatchButton } from "@/components/coach/start-batch-button";
 export default async function TeacherBatchesPage() {
   const user = await requireRole([Role.TEACHER]);
 
-  const coachProfile = user.coachProfile;
+  const coachProfile = await prisma.coachProfile.findUnique({
+    where: { userId: user.id }
+  });
   if (!coachProfile) return <div>Coach profile not found.</div>;
 
   const batches = await prisma.batch.findMany({

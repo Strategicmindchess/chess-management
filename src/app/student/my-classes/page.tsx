@@ -11,7 +11,10 @@ import { JoinClassButton } from "@/components/student/join-class-button";
 export default async function StudentMyClassesPage() {
   const user = await requireRole([Role.STUDENT]);
 
-  const studentProfile = user.studentProfile;
+  const studentProfile = await prisma.studentProfile.findUnique({
+    where: { userId: user.id }
+  });
+
   if (!studentProfile) return <div>Student profile not found.</div>;
 
   const today = startOfDay(new Date());

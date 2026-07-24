@@ -14,7 +14,9 @@ export default async function TeacherAttendancePage() {
   // For simplicity, we use server local time, but warn if timezones mismatch.
   const today = startOfDay(new Date());
 
-  const coachProfile = user.coachProfile;
+  const coachProfile = await prisma.coachProfile.findUnique({
+    where: { userId: user.id }
+  });
   if (!coachProfile) return <div>Coach profile not found.</div>;
 
   // Get all un-marked class instances for this coach up to today

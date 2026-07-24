@@ -33,6 +33,12 @@ export async function submitClassLog(input: SubmitClassLogInput) {
   const data = result.data;
 
   try {
+    // Fetch coach profile only when needed (not on every request via getCurrentUser)
+    const coachProfile = await prisma.coachProfile.findUnique({
+      where: { userId: user.id },
+      select: { id: true },
+    });
+
     const classInstance = await prisma.classInstance.findUnique({
       where: { id: data.classInstanceId },
       include: {
@@ -50,7 +56,7 @@ export async function submitClassLog(input: SubmitClassLogInput) {
 
     const batch = classInstance.batch;
 
-    if (!user.coachProfile || batch.coachProfileId !== user.coachProfile.id) {
+    if (!coachProfile || batch.coachProfileId !== coachProfile.id) {
       return { success: false, error: "You are not assigned to this batch" };
     }
 
@@ -59,7 +65,7 @@ export async function submitClassLog(input: SubmitClassLogInput) {
       const classLog = await tx.classLog.create({
         data: {
           batchId: batch.id,
-          coachProfileId: user.coachProfile!.id,
+          coachProfileId: coachProfile.id,
           date: classInstance.date,
           topicCovered: data.topicCovered,
           durationMins: data.durationMins,

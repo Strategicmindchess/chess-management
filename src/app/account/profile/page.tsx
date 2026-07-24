@@ -1,3 +1,4 @@
+import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/dal";
 import { DashboardShell } from "@/components/layout/dashboard-shell";
 import { ROLE_LABEL } from "@/lib/constants";
@@ -5,8 +6,16 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { ProfileForm } from "./profile-form";
 
 export default async function ProfilePage() {
-  const user = await getCurrentUser();
+  const userBase = await getCurrentUser();
   
+  // Fetch the full profile details specifically for this page
+  const user = await prisma.user.findUniqueOrThrow({
+    where: { id: userBase.id },
+    include: {
+      studentProfile: true,
+      coachProfile: true,
+    }
+  });
   return (
     <DashboardShell
       role={user.role}

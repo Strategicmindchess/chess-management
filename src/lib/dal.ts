@@ -47,10 +47,6 @@ export const getCurrentUser = cache(async () => {
         role: true,
         phone: true,
         isActive: true,
-        emailVerified: true,
-        createdAt: true,
-        studentProfile: true,
-        coachProfile: true,
       },
     });
   } catch (error) {

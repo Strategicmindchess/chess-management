@@ -55,9 +55,9 @@ export async function updateProfile(formData: FormData) {
     });
 
     // Update specific profiles if applicable
-    if (user.role === Role.STUDENT && user.studentProfile) {
+    if (user.role === Role.STUDENT) {
       await prisma.studentProfile.update({
-        where: { id: user.studentProfile.id },
+        where: { userId: user.id },
         data: {
           parentName: data.parentName || null,
           parentPhone: data.parentPhone || null,
@@ -68,9 +68,9 @@ export async function updateProfile(formData: FormData) {
           lichessRating: data.lichessRating,
         },
       });
-    } else if (user.role === Role.TEACHER && user.coachProfile) {
+    } else if (user.role === Role.TEACHER) {
       await prisma.coachProfile.update({
-        where: { id: user.coachProfile.id },
+        where: { userId: user.id },
         data: {
           bio: data.bio || null,
           experience: data.experience || null,

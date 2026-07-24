@@ -8,7 +8,9 @@ import { Badge } from "@/components/ui/badge";
 export default async function TeacherPayoutsPage() {
   const user = await requireRole([Role.TEACHER]);
 
-  const coachProfile = user.coachProfile;
+  const coachProfile = await prisma.coachProfile.findUnique({
+    where: { userId: user.id }
+  });
   if (!coachProfile) return <div>Coach profile not found.</div>;
 
   const classLogs = await prisma.classLog.findMany({
