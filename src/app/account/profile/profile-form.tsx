@@ -62,7 +62,7 @@ export function ProfileForm({
         <h3 className="text-sm font-medium text-slate-900 border-b pb-2">Basic Information</h3>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
+            <Label htmlFor="email">Email <span className="text-red-500 ml-0.5">*</span></Label>
             <Input
               id="email"
               name="email"
@@ -74,7 +74,7 @@ export function ProfileForm({
           </div>
           
           <div className="space-y-2">
-            <Label htmlFor="name">Full Name</Label>
+            <Label htmlFor="name">Full Name <span className="text-red-500 ml-0.5">*</span></Label>
             <Input
               id="name"
               name="name"

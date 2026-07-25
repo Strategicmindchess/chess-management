@@ -60,11 +60,11 @@ export function UserDetailDialog({
           <div className="space-y-4 mb-2 pb-4 border-b border-slate-100">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="name">Name</Label>
+                <Label htmlFor="name">Name <span className="text-red-500 ml-0.5">*</span></Label>
                 <Input id="name" name="name" defaultValue={user.name} required />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="email">Email <span className="text-red-500 ml-0.5">*</span></Label>
                 <Input id="email" name="email" type="email" defaultValue={user.email} required />
               </div>
               <div className="space-y-2">

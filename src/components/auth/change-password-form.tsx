@@ -40,12 +40,12 @@ export function ChangePasswordForm() {
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
       <div>
-        <Label htmlFor="currentPassword">Current password</Label>
+        <Label htmlFor="currentPassword">Current password <span className="text-red-500 ml-0.5">*</span></Label>
         <PasswordInput id="currentPassword" {...register('currentPassword')} />
         <FieldError message={errors.currentPassword?.message} />
       </div>
       <div>
-        <Label htmlFor="newPassword">New password</Label>
+        <Label htmlFor="newPassword">New password <span className="text-red-500 ml-0.5">*</span></Label>
         <PasswordInput
           id="newPassword"
           {...register('newPassword')}

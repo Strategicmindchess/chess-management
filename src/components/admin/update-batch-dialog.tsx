@@ -106,7 +106,7 @@ export function UpdateBatchDialog({
             <h3 className="text-sm font-medium text-slate-900 border-b pb-2">Batch Details</h3>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="name">Batch Name</Label>
+                <Label htmlFor="name">Batch Name <span className="text-red-500 ml-0.5">*</span></Label>
                 <Input
                   id="name"
                   name="name"
@@ -115,7 +115,7 @@ export function UpdateBatchDialog({
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="code">Batch Code</Label>
+                <Label htmlFor="code">Batch Code <span className="text-red-500 ml-0.5">*</span></Label>
                 <Input
                   id="code"
                   name="code"
@@ -127,7 +127,7 @@ export function UpdateBatchDialog({
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="meetLink">Google Meet Link</Label>
+                <Label htmlFor="meetLink">Google Meet Link <span className="text-red-500 ml-0.5">*</span></Label>
                 <Input
                   id="meetLink"
                   name="meetLink"

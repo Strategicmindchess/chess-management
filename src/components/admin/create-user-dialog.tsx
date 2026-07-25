@@ -71,7 +71,7 @@ function CreateUserForm({ onSuccess }: { onSuccess: () => void }) {
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
       <div>
-        <Label htmlFor="role">Role</Label>
+        <Label htmlFor="role">Role <span className="text-red-500 ml-0.5">*</span></Label>
         <Select id="role" {...register('role')}>
           <option value="STUDENT">Student</option>
           <option value="TEACHER">Coach</option>
@@ -79,12 +79,12 @@ function CreateUserForm({ onSuccess }: { onSuccess: () => void }) {
         <FieldError message={errors.role?.message} />
       </div>
       <div>
-        <Label htmlFor="name">Full name</Label>
+        <Label htmlFor="name">Full name <span className="text-red-500 ml-0.5">*</span></Label>
         <Input id="name" {...register('name')} placeholder="e.g. Aditi Sharma" />
         <FieldError message={errors.name?.message} />
       </div>
       <div>
-        <Label htmlFor="email">Email</Label>
+        <Label htmlFor="email">Email <span className="text-red-500 ml-0.5">*</span></Label>
         <Input id="email" type="email" {...register('email')} placeholder="name@example.com" />
         <FieldError message={errors.email?.message} />
       </div>
@@ -94,7 +94,7 @@ function CreateUserForm({ onSuccess }: { onSuccess: () => void }) {
         <FieldError message={errors.phone?.message} />
       </div>
       <div>
-        <Label htmlFor="password">Temporary password</Label>
+        <Label htmlFor="password">Temporary password <span className="text-red-500 ml-0.5">*</span></Label>
         <PasswordInput
           id="password"
           {...register('password')}

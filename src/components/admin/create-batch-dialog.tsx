@@ -115,12 +115,12 @@ console.log("selectedCoachId:", selectedCoachId);
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div>
-          <Label htmlFor="name">Batch name</Label>
+          <Label htmlFor="name">Batch name <span className="text-red-500 ml-0.5">*</span></Label>
           <Input id="name" {...register('name')} placeholder="e.g. Weekend Beginners" />
           <FieldError message={errors.name?.message} />
         </div>
         <div>
-          <Label htmlFor="code">Batch code</Label>
+          <Label htmlFor="code">Batch code <span className="text-red-500 ml-0.5">*</span></Label>
           <Input id="code" {...register('code')} placeholder="e.g. WB-01" />
           <FieldError message={errors.code?.message} />
         </div>
@@ -128,7 +128,7 @@ console.log("selectedCoachId:", selectedCoachId);
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div>
-          <Label htmlFor="type">Batch Type</Label>
+          <Label htmlFor="type">Batch Type <span className="text-red-500 ml-0.5">*</span></Label>
           <Select id="type" {...register('type')}>
             <option value="GROUP_SESSION">Group session</option>
             <option value="ONE_ON_ONE_SESSION">1-1 session</option>
@@ -140,7 +140,7 @@ console.log("selectedCoachId:", selectedCoachId);
           <FieldError message={errors.type?.message} />
         </div>
         <div>
-          <Label htmlFor="instancesCount">Number of classes to schedule (max 300)</Label>
+          <Label htmlFor="instancesCount">Number of classes to schedule (max 300) <span className="text-red-500 ml-0.5">*</span></Label>
           <Input 
             id="instancesCount" 
             type="number" 
@@ -153,7 +153,7 @@ console.log("selectedCoachId:", selectedCoachId);
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div>
-          <Label htmlFor="meetLink">Google Meet link</Label>
+          <Label htmlFor="meetLink">Google Meet link <span className="text-red-500 ml-0.5">*</span></Label>
           <div className="flex gap-2">
             <Input id="meetLink" {...register('meetLink')} placeholder="https://meet.google.com/xxx-xxxx-xxx" />
             <Button
@@ -167,7 +167,7 @@ console.log("selectedCoachId:", selectedCoachId);
           <FieldError message={errors.meetLink?.message} />
         </div>
         <div>
-          <Label htmlFor="payoutRate">Coach Payout (Rs. per session)</Label>
+          <Label htmlFor="payoutRate">Coach Payout (Rs. per session) <span className="text-red-500 ml-0.5">*</span></Label>
           <Input id="payoutRate" type="number" {...register('payoutRate', { valueAsNumber: true })} placeholder="e.g. 500" />
           <FieldError message={errors.payoutRate?.message} />
         </div>

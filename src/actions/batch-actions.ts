@@ -47,7 +47,7 @@ export async function createBatch(input: CreateBatchInput): Promise<ActionResult
       type: type as any,
       startDate: startDate ? new Date(startDate) : null,
       payoutRate,
-      coachProfileId: coachId,
+      coachProfileId: coachId || null,
       schedules: {
         create: schedules.map((slot) => ({
           day: slot.day,

@@ -49,17 +49,17 @@ export function SignupDetailsForm({
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <div>
-          <Label htmlFor="name">Full name</Label>
+          <Label htmlFor="name">Full name <span className="text-red-500 ml-0.5">*</span></Label>
           <Input id="name" {...register('name')} placeholder="Your name" />
           <FieldError message={errors.name?.message} />
         </div>
         <div>
-          <Label htmlFor="email">Email</Label>
+          <Label htmlFor="email">Email <span className="text-red-500 ml-0.5">*</span></Label>
           <Input id="email" type="email" {...register('email')} placeholder="you@example.com" />
           <FieldError message={errors.email?.message} />
         </div>
         <div>
-          <Label htmlFor="password">Password</Label>
+          <Label htmlFor="password">Password <span className="text-red-500 ml-0.5">*</span></Label>
           <PasswordInput
             id="password"
             {...register('password')}

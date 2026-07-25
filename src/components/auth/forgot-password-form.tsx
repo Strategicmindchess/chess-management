@@ -37,7 +37,7 @@ export function ForgotPasswordForm() {
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
       <div>
-        <Label htmlFor="email">Email address</Label>
+        <Label htmlFor="email">Email address <span className="text-red-500 ml-0.5">*</span></Label>
         <Input id="email" type="email" {...register('email')} placeholder="you@example.com" />
         <FieldError message={errors.email?.message} />
       </div>

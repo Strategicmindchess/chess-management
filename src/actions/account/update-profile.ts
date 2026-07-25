@@ -26,16 +26,16 @@ export async function updateProfile(formData: FormData) {
   const user = await getCurrentUser();
   const parsed = updateProfileSchema.safeParse({
     name: formData.get("name"),
-    phone: formData.get("phone"),
-    parentName: formData.get("parentName"),
-    parentPhone: formData.get("parentPhone"),
-    city: formData.get("city"),
-    chessComId: formData.get("chessComId"),
-    lichessId: formData.get("lichessId"),
-    chessComRating: formData.get("chessComRating"),
-    lichessRating: formData.get("lichessRating"),
-    bio: formData.get("bio"),
-    experience: formData.get("experience"),
+    phone: formData.get("phone") ?? undefined,
+    parentName: formData.get("parentName") ?? undefined,
+    parentPhone: formData.get("parentPhone") ?? undefined,
+    city: formData.get("city") ?? undefined,
+    chessComId: formData.get("chessComId") ?? undefined,
+    lichessId: formData.get("lichessId") ?? undefined,
+    chessComRating: formData.get("chessComRating") ?? undefined,
+    lichessRating: formData.get("lichessRating") ?? undefined,
+    bio: formData.get("bio") ?? undefined,
+    experience: formData.get("experience") ?? undefined,
   });
 
   if (!parsed.success) {

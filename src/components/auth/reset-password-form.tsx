@@ -45,7 +45,7 @@ export function ResetPasswordForm() {
         <OtpInput value={code} onChange={setCode} disabled={isSubmitting} />
       </div>
       <div>
-        <Label htmlFor="password">New password</Label>
+        <Label htmlFor="password">New password <span className="text-red-500 ml-0.5">*</span></Label>
         <PasswordInput
           id="password"
           value={password}

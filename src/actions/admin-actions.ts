@@ -30,13 +30,13 @@ export async function updateAdminUserFields(formData: FormData) {
       role: formData.get("role"),
       name: formData.get("name"),
       email: formData.get("email"),
-      phone: formData.get("phone"),
-      city: formData.get("city"),
-      isActive: formData.get("isActive"),
+      phone: formData.get("phone") ?? undefined,
+      city: formData.get("city") ?? undefined,
+      isActive: formData.get("isActive") ?? undefined,
       chessComRating: formData.get("chessComRating") ?? undefined,
       lichessRating: formData.get("lichessRating") ?? undefined,
-      bio: formData.get("bio"),
-      experience: formData.get("experience"),
+      bio: formData.get("bio") ?? undefined,
+      experience: formData.get("experience") ?? undefined,
     });
      console.log(parsed);
   if (!parsed.success) {
