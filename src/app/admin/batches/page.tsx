@@ -11,23 +11,26 @@ export const metadata: Metadata = { title: "Batches · SMC CRM" };
 export default async function AdminBatchesPage({
   searchParams,
 }: {
-  searchParams: Promise<{ page?: string; query?: string }>;
+  searchParams: Promise<{ page?: string; query?: string; showInactive?: string }>;
 }) {
   await requireRole([Role.ADMIN]);
 
-  const { page, query } = await searchParams;
+  const { page, query, showInactive } = await searchParams;
   const currentPage = Math.max(1, parseInt(page || "1", 10));
   const take = 20;
   const skip = (currentPage - 1) * take;
 
-  const where = query
-    ? {
-        OR: [
-          { name: { contains: query, mode: "insensitive" as const } },
-          { code: { contains: query, mode: "insensitive" as const } },
-        ],
-      }
-    : {};
+  const where = {
+    ...(showInactive === "true" ? {} : { isActive: true }),
+    ...(query
+      ? {
+          OR: [
+            { name: { contains: query, mode: "insensitive" as const } },
+            { code: { contains: query, mode: "insensitive" as const } },
+          ],
+        }
+      : {}),
+  };
 
   const [batches, totalBatches, coachesData, studentsData] = await Promise.all([
     prisma.batch.findMany({
@@ -126,6 +129,8 @@ export default async function AdminBatchesPage({
       completedInstances,
       scheduledInstances,
       cancelledInstances,
+      level: batch.level,
+      startSession: batch.startSession ?? 1,
     };
   });
 
@@ -150,7 +155,7 @@ export default async function AdminBatchesPage({
           students={students} 
           currentPage={currentPage}
           totalPages={totalPages}
-          searchParams={{ query: query || "" }}
+          searchParams={{ query: query || "", showInactive: showInactive || "false" }}
         />
       </Card>
     </div>

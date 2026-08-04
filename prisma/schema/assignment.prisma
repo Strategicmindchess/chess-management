@@ -4,8 +4,8 @@ model Resource {
   description String?
   url         String
   type        ResourceType
-  source      String? // e.g., "Google Drive"
-  driveFileId String? // to avoid duplicates
+  source      String?
+  driveFileId String?
   createdAt   DateTime          @default(now())
   updatedAt   DateTime          @updatedAt
   assignments BatchAssignment[]
@@ -14,12 +14,11 @@ model Resource {
 }
 
 model BatchAssignment {
-  id         String    @id @default(cuid())
-  batchId    String
-  resourceId String
-  assignedAt DateTime  @default(now())
-  dueDate    DateTime?
-
+  id              String              @id @default(cuid())
+  batchId         String
+  resourceId      String
+  assignedAt      DateTime            @default(now())
+  dueDate         DateTime?
   batch           Batch               @relation(fields: [batchId], references: [id], onDelete: Cascade)
   resource        Resource            @relation(fields: [resourceId], references: [id], onDelete: Cascade)
   studentStatuses StudentAssignment[]
@@ -35,9 +34,8 @@ model StudentAssignment {
   status            AssignmentStatus @default(PENDING)
   completionLevel   CompletionLevel  @default(NOT_DONE)
   updatedAt         DateTime         @updatedAt
-
-  batchAssignment BatchAssignment @relation(fields: [batchAssignmentId], references: [id], onDelete: Cascade)
-  student         StudentProfile  @relation(fields: [studentProfileId], references: [id], onDelete: Cascade)
+  batchAssignment   BatchAssignment  @relation(fields: [batchAssignmentId], references: [id], onDelete: Cascade)
+  student           StudentProfile   @relation(fields: [studentProfileId], references: [id], onDelete: Cascade)
 
   @@unique([batchAssignmentId, studentProfileId])
   @@map("student_assignments")

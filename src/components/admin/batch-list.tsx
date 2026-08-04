@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition, useRef } from "react";
+import { useRouter } from "next/navigation";
 import { Ban, CheckCircle2, ExternalLink } from "lucide-react";
 import { setBatchActiveState } from "@/actions/batch-actions";
 import { Badge } from "@/components/ui/badge";
@@ -42,6 +43,8 @@ export interface BatchItem {
   completedInstances: number;
   scheduledInstances: number;
   cancelledInstances: number;
+  level?: string | null;
+  startSession?: number | null;
 }
 
 export function BatchList({
@@ -59,9 +62,11 @@ export function BatchList({
   totalPages?: number;
   searchParams?: Record<string, string>;
 }) {
+  const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [pendingId, setPendingId] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+  const [showInactive, setShowInactive] = useState(searchParams?.showInactive === "true");
 
   function handleToggleActive(batchId: string, nextActive: boolean) {
     setError(null);
@@ -75,7 +80,7 @@ export function BatchList({
 
   const [searchValue, setSearchValue] = useState(searchParams?.query || "");
 
-  if (batches.length === 0 && !searchParams?.query) {
+  if (batches.length === 0 && !searchParams?.query && !showInactive) {
     return (
       <EmptyState
         title="No batches yet"
@@ -89,7 +94,7 @@ export function BatchList({
   return (
     <div className="flex flex-col min-h-[640px] justify-between">
       <div className="space-y-3 p-5 border-b border-slate-100">
-        <div className="flex items-center gap-2 max-w-sm mb-2">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 mb-2">
           <form 
             onSubmit={(e) => {
               e.preventDefault();
@@ -97,9 +102,10 @@ export function BatchList({
               const query = formData.get("query") as string;
               const params = new URLSearchParams();
               if (query) params.set("query", query);
-              window.location.href = `/admin/batches?${params.toString()}`;
+              if (showInactive) params.set("showInactive", "true");
+              router.push(`/admin/batches?${params.toString()}`);
             }}
-            className="flex w-full gap-2"
+            className="flex w-full max-w-sm gap-2"
           >
             <input
               type="text"
@@ -120,6 +126,23 @@ export function BatchList({
             />
             <Button type="submit" variant="secondary">Search</Button>
           </form>
+          <div className="flex items-center gap-2 text-sm text-slate-600 shrink-0">
+            <input 
+              type="checkbox" 
+              id="showInactive" 
+              className="rounded border-slate-300 text-brand-600 focus:ring-brand-500"
+              checked={showInactive}
+              onChange={(e) => {
+                const checked = e.target.checked;
+                setShowInactive(checked);
+                const params = new URLSearchParams();
+                if (searchValue) params.set("query", searchValue);
+                if (checked) params.set("showInactive", "true");
+                router.push(`/admin/batches?${params.toString()}`);
+              }}
+            />
+            <label htmlFor="showInactive" className="cursor-pointer">Show Inactive</label>
+          </div>
         </div>
       </div>
       <div className="overflow-y-auto divide-y divide-slate-100 pr-2 pb-4 flex-1">
@@ -185,7 +208,7 @@ export function BatchList({
               <span className="text-slate-300">•</span>
               <span>
                 Classes:{" "}
-                <span className="font-medium text-slate-900">
+                <span className={`font-medium ${batch.scheduledInstances - batch.completedInstances === 3 ? 'text-rose-600 flex items-center gap-1 inline-flex' : 'text-slate-900'}`}>
                   {batch.scheduledInstances} scheduled, {batch.completedInstances} completed
                 </span>
               </span>

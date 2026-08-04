@@ -79,6 +79,7 @@ function CreateBatchForm({
       payoutRate: 0,
       coachId: '',
       level: '',
+      startingLecture: 1,
       schedules: [{ day: 'MONDAY', startTime: '16:00', endTime: '17:00' }],
     },
   });
@@ -87,6 +88,7 @@ function CreateBatchForm({
   const selectedCoachId = useWatch({ control, name: 'coachId' });
   const selectedType = useWatch({ control, name: 'type' });
   const selectedLevel = useWatch({ control, name: 'level' }) as BatchLevel | '';
+  const startingLecture = useWatch({ control, name: 'startingLecture' }) || 1;
   const [prevType, setPrevType] = useState('GROUP_SESSION');
   const [prevLevel, setPrevLevel] = useState<BatchLevel | ''>('');
 
@@ -144,11 +146,27 @@ console.log("selectedCoachId:", selectedCoachId);
           <div className="flex items-center">
             <div className="w-full bg-blue-50 border border-blue-100 rounded-md p-3 text-sm text-blue-800">
                <strong>{SYLLABUS_MAP[selectedLevel].label}</strong> selected. <br/>
-               {SYLLABUS_MAP[selectedLevel].lectures} Lectures |  {SYLLABUS_MAP[selectedLevel].durationMonths} Months |  Auto-code: {SYLLABUS_MAP[selectedLevel].codePrefix}-XX
+               {Math.max(1, SYLLABUS_MAP[selectedLevel].lectures - startingLecture + 1)} Lectures Remaining (Starting from #{startingLecture}) |  {SYLLABUS_MAP[selectedLevel].durationMonths} Months |  Auto-code: {SYLLABUS_MAP[selectedLevel].codePrefix}-XX
             </div>
           </div>
         )}
       </div>
+
+      {selectedLevel && SYLLABUS_MAP[selectedLevel] && (
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div>
+            <Label htmlFor="startingLecture">Starting Lecture Number <span className="text-slate-400 font-normal ml-1">(Optional)</span></Label>
+            <Input 
+              id="startingLecture" 
+              type="number" 
+              min={1} 
+              max={SYLLABUS_MAP[selectedLevel].lectures} 
+              {...register('startingLecture', { valueAsNumber: true })} 
+            />
+            <FieldError message={errors.startingLecture?.message} />
+          </div>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div>

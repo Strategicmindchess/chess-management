@@ -14,7 +14,7 @@ export default async function UserProfilePage({
   params: Promise<{ userId: string }>;
 }) {
   await requireRole([Role.ADMIN]);
-  
+
   const { userId } = await params;
 
   const user = await prisma.user.findUnique({
@@ -159,13 +159,13 @@ export default async function UserProfilePage({
               <span className="text-slate-500">Lichess Rating</span>
               <span className="font-medium">{userRow.lichessRating || "—"}</span>
             </div>
-            
+
             {isStudent && (
               <div className="grid grid-cols-2 py-1">
                 <span className="text-slate-500">Assigned Batches</span>
                 <span className="font-medium">
-                  {user.studentProfile!.enrollments.length > 0 
-                    ? user.studentProfile!.enrollments.map(e => e.batch.name).join(", ") 
+                  {user.studentProfile!.enrollments.length > 0
+                    ? user.studentProfile!.enrollments.map(e => e.batch.name).join(", ")
                     : "None"}
                 </span>
               </div>
@@ -174,8 +174,8 @@ export default async function UserProfilePage({
               <div className="grid grid-cols-2 py-1">
                 <span className="text-slate-500">Assigned Batches</span>
                 <span className="font-medium">
-                  {user.coachProfile!.batches.length > 0 
-                    ? user.coachProfile!.batches.map(b => b.name).join(", ") 
+                  {user.coachProfile!.batches.length > 0
+                    ? user.coachProfile!.batches.map(b => b.name).join(", ")
                     : "None"}
                 </span>
               </div>

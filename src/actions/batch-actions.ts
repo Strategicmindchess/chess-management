@@ -2,11 +2,13 @@
 
 import { z } from 'zod';
 import { revalidatePath } from 'next/cache';
+import { batchQueue } from '@/jobs/queue';
 import { prisma } from '@/lib/prisma';
 import { requireRole, getCurrentUser } from '@/lib/dal';
-import { Weekday, BatchType } from '@/lib/enums';
-import { addWeeks, nextDay, startOfDay } from 'date-fns';
+import { Weekday, BatchType, BatchLevel } from '@/lib/enums';
+import { startOfDay } from 'date-fns';
 import type { Day } from 'date-fns';
+import { generateInstancesInternal } from '@/lib/instance-generator';
 import {
   assignCoachSchema,
   createBatchSchema,
@@ -43,17 +45,18 @@ export async function createBatch(input: CreateBatchInput): Promise<ActionResult
     return { success: false, error: parsed.error.issues[0]?.message ?? 'Invalid input.' };
   }
 
-  const { name, code, meetLink, payoutRate, coachId, schedules, startDate, type, instancesCount } = parsed.data;
+  const { name, code, meetLink, payoutRate, coachId, schedules, startDate, type, instancesCount, startingLecture } = parsed.data;
 
   let finalCode = code || '';
   let finalInstancesCount = instancesCount ?? 10;
   let batchLevelVal: SyllabusLevelType | null = null;
-  
+
   if (input.level) {
     batchLevelVal = input.level as SyllabusLevelType;
     const syllabusInfo = SYLLABUS_MAP[batchLevelVal];
     if (syllabusInfo) {
-      finalInstancesCount = syllabusInfo.lectures;
+      finalInstancesCount = syllabusInfo.lectures - (startingLecture || 1) + 1;
+      if (finalInstancesCount < 1) finalInstancesCount = 1; // Fallback
       finalCode = await generateBatchCode(syllabusInfo.codePrefix);
     }
   }
@@ -81,11 +84,10 @@ export async function createBatch(input: CreateBatchInput): Promise<ActionResult
       type: type as any,
       startDate: startDate ? new Date(startDate) : null,
       payoutRate,
-      coachProfileId: coachId || null,
+      coach: coachId ? { connect: { id: coachId } } : undefined,
       // @ts-ignore
       level: batchLevelVal as any,
-      // @ts-ignore
-      lectureIndex: 0,
+      startSession: startingLecture || 1,
       schedules: {
         create: schedules.map((slot) => ({
           day: slot.day,
@@ -101,106 +103,6 @@ export async function createBatch(input: CreateBatchInput): Promise<ActionResult
 
   revalidatePath('/admin/batches');
   return { success: true };
-}
-
-async function generateInstancesInternal(batchId: string, count: number, customStartDate?: Date) {
-  const batch = await prisma.batch.findUnique({
-    where: { id: batchId },
-    include: { schedules: true },
-  });
-
-  if (!batch || batch.schedules.length === 0) {
-    return;
-  }
-
-  // Determine starting date
-  let startDate: Date;
-  if (customStartDate) {
-    startDate = startOfDay(customStartDate);
-  } else {
-    const lastInstance = await prisma.classInstance.findFirst({
-      where: { batchId },
-      orderBy: { date: 'desc' },
-    });
-    if (lastInstance) {
-      startDate = startOfDay(new Date(lastInstance.date));
-      startDate.setDate(startDate.getDate() + 1); // Next day after latest
-    } else {
-      startDate = startOfDay(batch.startDate ? new Date(batch.startDate) : new Date());
-    }
-  }
-
-  const existing = await prisma.classInstance.findMany({
-    where: { batchId },
-    select: { date: true, startTime: true },
-  });
-
-  const existingKeys = new Set(
-    existing.map(
-      (inst) =>
-        `${startOfDay(new Date(inst.date)).toISOString().split('T')[0]}|${inst.startTime}`
-    )
-  );
-
-  const WEEKDAY_MAP: Record<Weekday, Day> = {
-    SUNDAY: 0,
-    MONDAY: 1,
-    TUESDAY: 2,
-    WEDNESDAY: 3,
-    THURSDAY: 4,
-    FRIDAY: 5,
-    SATURDAY: 6,
-  };
-
-  const newInstances: any[] = [];
-  let currentDate = new Date(startDate);
-  let daysInspected = 0;
-
-  let currentLectureIndex = await prisma.classInstance.count({ where: { batchId } });
-  
-  while (newInstances.length < count && daysInspected < 730) {
-    const dayOfWeek = currentDate.getDay();
-    const matchingSchedules = batch.schedules.filter(
-      (s) => WEEKDAY_MAP[s.day as Weekday] === dayOfWeek
-    );
-
-    matchingSchedules.sort((a, b) => a.startTime.localeCompare(b.startTime));
-
-    for (const schedule of matchingSchedules) {
-      const dateStr = currentDate.toISOString().split('T')[0];
-      const key = `${dateStr}|${schedule.startTime}`;
-
-      if (!existingKeys.has(key)) {
-        if (newInstances.length < count) {
-          // @ts-ignore
-          const syllabusLevel = batch.level as SyllabusLevelType | null;
-          const lectureName = syllabusLevel && SYLLABUS_MAP[syllabusLevel] 
-            ? SYLLABUS_MAP[syllabusLevel].topics[currentLectureIndex] 
-            : null;
-
-          newInstances.push({
-            batchId,
-            date: new Date(currentDate),
-            startTime: schedule.startTime,
-            endTime: schedule.endTime,
-            status: 'SCHEDULED',
-            lectureName: lectureName || null,
-          });
-          currentLectureIndex++;
-          existingKeys.add(key);
-        }
-      }
-    }
-
-    currentDate.setDate(currentDate.getDate() + 1);
-    daysInspected++;
-  }
-
-  if (newInstances.length > 0) {
-    await prisma.classInstance.createMany({
-      data: newInstances,
-    });
-  }
 }
 
 // reassign or update the batch teacher
@@ -312,9 +214,12 @@ export async function updateBatch(input: z.infer<typeof updateBatchSchema>): Pro
     return { success: false, error: parsed.error.issues[0]?.message ?? 'Invalid input.' };
   }
 
-  const { batchId, name, code, meetLink, startDate, coachId, studentIds, payoutRate, type, addInstancesCount } = parsed.data;
+  const { batchId, name, code, meetLink, startDate, coachId, studentIds, payoutRate, type, addInstancesCount, level, startSession } = parsed.data;
 
-  const existingBatch = await prisma.batch.findUnique({ where: { id: batchId } });
+  const existingBatch = await prisma.batch.findUnique({ 
+    where: { id: batchId },
+    include: { students: { select: { studentProfileId: true } } }
+  });
   if (!existingBatch) {
     return { success: false, error: 'Batch not found.' };
   }
@@ -346,33 +251,60 @@ export async function updateBatch(input: z.infer<typeof updateBatchSchema>): Pro
     }
   }
 
+  const batchUpdateData: any = {};
+  if (name !== undefined && name !== existingBatch.name) batchUpdateData.name = name;
+  if (code !== undefined && code !== existingBatch.code) batchUpdateData.code = code;
+  if (meetLink !== undefined && meetLink !== existingBatch.meetLink) batchUpdateData.meetLink = meetLink;
+  if (type !== undefined && type !== existingBatch.type) batchUpdateData.type = type as any;
+  if (parsedStartDate !== null && existingBatch.startDate?.getTime() !== parsedStartDate.getTime()) batchUpdateData.startDate = parsedStartDate;
+  
+  const targetCoachId = coachId || null;
+  if (targetCoachId !== existingBatch.coachProfileId) batchUpdateData.coachProfileId = targetCoachId;
+  
+  if (payoutRate !== undefined && payoutRate !== existingBatch.payoutRate) batchUpdateData.payoutRate = payoutRate;
+  
+  const newStartSession = startSession || 1;
+  if (level !== undefined && level !== existingBatch.level) batchUpdateData.level = level as any;
+  if (startSession !== undefined && newStartSession !== existingBatch.startSession) batchUpdateData.startSession = newStartSession;
+
+  const existingStudentIds = new Set(existingBatch.students.map(s => s.studentProfileId));
+  const newStudentIds = new Set(studentIds);
+  
+  const studentsToAdd: string[] = [];
+  const studentsToRemove: string[] = [];
+  
+  for (const id of studentIds) {
+    if (!existingStudentIds.has(id)) studentsToAdd.push(id);
+  }
+  for (const id of existingStudentIds) {
+    if (!newStudentIds.has(id)) studentsToRemove.push(id);
+  }
+
+  // Trigger if user explicitly sent level or startSession — they want a resync
+  const syllabusChanged = level !== undefined || startSession !== undefined;
+
   await prisma.$transaction(async (tx) => {
-    // 1. Update batch details
-    await tx.batch.update({
-      where: { id: batchId },
-      data: {
-        name,
-        code,
-        meetLink,
-        type: type as any,
-        startDate: parsedStartDate,
-        coachProfileId: coachId || null,
-        ...(payoutRate !== undefined ? { payoutRate } : {}),
-      },
-    });
+    // 1. Update batch details if anything changed
+    if (Object.keys(batchUpdateData).length > 0) {
+      await tx.batch.update({
+        where: { id: batchId },
+        data: batchUpdateData,
+      });
+    }
 
-    // 2. Sync students: Delete all existing enrollments
-    await tx.batchStudent.deleteMany({
-      where: { batchId },
-    });
+    // 2. Sync students: Remove
+    if (studentsToRemove.length > 0) {
+      await tx.batchStudent.deleteMany({
+        where: { batchId, studentProfileId: { in: studentsToRemove } },
+      });
+    }
 
-    // 3. Sync students: Re-create enrollments for selected students
-    if (studentIds.length > 0) {
+    // 3. Sync students: Add
+    if (studentsToAdd.length > 0) {
       const validStudents = await tx.studentProfile.findMany({
-        where: { id: { in: studentIds }, user: { emailVerified: true } },
+        where: { id: { in: studentsToAdd }, user: { emailVerified: true } },
         select: { id: true },
       });
-
       if (validStudents.length > 0) {
         await tx.batchStudent.createMany({
           data: validStudents.map((s) => ({ batchId, studentProfileId: s.id })),
@@ -380,7 +312,27 @@ export async function updateBatch(input: z.infer<typeof updateBatchSchema>): Pro
         });
       }
     }
-  });
+
+  }); // End of transaction
+
+  // 4. Enqueue background job to resync class instances if syllabus config was sent
+  const finalLevel = level !== undefined ? level : existingBatch.level;
+  if (syllabusChanged && finalLevel !== null) {
+    await batchQueue.add(
+      'sync-future-instances',
+      { batchId, startSession },
+      {
+        jobId: `sync-${batchId}-${Date.now()}`,
+        removeOnComplete: 100,
+        removeOnFail: 1000,
+        attempts: 3,
+        backoff: {
+          type: 'exponential',
+          delay: 5000,
+        },
+      }
+    );
+  }
 
   if (addInstancesCount && addInstancesCount > 0) {
     await generateInstancesInternal(batchId, addInstancesCount);

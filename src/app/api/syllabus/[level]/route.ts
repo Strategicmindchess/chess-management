@@ -3,9 +3,10 @@ import { SYLLABUS_MAP, type BatchLevel } from "@/lib/syllabus";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { level: string } }
+  { params }: { params: Promise<{ level: string }> }
 ) {
-  const level = params.level as BatchLevel;
+  const { level: levelParam } = await params;
+  const level = levelParam as BatchLevel;
   const syllabusInfo = SYLLABUS_MAP[level];
 
   if (!syllabusInfo) {

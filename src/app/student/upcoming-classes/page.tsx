@@ -5,7 +5,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { getStudentDashboardData } from "@/actions/dashboard-actions";
 import { ClassSessionCard } from "@/components/dashboard/class-session-card";
 
-export default async function StudentMyClassesPage() {
+export default async function StudentUpcomingClassesPage() {
   const user = await requireRole([Role.STUDENT]);
 
   const studentProfile = await prisma.studentProfile.findUnique({
@@ -14,48 +14,33 @@ export default async function StudentMyClassesPage() {
 
   if (!studentProfile) return <div>Student profile not found.</div>;
 
-  const { todayInstances, upcomingInstances } = await getStudentDashboardData(studentProfile.id);
-
-  // Filter out instances that have already ended today based on current time
-  const now = new Date();
-  const currentHour = now.getHours();
-  const currentMin = now.getMinutes();
-
-  const filteredTodayInstances = todayInstances.filter(instance => {
-    const [endH, endM] = instance.endTime.split(":").map(Number);
-    if (currentHour > endH || (currentHour === endH && currentMin >= endM)) {
-      return false; // already ended
-    }
-    return true;
-  });
+  const { upcomingInstances } = await getStudentDashboardData(studentProfile.id);
 
   return (
     <div className="space-y-10 max-w-7xl">
       <div>
         <h1 className="text-2xl font-bold tracking-tight text-slate-900">
-          My Classroom
+          Upcoming Classes
         </h1>
         <p className="text-slate-500 mt-1">
-          Your enrolled batches and upcoming schedule.
+          Your scheduled classes for the next 3 days.
         </p>
       </div>
 
-      {/* Today's Classes */}
       <section>
-        <h2 className="text-lg font-semibold text-slate-900 mb-4">Today's Sessions</h2>
-        {filteredTodayInstances.length === 0 ? (
+        {upcomingInstances.length === 0 ? (
           <EmptyState
-            title="No classes today"
-            description="You don't have any classes scheduled for today, or they have already ended."
+            title="No upcoming classes"
+            description="You don't have any classes scheduled for the next 3 days."
           />
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {filteredTodayInstances.map((instance) => (
+            {upcomingInstances.map((instance) => (
               <ClassSessionCard 
                 key={instance.id} 
                 role="student" 
                 session={instance} 
-                isUpcoming={false} 
+                isUpcoming={true} 
               />
             ))}
           </div>

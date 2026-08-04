@@ -42,7 +42,15 @@ export async function submitClassLog(input: SubmitClassLogInput) {
     const classInstance = await prisma.classInstance.findUnique({
       where: { id: data.classInstanceId },
       include: {
-        batch: { select: { id: true, coachProfileId: true, payoutRate: true } }
+        batch: { 
+          select: { 
+            id: true, 
+            coachProfileId: true, 
+            payoutRate: true, 
+            type: true,
+            _count: { select: { classInstances: true } }
+          } 
+        }
       }
     });
 
@@ -90,6 +98,27 @@ export async function submitClassLog(input: SubmitClassLogInput) {
             status: att.status,
           })),
         });
+      }
+
+      // Check if batch should be auto-archived
+      const oneOffTypes = ["PTM", "DEMO", "SUBSTITUTE_SESSION", "DEMO_SESSION", "TRIAL", "REPLACEMENT", "MASTERCLASS"];
+      const isOneOffType = oneOffTypes.includes(batch.type);
+      const isSingleClass = batch._count.classInstances === 1;
+
+      if (isOneOffType || isSingleClass) {
+        const remainingInstances = await tx.classInstance.count({
+          where: {
+            batchId: batch.id,
+            status: { not: "COMPLETED" },
+          }
+        });
+
+        if (remainingInstances === 0) {
+          await tx.batch.update({
+            where: { id: batch.id },
+            data: { isActive: false }
+          });
+        }
       }
     });
 

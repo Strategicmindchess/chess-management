@@ -16,8 +16,8 @@ model User {
   otpCodes          OtpCode[]
   refreshTokens     RefreshToken[]
   studentProfile    StudentProfile?
-  assignedTickets   Ticket[]        @relation("AssignedTickets")
   ticketReplies     TicketReply[]
+  assignedTickets   Ticket[]        @relation("AssignedTickets")
 
   @@map("users")
 }
@@ -40,11 +40,11 @@ model StudentProfile {
   fideRating        Int?
   level             StudentLevel?
   attendanceRecords AttendanceRecord[]
-  assignments       StudentAssignment[]
-  createdTickets    Ticket[]            @relation("CreatedTickets")
   enrollments       BatchStudent[]
+  assignments       StudentAssignment[]
   assignedCoach     CoachProfile?       @relation("StudentAssignedCoach", fields: [assignedCoachId], references: [id])
   user              User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdTickets    Ticket[]            @relation("CreatedTickets")
 
   @@map("student_profiles")
 }

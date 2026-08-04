@@ -4,9 +4,19 @@ import { Role } from "@/lib/enums";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Badge } from "@/components/ui/badge";
+import { MonthPicker } from "@/components/ui/month-picker";
 
-export default async function TeacherPayoutsPage() {
+export default async function TeacherPayoutsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ month?: string }>;
+}) {
   const user = await requireRole([Role.TEACHER]);
+  const { month } = await searchParams;
+
+  const parsedMonth = month ? month.split('-') : null;
+  const selectedYear = parsedMonth ? parseInt(parsedMonth[0], 10) : new Date().getFullYear();
+  const selectedMonth = parsedMonth ? parseInt(parsedMonth[1], 10) - 1 : new Date().getMonth();
 
   const coachProfile = await prisma.coachProfile.findUnique({
     where: { userId: user.id }
@@ -22,21 +32,29 @@ export default async function TeacherPayoutsPage() {
     orderBy: { date: "desc" },
   });
 
-  const totalEarned = classLogs.reduce((acc, log) => acc + log.payoutAmount, 0);
-  const totalClasses = classLogs.length;
-  const totalMinutes = classLogs.reduce((acc, log) => acc + log.durationMins, 0);
+  const filteredLogs = classLogs.filter(log => {
+    const logDate = new Date(log.date);
+    return logDate.getFullYear() === selectedYear && logDate.getMonth() === selectedMonth;
+  });
+
+  const totalEarned = filteredLogs.reduce((acc, log) => acc + log.payoutAmount, 0);
+  const totalClasses = filteredLogs.length;
+  const totalMinutes = filteredLogs.reduce((acc, log) => acc + log.durationMins, 0);
   
   // Calculate unique batches taught
-  const batchIds = new Set(classLogs.map(log => log.batchId));
+  const batchIds = new Set(filteredLogs.map(log => log.batchId));
   const totalBatchesTaught = batchIds.size;
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-xl font-semibold text-slate-900">Payouts & History</h1>
-        <p className="text-sm text-slate-500">
-          View your total earnings and detailed history of classes taught.
-        </p>
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+          <h1 className="text-xl font-semibold text-slate-900">Payouts & History</h1>
+          <p className="text-sm text-slate-500">
+            View your earnings and detailed history of classes taught for the selected month.
+          </p>
+        </div>
+        <MonthPicker />
       </div>
 
       <div className="grid gap-4 md:grid-cols-4">
@@ -80,14 +98,14 @@ export default async function TeacherPayoutsPage() {
         <div className="p-6 border-b border-slate-100">
           <h2 className="text-lg font-semibold text-slate-900">Class History</h2>
         </div>
-        {classLogs.length === 0 ? (
+        {filteredLogs.length === 0 ? (
           <EmptyState
             title="No payout history"
-            description="You haven't logged any classes yet."
+            description="You haven't logged any classes for this month yet."
           />
         ) : (
           <div className="divide-y divide-slate-100">
-            {classLogs.map((log) => (
+            {filteredLogs.map((log) => (
               <div key={log.id} className="p-4 sm:p-6 hover:bg-slate-50 transition-colors">
                 <div className="flex flex-col sm:flex-row justify-between gap-4">
                   <div>

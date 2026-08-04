@@ -11,32 +11,33 @@ model Batch {
   coachProfileId String?
   payoutRate     Int               @default(0)
   startDate      DateTime?
+  startSession   Int?              @default(1) /// 1-based: the session number the syllabus starts from for this batch
   level          BatchLevel?
-  lectureIndex   Int?
+  assignments    BatchAssignment[]
   schedules      BatchSchedule[]
   students       BatchStudent[]
   coach          CoachProfile?     @relation("BatchCoach", fields: [coachProfileId], references: [id])
   classInstances ClassInstance[]
   classLogs      ClassLog[]
-  assignments    BatchAssignment[]
 
   @@map("batches")
 }
 
 model ClassInstance {
-  id         String      @id @default(cuid())
-  batchId    String
+  id          String      @id @default(cuid())
+  batchId     String
   date        DateTime
   startTime   String
   endTime     String
   status      ClassStatus @default(SCHEDULED)
-  lectureName String?
   classLogId  String?     @unique
   createdAt   DateTime    @default(now())
-  updatedAt  DateTime    @updatedAt
-  batch      Batch       @relation(fields: [batchId], references: [id], onDelete: Cascade)
-  classLog   ClassLog?   @relation(fields: [classLogId], references: [id])
-
+  updatedAt   DateTime    @updatedAt
+  lectureName   String?
+  sessionNumber Int?        /// 1-based session number matching the syllabus (e.g. 4 = "Lecture 4")
+  batch       Batch       @relation(fields: [batchId], references: [id], onDelete: Cascade)
+  classLog    ClassLog?   @relation(fields: [classLogId], references: [id])
+ 
   @@index([batchId, date])
   @@map("class_instances")
 }
@@ -131,16 +132,16 @@ enum ClassStatus {
 }
 
 enum BatchType {
+  RECURRING
+  DEMO
+  TRIAL
+  PTM
+  REPLACEMENT
   GROUP_SESSION
   ONE_ON_ONE_SESSION
   DEMO_SESSION
   SUBSTITUTE_SESSION
-  PTM
   MASTERCLASS
-  RECURRING
-  DEMO
-  TRIAL
-  REPLACEMENT
 }
 
 enum BatchLevel {

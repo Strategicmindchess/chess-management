@@ -1,7 +1,8 @@
 import { z } from "zod";
-import { Weekday, BatchType } from "@/lib/enums";
+import { Weekday, BatchType, BatchLevel } from "@/lib/enums";
 
 const BATCH_TYPE_VALUES = Object.values(BatchType) as [BatchType, ...BatchType[]];
+const BATCH_LEVEL_VALUES = Object.values(BatchLevel) as [BatchLevel, ...BatchLevel[]];
 
 const TIME_REGEX = /^([01]\d|2[0-3]):([0-5]\d)$/;
 const WEEKDAY_VALUES = Object.values(Weekday) as [Weekday, ...Weekday[]];
@@ -36,6 +37,7 @@ export const createBatchSchema = z.object({
     .array(scheduleSlotSchema)
     .min(1, "Add at least one weekly schedule slot."),
   level: z.string().optional(),
+  startingLecture: z.number().int().min(1).optional(),
 });
 
 export type CreateBatchInput = z.infer<typeof createBatchSchema>;
@@ -70,6 +72,8 @@ export const updateBatchSchema = z.object({
   startDate: z.string().optional().or(z.literal("")),
   coachId: z.string().trim().optional().or(z.literal("")),
   payoutRate: z.coerce.number().min(0, "Payout rate must be at least 0.").optional(),
+  level: z.enum(BATCH_LEVEL_VALUES).optional(),
+  startSession: z.coerce.number().int().min(1, "Must be at least 1").optional().default(1),
   studentIds: z.array(z.string()),
 });
 

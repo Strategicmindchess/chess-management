@@ -1,29 +1,28 @@
 model Ticket {
-  id          String         @id @default(cuid())
-  title       String
-  description String
-  status      TicketStatus   @default(PENDING)
-  category    TicketCategory
-  createdById String
-  createdBy   StudentProfile @relation("CreatedTickets", fields: [createdById], references: [id])
-
+  id           String         @id @default(cuid())
+  title        String
+  description  String
+  status       TicketStatus   @default(PENDING)
+  category     TicketCategory
+  createdById  String
   assignedToId String?
-  assignedTo   User?         @relation("AssignedTickets", fields: [assignedToId], references: [id])
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
   replies      TicketReply[]
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
+  assignedTo   User?          @relation("AssignedTickets", fields: [assignedToId], references: [id])
+  createdBy    StudentProfile @relation("CreatedTickets", fields: [createdById], references: [id])
 
   @@map("tickets")
-} 
+}
 
 model TicketReply {
   id        String   @id @default(cuid())
   ticketId  String
-  ticket    Ticket   @relation(fields: [ticketId], references: [id], onDelete: Cascade)
   content   String
   authorId  String
-  author    User     @relation(fields: [authorId], references: [id])
   createdAt DateTime @default(now())
+  author    User     @relation(fields: [authorId], references: [id])
+  ticket    Ticket   @relation(fields: [ticketId], references: [id], onDelete: Cascade)
 
   @@map("ticket_replies")
 }

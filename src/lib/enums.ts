@@ -65,6 +65,23 @@ export const StudentLevel = {
 
 export type StudentLevel = (typeof StudentLevel)[keyof typeof StudentLevel];
 
+export const BatchLevel = {
+  BEGINNER: 'BEGINNER',
+  CORE_1: 'CORE_1',
+  CORE_2: 'CORE_2',
+  CORE_3: 'CORE_3',
+  CORE_4: 'CORE_4',
+  BRIDGE: 'BRIDGE',
+  INTERMEDIATE_1: 'INTERMEDIATE_1',
+  INTERMEDIATE_2: 'INTERMEDIATE_2',
+  INTERMEDIATE_3: 'INTERMEDIATE_3',
+  ADVANCE_1: 'ADVANCE_1',
+  ADVANCE_2: 'ADVANCE_2',
+  ELITE: 'ELITE',
+} as const;
+
+export type BatchLevel = (typeof BatchLevel)[keyof typeof BatchLevel];
+
 export const TicketStatus = {
   PENDING: 'PENDING',
   RESOLVED: 'RESOLVED',

@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
 import { BatchType } from "@/lib/enums";
+import { SYLLABUS } from "@/lib/syllabus";
 import type { BatchItem } from "./batch-list";
 
 interface PersonOption {
@@ -43,13 +44,19 @@ export function UpdateBatchDialog({
   };
 
   const [type, setType] = useState<BatchType>(getInitialType(batch.type));
+  const [level, setLevel] = useState(batch.level || "");
+  const [searchQuery, setSearchQuery] = useState("");
+  
+  const selectedSyllabus = SYLLABUS.find((s) => s.level === level);
 
   useEffect(() => {
     if (open) {
       setError(null);
       setCoachId(batch.coach?.id ?? "");
       setType(getInitialType(batch.type));
+      setLevel(batch.level || "");
       setSelectedStudents(new Set(batch.students.map((s) => s.id)));
+      setSearchQuery("");
     }
   }, [open, batch]);
 
@@ -62,6 +69,12 @@ export function UpdateBatchDialog({
     }
     setSelectedStudents(next);
   };
+
+  const filteredStudents = allStudents.filter((student) => {
+    if (!searchQuery.trim()) return true;
+    const query = searchQuery.toLowerCase();
+    return student.name.toLowerCase().includes(query) || student.email.toLowerCase().includes(query);
+  });
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -80,6 +93,8 @@ export function UpdateBatchDialog({
       studentIds: Array.from(selectedStudents),
       type: type,
       addInstancesCount: formData.get("addInstancesCount") ? Number(formData.get("addInstancesCount")) : 0,
+      level: (formData.get("level") as any) || undefined,
+      startSession: formData.get("startSession") ? Number(formData.get("startSession")) : 1,
     };
 
     startTransition(async () => {
@@ -195,16 +210,52 @@ export function UpdateBatchDialog({
               </div>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="payoutRate">Payout Rate (Rs. per session)</Label>
-              <Input
-                id="payoutRate"
-                name="payoutRate"
-                type="number"
-                min={batch.payoutRate || 0}
-                // @ts-ignore
-                defaultValue={batch.payoutRate || 0}
-              />
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="payoutRate">Payout Rate (Rs. per session)</Label>
+                <Input
+                  id="payoutRate"
+                  name="payoutRate"
+                  type="number"
+                  min={batch.payoutRate || 0}
+                  // @ts-ignore
+                  defaultValue={batch.payoutRate || 0}
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="level">Syllabus Level</Label>
+                <Select 
+                  id="level" 
+                  name="level" 
+                  value={level}
+                  onChange={(e) => setLevel(e.target.value)}
+                >
+                  <option value="">No Syllabus</option>
+                  {SYLLABUS.map((s) => (
+                    <option key={s.level} value={s.level}>
+                      {s.label}
+                    </option>
+                  ))}
+                </Select>
+                {selectedSyllabus && (
+                  <p className="text-xs text-brand-600 font-medium mt-1">
+                    Total classes in this syllabus: {selectedSyllabus.lectures}
+                  </p>
+                )}
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="startSession">Starting Session #</Label>
+                <Input
+                  id="startSession"
+                  name="startSession"
+                  type="number"
+                  min="1"
+                  defaultValue={batch.startSession ?? 1}
+                />
+              </div>
             </div>
           </div>
 
@@ -226,13 +277,26 @@ export function UpdateBatchDialog({
           </div>
 
           <div className="space-y-4 pt-2">
-            <h3 className="text-sm font-medium text-slate-900 border-b pb-2">
-              Manage Students ({selectedStudents.size} selected)
-            </h3>
+            <div className="flex items-center justify-between border-b pb-2">
+              <h3 className="text-sm font-medium text-slate-900">
+                Manage Students ({selectedStudents.size} selected)
+              </h3>
+              <Input
+                placeholder="Search students..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="h-8 w-48 text-xs"
+              />
+            </div>
             
             <div className="max-h-[200px] overflow-y-auto rounded-md border border-slate-200 divide-y divide-slate-100">
-              {allStudents.map((student) => {
-                const isSelected = selectedStudents.has(student.id);
+              {filteredStudents.length === 0 ? (
+                <div className="p-4 text-center text-sm text-slate-500">
+                  {searchQuery ? "No matching students found." : "No students available."}
+                </div>
+              ) : (
+                filteredStudents.map((student) => {
+                  const isSelected = selectedStudents.has(student.id);
                 return (
                   <div 
                     key={student.id} 
@@ -252,12 +316,7 @@ export function UpdateBatchDialog({
                     </div>
                   </div>
                 );
-              })}
-              {allStudents.length === 0 && (
-                <div className="p-4 text-center text-sm text-slate-500">
-                  No students available.
-                </div>
-              )}
+              }))}
             </div>
           </div>
 

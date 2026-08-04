@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Dialog } from '@/components/ui/dialog';
 import { EmptyState } from '@/components/ui/empty-state';
+import { Input } from '@/components/ui/input';
 
 interface StudentOption {
   id: string;
@@ -32,6 +33,7 @@ export function ManageStudentsDialog({
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [removingId, setRemovingId] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
   const router = useRouter();
 
   const enrolledIds = useMemo(
@@ -39,8 +41,16 @@ export function ManageStudentsDialog({
     [enrolledStudents],
   );
   const availableStudents = useMemo(
-    () => allStudents.filter((student) => !enrolledIds.has(student.id)),
-    [allStudents, enrolledIds],
+    () => {
+      const filtered = allStudents.filter((student) => !enrolledIds.has(student.id));
+      if (!searchQuery.trim()) return filtered;
+      
+      const query = searchQuery.toLowerCase();
+      return filtered.filter(
+        student => student.name.toLowerCase().includes(query) || student.email.toLowerCase().includes(query)
+      );
+    },
+    [allStudents, enrolledIds, searchQuery],
   );
 
   function toggleSelected(studentId: string) {
@@ -129,11 +139,19 @@ export function ManageStudentsDialog({
           </div>
 
           <div>
-            <p className="mb-2 text-sm font-medium text-slate-700">Add students</p>
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-sm font-medium text-slate-700">Add students</p>
+              <Input 
+                placeholder="Search students..." 
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="h-8 w-48 text-xs"
+              />
+            </div>
             {availableStudents.length === 0 ? (
               <EmptyState
-                title="No more students to add"
-                description="Every active student is already enrolled."
+                title={searchQuery ? "No matching students found" : "No more students to add"}
+                description={searchQuery ? "Try a different search term." : "Every active student is already enrolled."}
               />
             ) : (
               <div className="max-h-56 space-y-1 overflow-y-auto rounded-lg border border-slate-200 p-2">
