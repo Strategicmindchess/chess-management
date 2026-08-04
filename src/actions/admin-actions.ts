@@ -60,31 +60,39 @@ export async function updateAdminUserFields(formData: FormData) {
     });
 
     if (data.role === Role.STUDENT) {
-      await prisma.studentProfile.update({
+      await prisma.studentProfile.upsert({
         where: { userId: data.userId },
-        data: {
+        update: {
           city: data.city || null,
           chessComRating: data.chessComRating,
           lichessRating: data.lichessRating,
         },
+        create: {
+          userId: data.userId,
+          city: data.city || null,
+          chessComRating: data.chessComRating,
+          lichessRating: data.lichessRating,
+        }
       });
     } else if (data.role === Role.TEACHER) {
-      const coachProfile = await prisma.coachProfile.findUnique({
-        where: { userId: data.userId }
+      await prisma.coachProfile.upsert({
+        where: { userId: data.userId },
+        update: {
+          city: data.city || null,
+          bio: data.bio || null,
+          experience: data.experience || null,
+          chessComRating: data.chessComRating,
+          lichessRating: data.lichessRating,
+        },
+        create: {
+          userId: data.userId,
+          city: data.city || null,
+          bio: data.bio || null,
+          experience: data.experience || null,
+          chessComRating: data.chessComRating,
+          lichessRating: data.lichessRating,
+        }
       });
-      
-      if (coachProfile) {
-        await prisma.coachProfile.update({
-          where: { id: coachProfile.id },
-          data: {
-            city: data.city || null,
-            bio: data.bio || null,
-            experience: data.experience || null,
-            chessComRating: data.chessComRating,
-            lichessRating: data.lichessRating,
-          }
-        });
-      }
     }
 
     revalidatePath("/admin/users");
@@ -92,5 +100,21 @@ export async function updateAdminUserFields(formData: FormData) {
   } catch (error) {
     console.error("Failed to update user:", error);
     return { error: "Failed to update user. Please try again." };
+  }
+}
+
+export async function deleteUser(userId: string) {
+  try {
+    await requireRole([Role.ADMIN]);
+    
+    await prisma.user.delete({
+      where: { id: userId },
+    });
+
+    revalidatePath("/admin/users");
+    return { success: true };
+  } catch (error) {
+    console.error("Failed to delete user:", error);
+    return { error: "Failed to delete user. Please try again." };
   }
 }

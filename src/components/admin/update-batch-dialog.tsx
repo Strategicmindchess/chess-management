@@ -2,7 +2,7 @@
 
 import { useState, useTransition, useEffect } from "react";
 import { Settings2 } from "lucide-react";
-import { updateBatch } from "@/actions/batch-actions";
+import { updateBatch, deleteBatch } from "@/actions/batch-actions";
 import { Dialog } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -90,6 +90,20 @@ export function UpdateBatchDialog({
         setError(result.error);
       }
     });
+  };
+
+  const handleDelete = () => {
+    if (window.confirm("Are you sure you want to delete this batch permanently? This action cannot be undone.")) {
+      setError(null);
+      startTransition(async () => {
+        const result = await deleteBatch(batch.id);
+        if (!result.success) {
+          setError(result.error || "Failed to delete batch.");
+        } else {
+          setOpen(false);
+        }
+      });
+    }
   };
 
   return (
@@ -249,18 +263,29 @@ export function UpdateBatchDialog({
 
           {error && <p className="text-sm font-medium text-red-600">{error}</p>}
 
-          <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
+          <div className="flex justify-between gap-3 pt-4 border-t border-slate-100">
             <Button
               type="button"
-              variant="secondary"
-              onClick={() => setOpen(false)}
+              variant="ghost"
+              onClick={handleDelete}
               disabled={isPending}
+              className="text-red-600 hover:text-red-700 hover:bg-red-50"
             >
-              Cancel
+              Delete Batch
             </Button>
-            <Button type="submit" disabled={isPending} variant="primary">
-              {isPending ? "Saving..." : "Save Batch"}
-            </Button>
+            <div className="flex gap-3">
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={() => setOpen(false)}
+                disabled={isPending}
+              >
+                Cancel
+              </Button>
+              <Button type="submit" disabled={isPending} variant="primary">
+                {isPending ? "Saving..." : "Save Batch"}
+              </Button>
+            </div>
           </div>
         </form>
       </Dialog>

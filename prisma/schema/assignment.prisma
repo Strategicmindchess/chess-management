@@ -1,0 +1,83 @@
+model Resource {
+  id          String            @id @default(cuid())
+  title       String
+  description String?
+  url         String
+  type        ResourceType
+  source      String? // e.g., "Google Drive"
+  driveFileId String? // to avoid duplicates
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+  assignments BatchAssignment[]
+
+  @@map("resources")
+}
+
+model BatchAssignment {
+  id         String    @id @default(cuid())
+  batchId    String
+  resourceId String
+  assignedAt DateTime  @default(now())
+  dueDate    DateTime?
+
+  batch           Batch               @relation(fields: [batchId], references: [id], onDelete: Cascade)
+  resource        Resource            @relation(fields: [resourceId], references: [id], onDelete: Cascade)
+  studentStatuses StudentAssignment[]
+
+  @@unique([batchId, resourceId])
+  @@map("batch_assignments")
+}
+
+model StudentAssignment {
+  id                String           @id @default(cuid())
+  batchAssignmentId String
+  studentProfileId  String
+  status            AssignmentStatus @default(PENDING)
+  completionLevel   CompletionLevel  @default(NOT_DONE)
+  updatedAt         DateTime         @updatedAt
+
+  batchAssignment BatchAssignment @relation(fields: [batchAssignmentId], references: [id], onDelete: Cascade)
+  student         StudentProfile  @relation(fields: [studentProfileId], references: [id], onDelete: Cascade)
+
+  @@unique([batchAssignmentId, studentProfileId])
+  @@map("student_assignments")
+}
+
+model DriveSyncJob {
+  id         String    @id @default(cuid())
+  folderUrl  String
+  status     JobStatus @default(IN_PROGRESS)
+  totalFiles Int       @default(0)
+  processed  Int       @default(0)
+  error      String?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  @@map("drive_sync_jobs")
+}
+
+enum ResourceType {
+  PGN
+  PDF
+  HOMEWORK
+  TEST_LINK
+  OTHER
+}
+
+enum AssignmentStatus {
+  PENDING
+  COMPLETED
+  PREVIOUS
+}
+
+enum CompletionLevel {
+  NOT_DONE
+  HALF_DONE
+  FULLY_DONE
+}
+
+enum JobStatus {
+  IN_PROGRESS
+  COMPLETED
+  FAILED
+}

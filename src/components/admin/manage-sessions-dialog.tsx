@@ -6,8 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { CalendarRange, CalendarSync, Ban, HelpCircle, Loader2 } from "lucide-react";
-import { getBatchSessions, generateMoreClassInstances, cancelClassInstance } from "@/actions/batch-actions";
+import { CalendarRange, CalendarSync, Ban, Loader2, Clock, Check, X } from "lucide-react";
+import { getBatchSessions, generateMoreClassInstances, cancelClassInstance, updateClassTimings } from "@/actions/batch-actions";
 
 interface Session {
   id: string;
@@ -29,6 +29,11 @@ export function ManageSessionsDialog({ batchId, batchName }: ManageSessionsDialo
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [addCount, setAddCount] = useState<number>(5);
+
+  const [editingSessionId, setEditingSessionId] = useState<string | null>(null);
+  const [editStartTime, setEditStartTime] = useState<string>("");
+  const [editEndTime, setEditEndTime] = useState<string>("");
+  const [updateAllFuture, setUpdateAllFuture] = useState<boolean>(false);
 
   const [isPending, startTransition] = useTransition();
 
@@ -91,6 +96,39 @@ export function ManageSessionsDialog({ batchId, batchName }: ManageSessionsDialo
       }
     });
   }
+
+  function startEditing(session: Session) {
+    setEditingSessionId(session.id);
+    setEditStartTime(session.startTime);
+    setEditEndTime(session.endTime);
+    setUpdateAllFuture(false);
+  }
+
+  function handleUpdateTiming(e: React.FormEvent) {
+    e.preventDefault();
+    if (!editingSessionId) return;
+
+    setError(null);
+    setSuccessMessage(null);
+
+    startTransition(async () => {
+      const result = await updateClassTimings({
+        batchId,
+        instanceId: editingSessionId,
+        newStartTime: editStartTime,
+        newEndTime: editEndTime,
+        updateAllFuture
+      });
+      if (result.success) {
+        setSuccessMessage("Timings updated successfully.");
+        setEditingSessionId(null);
+        fetchSessions();
+      } else {
+        setError(result.error || "Failed to update timings.");
+      }
+    });
+  }
+
 
   // Calculate status counts
   const totalCount = sessions.length;
@@ -203,40 +241,122 @@ export function ManageSessionsDialog({ batchId, batchName }: ManageSessionsDialo
                   if (isScheduled) badgeColor = "brand";
 
                   return (
-                    <div key={session.id} className="p-3.5 flex items-center justify-between hover:bg-slate-50/30 transition-colors">
-                      <div className="space-y-1">
-                        <p className="text-sm font-semibold text-slate-900">
-                          {sessionDate.toLocaleDateString("en-US", {
-                            weekday: "short",
-                            year: "numeric",
-                            month: "short",
-                            day: "numeric",
-                          })}
-                        </p>
-                        <p className="text-xs text-slate-500 flex items-center gap-1">
-                          {session.startTime} – {session.endTime}
-                        </p>
+                    <div key={session.id} className="p-3.5 flex flex-col gap-3 hover:bg-slate-50/30 transition-colors">
+                      <div className="flex items-center justify-between">
+                        <div className="space-y-1">
+                          <p className="text-sm font-semibold text-slate-900">
+                            {sessionDate.toLocaleDateString("en-US", {
+                              weekday: "short",
+                              year: "numeric",
+                              month: "short",
+                              day: "numeric",
+                            })}
+                          </p>
+                          <p className="text-xs text-slate-500 flex items-center gap-1">
+                            {session.startTime} – {session.endTime}
+                          </p>
+                        </div>
+
+                        <div className="flex items-center gap-3">
+                          <Badge variant={badgeColor} className="capitalize text-xs font-normal">
+                            {session.status.toLowerCase()}
+                          </Badge>
+                          {isScheduled && (
+                            <div className="flex items-center gap-1">
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => startEditing(session)}
+                                className="text-brand-600 hover:text-brand-700 hover:bg-brand-50 h-8 px-2 flex items-center gap-1 text-xs"
+                                title="Edit Session Time"
+                                disabled={isPending || editingSessionId === session.id}
+                              >
+                                <Clock className="h-3.5 w-3.5" />
+                                Edit Time
+                              </Button>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleCancelSession(session.id)}
+                                className="text-rose-600 hover:text-rose-700 hover:bg-rose-50 h-8 px-2 flex items-center gap-1 text-xs"
+                                title="Cancel Session"
+                                disabled={isPending}
+                              >
+                                <Ban className="h-3.5 w-3.5" />
+                                Cancel
+                              </Button>
+                            </div>
+                          )}
+                        </div>
                       </div>
 
-                      <div className="flex items-center gap-3">
-                        <Badge variant={badgeColor} className="capitalize text-xs font-normal">
-                          {session.status.toLowerCase()}
-                        </Badge>
-                        {isScheduled && (
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleCancelSession(session.id)}
-                            className="text-rose-600 hover:text-rose-700 hover:bg-rose-50 h-8 px-2 flex items-center gap-1 text-xs"
-                            title="Cancel Session"
-                            disabled={isPending}
-                          >
-                            <Ban className="h-3.5 w-3.5" />
-                            Cancel
-                          </Button>
-                        )}
-                      </div>
+                      {/* Inline Edit Form */}
+                      {editingSessionId === session.id && (
+                        <form onSubmit={handleUpdateTiming} className="mt-2 p-3 bg-slate-50 border border-slate-200 rounded-md shadow-sm space-y-3">
+                          <div className="grid grid-cols-2 gap-3">
+                            <div className="space-y-1">
+                              <Label htmlFor={`start-${session.id}`} className="text-xs">Start Time</Label>
+                              <Input
+                                id={`start-${session.id}`}
+                                type="time"
+                                value={editStartTime}
+                                onChange={(e) => setEditStartTime(e.target.value)}
+                                className="h-8 text-xs"
+                                required
+                              />
+                            </div>
+                            <div className="space-y-1">
+                              <Label htmlFor={`end-${session.id}`} className="text-xs">End Time</Label>
+                              <Input
+                                id={`end-${session.id}`}
+                                type="time"
+                                value={editEndTime}
+                                onChange={(e) => setEditEndTime(e.target.value)}
+                                className="h-8 text-xs"
+                                required
+                              />
+                            </div>
+                          </div>
+                          
+                          <div className="flex items-center gap-2 mt-1">
+                            <input
+                              type="checkbox"
+                              id={`updateAll-${session.id}`}
+                              checked={updateAllFuture}
+                              onChange={(e) => setUpdateAllFuture(e.target.checked)}
+                              className="h-3.5 w-3.5 rounded border-slate-300 text-brand-600 focus:ring-brand-600"
+                            />
+                            <Label htmlFor={`updateAll-${session.id}`} className="text-xs font-normal text-slate-700 cursor-pointer">
+                              Update all future sessions of this batch
+                            </Label>
+                          </div>
+                          
+                          <div className="flex items-center justify-end gap-2 pt-2">
+                            <Button 
+                              type="button" 
+                              variant="ghost" 
+                              size="sm" 
+                              className="h-7 text-xs"
+                              onClick={() => setEditingSessionId(null)}
+                              disabled={isPending}
+                            >
+                              <X className="h-3 w-3 mr-1" />
+                              Cancel
+                            </Button>
+                            <Button 
+                              type="submit" 
+                              size="sm" 
+                              className="h-7 text-xs"
+                              disabled={isPending}
+                            >
+                              <Check className="h-3 w-3 mr-1" />
+                              Save Changes
+                            </Button>
+                          </div>
+                        </form>
+                      )}
                     </div>
                   );
                 })

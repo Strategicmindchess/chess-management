@@ -23,8 +23,9 @@ export const createBatchSchema = z.object({
     .string()
     .trim()
     .toUpperCase()
-    .min(2, "Batch code must be at least 2 characters.")
-    .regex(/^[A-Z0-9-]+$/, "Use only letters, numbers and dashes."),
+    .regex(/^[A-Z0-9-]*$/, "Use only letters, numbers and dashes.")
+    .optional()
+    .or(z.literal("")),
   meetLink: z.string().trim().url("Enter a valid URL."),
   type: z.enum(BATCH_TYPE_VALUES),
   instancesCount: z.number().int().min(1, "Must schedule at least 1 class.").max(300, "Cannot schedule more than 300 classes."),
@@ -34,6 +35,7 @@ export const createBatchSchema = z.object({
   schedules: z
     .array(scheduleSlotSchema)
     .min(1, "Add at least one weekly schedule slot."),
+  level: z.string().optional(),
 });
 
 export type CreateBatchInput = z.infer<typeof createBatchSchema>;
@@ -70,3 +72,15 @@ export const updateBatchSchema = z.object({
   payoutRate: z.coerce.number().min(0, "Payout rate must be at least 0.").optional(),
   studentIds: z.array(z.string()),
 });
+
+export const updateClassTimingsSchema = z.object({
+  batchId: z.string().min(1),
+  instanceId: z.string().optional(),
+  newStartTime: z.string().regex(TIME_REGEX, "Use 24h format, e.g. 16:00."),
+  newEndTime: z.string().regex(TIME_REGEX, "Use 24h format, e.g. 17:00."),
+  updateAllFuture: z.boolean().default(false),
+}).refine(data => data.newEndTime > data.newStartTime, {
+  message: "End time must be after start time.",
+  path: ["newEndTime"],
+});
+

@@ -48,3 +48,38 @@ export const BatchType = {
 } as const;
 
 export type BatchType = (typeof BatchType)[keyof typeof BatchType];
+
+export const StudentLevel = {
+  BEGINNER: 'BEGINNER',
+  CORE_1: 'CORE_1',
+  CORE_2: 'CORE_2',
+  CORE_3: 'CORE_3',
+  CORE_4: 'CORE_4',
+  INTERMEDIATE_1: 'INTERMEDIATE_1',
+  INTERMEDIATE_2: 'INTERMEDIATE_2',
+  INTERMEDIATE_3: 'INTERMEDIATE_3',
+  ADVANCE_1: 'ADVANCE_1',
+  ADVANCE_2: 'ADVANCE_2',
+  ELITE: 'ELITE',
+} as const;
+
+export type StudentLevel = (typeof StudentLevel)[keyof typeof StudentLevel];
+
+export const TicketStatus = {
+  PENDING: 'PENDING',
+  RESOLVED: 'RESOLVED',
+} as const;
+
+export type TicketStatus = (typeof TicketStatus)[keyof typeof TicketStatus];
+
+export const TicketCategory = {
+  TECHNICAL_ISSUE: 'TECHNICAL_ISSUE',
+  PAYMENT_ISSUE: 'PAYMENT_ISSUE',
+  RESCHEDULING: 'RESCHEDULING',
+  BATCH_ISSUE: 'BATCH_ISSUE',
+  COACH_ISSUE: 'COACH_ISSUE',
+  STUDENT_ISSUE: 'STUDENT_ISSUE',
+  OTHER: 'OTHER',
+} as const;
+
+export type TicketCategory = (typeof TicketCategory)[keyof typeof TicketCategory];

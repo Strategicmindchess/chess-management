@@ -1,63 +1,37 @@
 import { requireRole } from "@/lib/dal";
 import { prisma } from "@/lib/prisma";
-import { Role } from "@/lib/enums";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Role } from "@/generated/prisma/client";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { ProfileForm } from "@/app/account/profile/profile-form";
 
 export default async function StudentProfilePage() {
-  const user = await requireRole([Role.STUDENT]);
+  const userBase = await requireRole([Role.STUDENT]);
 
-  const userWithProfile = await prisma.user.findUnique({
-    where: { id: user.id },
-    include: { studentProfile: { select: { chessComId: true, lichessId: true, chessComRating: true, lichessRating: true, city: true } } },
+  const userWithProfile = await prisma.user.findUniqueOrThrow({
+    where: { id: userBase.id },
+    include: { studentProfile: true },
   });
 
-  const studentDetails = userWithProfile?.studentProfile;
-
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 max-w-3xl">
       <div>
         <h1 className="text-xl font-semibold text-slate-900">
           My Profile
         </h1>
+        <p className="text-sm text-slate-500 mt-1">
+          Manage your personal information, profile photo, and chess credentials.
+        </p>
       </div>
 
-      {studentDetails ? (
-        <Card>
-          <CardHeader>
-            <CardTitle>Profile Details</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 gap-4 text-sm sm:grid-cols-4">
-              <div>
-                <p className="text-slate-500">City</p>
-                <p className="font-medium text-slate-900">{studentDetails.city || "—"}</p>
-              </div>
-              <div>
-                <p className="text-slate-500">Chess.com ID</p>
-                <p className="font-medium text-slate-900">{studentDetails.chessComId || "—"}</p>
-              </div>
-              <div>
-                <p className="text-slate-500">Chess.com Rating</p>
-                <p className="font-medium text-slate-900">{studentDetails.chessComRating ?? "—"}</p>
-              </div>
-              <div>
-                <p className="text-slate-500">Lichess ID</p>
-                <p className="font-medium text-slate-900">{studentDetails.lichessId || "—"}</p>
-              </div>
-              <div>
-                <p className="text-slate-500">Lichess Rating</p>
-                <p className="font-medium text-slate-900">{studentDetails.lichessRating ?? "—"}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      ) : (
-        <Card>
-          <CardContent className="py-6 text-sm text-slate-500">
-            No profile details available.
-          </CardContent>
-        </Card>
-      )}
+      <Card>
+        <CardHeader>
+          <CardTitle>Profile Details</CardTitle>
+          <CardDescription>Update your personal details below. Your email address cannot be changed.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <ProfileForm user={userWithProfile as any} />
+        </CardContent>
+      </Card>
     </div>
   );
 }

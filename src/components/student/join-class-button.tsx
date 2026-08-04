@@ -47,8 +47,8 @@ export function JoinClassButton({ meetLink, nextInstance }: JoinClassButtonProps
       const classEnd = new Date(now);
       classEnd.setHours(endH, endM, 0, 0);
 
-      // Allow joining 15 minutes before start
-      const joinWindowStart = new Date(classStart.getTime() - 15 * 60 * 1000);
+      // Allow joining 10 minutes before start
+      const joinWindowStart = new Date(classStart.getTime() - 10 * 60 * 1000);
 
       if (now < joinWindowStart) {
         setIsActive(false);

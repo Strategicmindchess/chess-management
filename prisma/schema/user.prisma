@@ -1,27 +1,30 @@
 /// A platform user. `role` determines which dashboard and permissions apply.
 model User {
-  id             String          @id @default(cuid())
-  name           String
-  email          String          @unique
-  passwordHash   String?
-  role           Role
-  phone          String?
-  isActive       Boolean         @default(true)
-  createdAt      DateTime        @default(now())
-  updatedAt      DateTime        @updatedAt
-  emailVerified  Boolean         @default(false)
-  googleId       String?         @unique
-  coachProfile   CoachProfile?
-  otpCodes       OtpCode[]
-  refreshTokens  RefreshToken[]
-  studentProfile StudentProfile?
+  id                String          @id @default(cuid())
+  name              String
+  email             String          @unique
+  passwordHash      String?
+  role              Role
+  phone             String?
+  isActive          Boolean         @default(true)
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+  emailVerified     Boolean         @default(false)
+  googleId          String?         @unique
+  profilePictureUrl String?
+  coachProfile      CoachProfile?
+  otpCodes          OtpCode[]
+  refreshTokens     RefreshToken[]
+  studentProfile    StudentProfile?
+  assignedTickets   Ticket[]        @relation("AssignedTickets")
+  ticketReplies     TicketReply[]
 
   @@map("users")
 }
 
 model StudentProfile {
-  id                String             @id @default(cuid())
-  userId            String             @unique
+  id                String              @id @default(cuid())
+  userId            String              @unique
   parentName        String?
   parentPhone       String?
   city              String?
@@ -29,14 +32,19 @@ model StudentProfile {
   lichessId         String?
   joiningDate       DateTime?
   assignedCoachId   String?
-  createdAt         DateTime           @default(now())
-  updatedAt         DateTime           @updatedAt
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
   chessComRating    Int?
   lichessRating     Int?
+  fideId            String?
+  fideRating        Int?
+  level             StudentLevel?
   attendanceRecords AttendanceRecord[]
+  assignments       StudentAssignment[]
+  createdTickets    Ticket[]            @relation("CreatedTickets")
   enrollments       BatchStudent[]
-  assignedCoach     CoachProfile?      @relation("StudentAssignedCoach", fields: [assignedCoachId], references: [id])
-  user              User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  assignedCoach     CoachProfile?       @relation("StudentAssignedCoach", fields: [assignedCoachId], references: [id])
+  user              User                @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("student_profiles")
 }
@@ -66,4 +74,18 @@ enum Role {
   ADMIN
   TEACHER
   STUDENT
+}
+
+enum StudentLevel {
+  BEGINNER
+  CORE_1
+  CORE_2
+  CORE_3
+  CORE_4
+  INTERMEDIATE_1
+  INTERMEDIATE_2
+  INTERMEDIATE_3
+  ADVANCE_1
+  ADVANCE_2
+  ELITE
 }

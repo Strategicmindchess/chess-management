@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { ROLE_LABEL } from "@/lib/constants";
 import { Role } from "@/lib/enums";
 import type { UserRow } from "@/components/admin/users-table";
-import { updateAdminUserFields } from "@/actions/admin-actions";
+import { updateAdminUserFields, deleteUser } from "@/actions/admin-actions";
 
 export function UserDetailDialog({
   user,
@@ -47,6 +47,20 @@ export function UserDetailDialog({
         onClose();
       }
     });
+  };
+
+  const handleDelete = () => {
+    if (window.confirm("Are you sure you want to delete this user permanently? This action cannot be undone.")) {
+      setError(null);
+      startTransition(async () => {
+        const result = await deleteUser(user.id);
+        if (result?.error) {
+          setError(result.error);
+        } else {
+          onClose();
+        }
+      });
+    }
   };
 
   return (
@@ -132,18 +146,29 @@ export function UserDetailDialog({
           {error && <p className="text-sm text-red-600">{error}</p>}
         </div>
 
-        <div className="mt-6 flex justify-end gap-3 border-t border-slate-100 pt-5">
+        <div className="mt-6 flex justify-between gap-3 border-t border-slate-100 pt-5">
           <Button
             type="button"
-            variant="secondary"
-            onClick={onClose}
+            variant="ghost"
+            onClick={handleDelete}
             disabled={isPending}
+            className="text-red-600 hover:text-red-700 hover:bg-red-50"
           >
-            Cancel
+            Delete User
           </Button>
-          <Button type="submit" disabled={isPending} variant="primary">
-            {isPending ? "Saving..." : "Save Changes"}
-          </Button>
+          <div className="flex gap-3">
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={onClose}
+              disabled={isPending}
+            >
+              Cancel
+            </Button>
+            <Button type="submit" disabled={isPending} variant="primary">
+              {isPending ? "Saving..." : "Save Changes"}
+            </Button>
+          </div>
         </div>
       </form>
     </Dialog>

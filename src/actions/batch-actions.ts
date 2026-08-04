@@ -13,9 +13,27 @@ import {
   enrollStudentsSchema,
   unenrollStudentSchema,
   updateBatchSchema,
+  updateClassTimingsSchema,
   type CreateBatchInput,
 } from '@/lib/validation/batch';
 import type { ActionResult } from '@/lib/types';
+import { SYLLABUS_MAP, type BatchLevel as SyllabusLevelType } from '@/lib/syllabus';
+
+async function generateBatchCode(prefix: string): Promise<string> {
+  const existing = await prisma.batch.findMany({
+    where: { code: { startsWith: `${prefix}-` } },
+    select: { code: true }
+  });
+  let max = 0;
+  for (const b of existing) {
+    const num = parseInt(b.code.split('-')[1]);
+    if (!isNaN(num) && num > max) {
+      max = num;
+    }
+  }
+  const next = max + 1;
+  return `${prefix}-${next.toString().padStart(2, '0')}`;
+}
 
 export async function createBatch(input: CreateBatchInput): Promise<ActionResult> {
   await requireRole(['ADMIN']);
@@ -27,9 +45,25 @@ export async function createBatch(input: CreateBatchInput): Promise<ActionResult
 
   const { name, code, meetLink, payoutRate, coachId, schedules, startDate, type, instancesCount } = parsed.data;
 
-  const existingCode = await prisma.batch.findUnique({ where: { code } });
-  if (existingCode) {
+  let finalCode = code || '';
+  let finalInstancesCount = instancesCount ?? 10;
+  let batchLevelVal: SyllabusLevelType | null = null;
+  
+  if (input.level) {
+    batchLevelVal = input.level as SyllabusLevelType;
+    const syllabusInfo = SYLLABUS_MAP[batchLevelVal];
+    if (syllabusInfo) {
+      finalInstancesCount = syllabusInfo.lectures;
+      finalCode = await generateBatchCode(syllabusInfo.codePrefix);
+    }
+  }
+
+  const existingCode = await prisma.batch.findUnique({ where: { code: finalCode } });
+  if (existingCode && !input.level) {
     return { success: false, error: 'A batch with this code already exists.' };
+  } else if (existingCode) {
+    // If auto-generated hit a collision (very rare due to logic, but possible race condition)
+    return { success: false, error: 'Failed to auto-generate code, please try again.' };
   }
 
   if (coachId) {
@@ -42,12 +76,16 @@ export async function createBatch(input: CreateBatchInput): Promise<ActionResult
   const createdBatch = await prisma.batch.create({
     data: {
       name,
-      code,
+      code: finalCode,
       meetLink,
       type: type as any,
       startDate: startDate ? new Date(startDate) : null,
       payoutRate,
       coachProfileId: coachId || null,
+      // @ts-ignore
+      level: batchLevelVal as any,
+      // @ts-ignore
+      lectureIndex: 0,
       schedules: {
         create: schedules.map((slot) => ({
           day: slot.day,
@@ -59,7 +97,7 @@ export async function createBatch(input: CreateBatchInput): Promise<ActionResult
   });
 
   const baseDate = startOfDay(startDate ? new Date(startDate) : new Date());
-  await generateInstancesInternal(createdBatch.id, instancesCount ?? 10, baseDate);
+  await generateInstancesInternal(createdBatch.id, finalInstancesCount, baseDate);
 
   revalidatePath('/admin/batches');
   return { success: true };
@@ -118,6 +156,8 @@ async function generateInstancesInternal(batchId: string, count: number, customS
   let currentDate = new Date(startDate);
   let daysInspected = 0;
 
+  let currentLectureIndex = await prisma.classInstance.count({ where: { batchId } });
+  
   while (newInstances.length < count && daysInspected < 730) {
     const dayOfWeek = currentDate.getDay();
     const matchingSchedules = batch.schedules.filter(
@@ -132,13 +172,21 @@ async function generateInstancesInternal(batchId: string, count: number, customS
 
       if (!existingKeys.has(key)) {
         if (newInstances.length < count) {
+          // @ts-ignore
+          const syllabusLevel = batch.level as SyllabusLevelType | null;
+          const lectureName = syllabusLevel && SYLLABUS_MAP[syllabusLevel] 
+            ? SYLLABUS_MAP[syllabusLevel].topics[currentLectureIndex] 
+            : null;
+
           newInstances.push({
             batchId,
             date: new Date(currentDate),
             startTime: schedule.startTime,
             endTime: schedule.endTime,
             status: 'SCHEDULED',
+            lectureName: lectureName || null,
           });
+          currentLectureIndex++;
           existingKeys.add(key);
         }
       }
@@ -415,3 +463,77 @@ export async function getBatchSessions(batchId: string) {
     return { success: false, error: err.message || 'Failed to fetch sessions.' };
   }
 }
+
+export async function deleteBatch(batchId: string) {
+  try {
+    await requireRole(['ADMIN']);
+
+    await prisma.batch.delete({
+      where: { id: batchId },
+    });
+
+    revalidatePath('/admin/batches');
+    return { success: true };
+  } catch (error: any) {
+    console.error('Failed to delete batch:', error);
+    return { success: false, error: error.message || 'Failed to delete batch.' };
+  }
+}
+
+export async function updateClassTimings(input: z.infer<typeof updateClassTimingsSchema>): Promise<ActionResult> {
+  await requireRole(['ADMIN']);
+
+  const parsed = updateClassTimingsSchema.safeParse(input);
+  if (!parsed.success) {
+    return { success: false, error: parsed.error.issues[0]?.message ?? 'Invalid input.' };
+  }
+
+  const { batchId, instanceId, newStartTime, newEndTime, updateAllFuture } = parsed.data;
+
+  try {
+    if (updateAllFuture) {
+      const today = startOfDay(new Date());
+      await prisma.classInstance.updateMany({
+        where: {
+          batchId,
+          status: 'SCHEDULED',
+          date: { gte: today },
+        },
+        data: {
+          startTime: newStartTime,
+          endTime: newEndTime,
+        },
+      });
+    } else {
+      if (!instanceId) {
+        return { success: false, error: 'Instance ID is required when updating a specific session.' };
+      }
+
+      const instance = await prisma.classInstance.findUnique({
+        where: { id: instanceId },
+      });
+
+      if (!instance || instance.batchId !== batchId) {
+        return { success: false, error: 'Class instance not found.' };
+      }
+      if (instance.status !== 'SCHEDULED') {
+        return { success: false, error: 'Can only update scheduled sessions.' };
+      }
+
+      await prisma.classInstance.update({
+        where: { id: instanceId },
+        data: {
+          startTime: newStartTime,
+          endTime: newEndTime,
+        },
+      });
+    }
+
+    revalidatePath('/admin/batches');
+    return { success: true };
+  } catch (err: any) {
+    console.error('Error updating class timings:', err);
+    return { success: false, error: err.message || 'Failed to update timings.' };
+  }
+}
+

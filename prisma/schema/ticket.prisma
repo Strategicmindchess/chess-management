@@ -1,0 +1,44 @@
+model Ticket {
+  id          String         @id @default(cuid())
+  title       String
+  description String
+  status      TicketStatus   @default(PENDING)
+  category    TicketCategory
+  createdById String
+  createdBy   StudentProfile @relation("CreatedTickets", fields: [createdById], references: [id])
+
+  assignedToId String?
+  assignedTo   User?         @relation("AssignedTickets", fields: [assignedToId], references: [id])
+  replies      TicketReply[]
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  @@map("tickets")
+} 
+
+model TicketReply {
+  id        String   @id @default(cuid())
+  ticketId  String
+  ticket    Ticket   @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  content   String
+  authorId  String
+  author    User     @relation(fields: [authorId], references: [id])
+  createdAt DateTime @default(now())
+
+  @@map("ticket_replies")
+}
+
+enum TicketStatus {
+  PENDING
+  RESOLVED
+}
+
+enum TicketCategory {
+  TECHNICAL_ISSUE
+  PAYMENT_ISSUE
+  RESCHEDULING
+  BATCH_ISSUE
+  COACH_ISSUE
+  STUDENT_ISSUE
+  OTHER
+}

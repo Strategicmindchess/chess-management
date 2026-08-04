@@ -2,6 +2,7 @@ import { requireRole } from "@/lib/dal";
 import { Role } from "@/lib/enums";
 import { EmptyState } from "@/components/ui/empty-state";
 
+export const dynamic = "force-dynamic";
 export default async function TeacherDashboardPage() {
   await requireRole([Role.TEACHER]);
 

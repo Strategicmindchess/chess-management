@@ -12,6 +12,7 @@ export const NAV_ITEMS: Record<Role, NavItem[]> = {
     { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
     { href: "/admin/users", label: "Coaches & Students", icon: Users },
     { href: "/admin/batches", label: "Batches", icon: CalendarDays },
+    { href: "/admin/tickets", label: "Support Tickets", icon: ClipboardCheck },
     { href: "/admin/attendance/batch", label: "Attendance", icon: ClipboardCheck },
     { href: "/admin/payouts", label: "Payouts", icon: IndianRupee },
   ],
@@ -25,6 +26,7 @@ export const NAV_ITEMS: Record<Role, NavItem[]> = {
   [Role.STUDENT]: [
     { href: "/student", label: "Dashboard", icon: LayoutDashboard },
     { href: "/student/my-classes", label: "Classroom", icon: CalendarDays },
+    { href: "/student/tickets", label: "Support Tickets", icon: ClipboardCheck },
     { href: "/student/profile", label: "Profile", icon: Users },
   ],
 };

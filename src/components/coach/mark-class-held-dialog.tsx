@@ -21,19 +21,21 @@ export function MarkClassHeldDialog({
   students,
   scheduleStartTime,
   scheduleEndTime,
+  lectureName,
 }: {
   batchId: string;
   batchName: string;
   students: StudentOption[];
   scheduleStartTime: string;
   scheduleEndTime: string;
+  lectureName?: string | null;
 }) {
   const [open, setOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
 
   // Form state
-  const [topicCovered, setTopicCovered] = useState("");
+  const [topicCovered, setTopicCovered] = useState(lectureName || "");
   const [durationMins, setDurationMins] = useState<number | "">(60);
   
   // Format today's date for display

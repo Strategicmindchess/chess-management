@@ -74,6 +74,13 @@ export default async function TeacherAttendancePage() {
                   
                   <div className="text-sm text-slate-600 mb-6 flex-grow">
                     <p className="font-medium text-slate-800">Class Session</p>
+                    {/* @ts-ignore */}
+                    {instance.lectureName && (
+                      <p className="text-brand-700 font-semibold mt-1 mb-1">
+                        {/* @ts-ignore */}
+                        📖 {instance.lectureName}
+                      </p>
+                    )}
                     <p>{dateStr}</p>
                     <p>{instance.startTime} - {instance.endTime}</p>
                   </div>
@@ -85,6 +92,8 @@ export default async function TeacherAttendancePage() {
                       students={batch.students.map(s => ({ id: s.student.id, name: s.student.user.name }))}
                       scheduleStartTime={instance.startTime}
                       scheduleEndTime={instance.endTime}
+                      // @ts-ignore
+                      lectureName={instance.lectureName}
                     />
                   </div>
                 </CardContent>

@@ -45,6 +45,7 @@ export async function GET(request: NextRequest) {
         role: Role.STUDENT,
         googleId: profile.googleId,
         emailVerified: true,
+        studentProfile: { create: {} },
       },
     });
   } else if (!user.isActive) {

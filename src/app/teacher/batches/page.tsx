@@ -10,8 +10,16 @@ import { startOfDay } from "date-fns";
 import { ViewStudentsDialog } from "@/components/coach/view-students-dialog";
 import { ViewScheduleDialog } from "@/components/coach/view-schedule-dialog";
 import { StartBatchButton } from "@/components/coach/start-batch-button";
+import { DateFilter } from "@/components/coach/date-filter";
 
-export default async function TeacherBatchesPage() {
+export const dynamic = "force-dynamic";
+
+export default async function TeacherBatchesPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ date?: string }>;
+}) {
+  const resolvedSearchParams = await searchParams;
   const user = await requireRole([Role.TEACHER]);
 
   const coachProfile = await prisma.coachProfile.findUnique({
@@ -19,12 +27,26 @@ export default async function TeacherBatchesPage() {
   });
   if (!coachProfile) return <div>Coach profile not found.</div>;
 
+  const dateStr = resolvedSearchParams?.date;
+  let targetDate = startOfDay(new Date());
+  if (dateStr) {
+    const parsed = new Date(dateStr);
+    if (!isNaN(parsed.getTime())) {
+      targetDate = startOfDay(parsed);
+    }
+  }
+  const nextDate = new Date(targetDate);
+  nextDate.setDate(nextDate.getDate() + 1);
+
   const batches = await prisma.batch.findMany({
     where: { coachProfileId: coachProfile.id, isActive: true },
     include: {
       classInstances: {
         where: {
-          date: { gte: startOfDay(new Date()) },
+          date: { 
+            gte: targetDate,
+            lt: nextDate
+          },
           status: "SCHEDULED"
         },
         orderBy: [{ date: "asc" }, { startTime: "asc" }],
@@ -39,7 +61,6 @@ export default async function TeacherBatchesPage() {
                   id: true,
                   name: true,
                   email: true,
-                  phone: true,
                 },
               },
             },
@@ -55,13 +76,15 @@ export default async function TeacherBatchesPage() {
   const currentHour = now.getHours();
   const currentMin = now.getMinutes();
 
-  const filteredBatches = batches.map(batch => {
+  let filteredBatches = batches.map(batch => {
     const validInstances = batch.classInstances.filter(instance => {
       const instanceDate = new Date(instance.date);
       if (instanceDate > today) return true;
-      const [endH, endM] = instance.endTime.split(":").map(Number);
-      if (currentHour > endH || (currentHour === endH && currentMin >= endM)) {
-        return false;
+      if (instanceDate.getTime() === today.getTime()) {
+        const [endH, endM] = instance.endTime.split(":").map(Number);
+        if (currentHour > endH || (currentHour === endH && currentMin >= endM)) {
+          return false;
+        }
       }
       return true;
     });
@@ -72,13 +95,21 @@ export default async function TeacherBatchesPage() {
     };
   });
 
+  filteredBatches = filteredBatches.filter(batch => batch.classInstances.length > 0);
+
+  const isToday = targetDate.getTime() === startOfDay(new Date()).getTime();
+  const sessionText = isToday ? "Today's Sessions" : `Sessions for ${targetDate.toLocaleDateString("en-US", { month: 'short', day: 'numeric' })}`;
+
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-xl font-semibold text-slate-900">My Batches</h1>
-        <p className="text-sm text-slate-500">
-          View your assigned batches, access meet links, and manage your students.
-        </p>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 className="text-xl font-semibold text-slate-900">My Batches</h1>
+          <p className="text-sm text-slate-500">
+            View your assigned batches, access meet links, and manage your students.
+          </p>
+        </div>
+        <DateFilter defaultDate={new Date()} />
       </div>
 
       {filteredBatches.length === 0 ? (
@@ -98,7 +129,7 @@ export default async function TeacherBatchesPage() {
                 
                 <CardContent className="p-0 flex flex-col h-full">
                   <div className="p-4 bg-slate-50 border-b border-slate-100 flex justify-between items-center">
-                    <span className="text-sm font-medium text-slate-700">Upcoming Sessions</span>
+                    <span className="text-sm font-medium text-slate-700">{sessionText}</span>
                   </div>
 
                   <div className="p-6 flex flex-col items-center justify-center flex-grow bg-white text-center">
@@ -126,7 +157,6 @@ export default async function TeacherBatchesPage() {
                           id: s.student.id,
                           name: s.student.user.name,
                           email: s.student.user.email,
-                          phone: s.student.user.phone,
                           studentProfile: {
                             chessComId: s.student.chessComId,
                             lichessId: s.student.lichessId,
@@ -134,7 +164,6 @@ export default async function TeacherBatchesPage() {
                             lichessRating: s.student.lichessRating,
                             city: s.student.city,
                             parentName: s.student.parentName,
-                            parentPhone: s.student.parentPhone,
                           },
                         }))}
                       />

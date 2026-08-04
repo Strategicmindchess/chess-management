@@ -1,21 +1,24 @@
 /// A recurring class batch created by an Admin/Management user.
 model Batch {
-  id             String          @id @default(cuid())
+  id             String            @id @default(cuid())
   name           String
-  code           String          @unique
+  code           String            @unique
   meetLink       String
-  type           BatchType       @default(GROUP_SESSION)
-  isActive       Boolean         @default(true)
-  createdAt      DateTime        @default(now())
-  updatedAt      DateTime        @updatedAt
+  type           BatchType         @default(GROUP_SESSION)
+  isActive       Boolean           @default(true)
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
   coachProfileId String?
-  payoutRate     Int             @default(0)
+  payoutRate     Int               @default(0)
   startDate      DateTime?
+  level          BatchLevel?
+  lectureIndex   Int?
   schedules      BatchSchedule[]
   students       BatchStudent[]
-  coach          CoachProfile?   @relation("BatchCoach", fields: [coachProfileId], references: [id])
+  coach          CoachProfile?     @relation("BatchCoach", fields: [coachProfileId], references: [id])
   classInstances ClassInstance[]
   classLogs      ClassLog[]
+  assignments    BatchAssignment[]
 
   @@map("batches")
 }
@@ -23,12 +26,13 @@ model Batch {
 model ClassInstance {
   id         String      @id @default(cuid())
   batchId    String
-  date       DateTime
-  startTime  String
-  endTime    String
-  status     ClassStatus @default(SCHEDULED)
-  classLogId String?     @unique
-  createdAt  DateTime    @default(now())
+  date        DateTime
+  startTime   String
+  endTime     String
+  status      ClassStatus @default(SCHEDULED)
+  lectureName String?
+  classLogId  String?     @unique
+  createdAt   DateTime    @default(now())
   updatedAt  DateTime    @updatedAt
   batch      Batch       @relation(fields: [batchId], references: [id], onDelete: Cascade)
   classLog   ClassLog?   @relation(fields: [classLogId], references: [id])
@@ -75,7 +79,6 @@ model CoachAvailability {
   @@map("coach_availability")
 }
 
-
 model ClassLog {
   id             String             @id @default(cuid())
   batchId        String
@@ -93,7 +96,6 @@ model ClassLog {
 
   @@map("class_logs")
 }
-
 
 model AttendanceRecord {
   id               String           @id @default(cuid())
@@ -141,3 +143,17 @@ enum BatchType {
   REPLACEMENT
 }
 
+enum BatchLevel {
+  BEGINNER
+  CORE_1
+  CORE_2
+  CORE_3
+  CORE_4
+  BRIDGE
+  INTERMEDIATE_1
+  INTERMEDIATE_2
+  INTERMEDIATE_3
+  ADVANCE_1
+  ADVANCE_2
+  ELITE
+}

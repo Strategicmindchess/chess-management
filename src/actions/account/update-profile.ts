@@ -4,7 +4,7 @@ import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/dal";
-import { Role } from "@/lib/enums";
+import { Role, StudentLevel } from "@/generated/prisma/client";
 
 const updateProfileSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters."),
@@ -17,6 +17,9 @@ const updateProfileSchema = z.object({
   lichessId: z.string().optional().or(z.literal("")),
   chessComRating: z.string().optional().transform(v => v ? parseInt(v, 10) : null),
   lichessRating: z.string().optional().transform(v => v ? parseInt(v, 10) : null),
+  fideId: z.string().optional().or(z.literal("")),
+  fideRating: z.string().optional().transform(v => v ? parseInt(v, 10) : null),
+  level: z.nativeEnum(StudentLevel).optional().or(z.literal("")),
   // Coach fields
   bio: z.string().optional().or(z.literal("")),
   experience: z.string().optional().or(z.literal("")),
@@ -34,6 +37,9 @@ export async function updateProfile(formData: FormData) {
     lichessId: formData.get("lichessId") ?? undefined,
     chessComRating: formData.get("chessComRating") ?? undefined,
     lichessRating: formData.get("lichessRating") ?? undefined,
+    fideId: formData.get("fideId") ?? undefined,
+    fideRating: formData.get("fideRating") ?? undefined,
+    level: formData.get("level") || undefined, // handle empty string gracefully
     bio: formData.get("bio") ?? undefined,
     experience: formData.get("experience") ?? undefined,
   });
@@ -56,26 +62,41 @@ export async function updateProfile(formData: FormData) {
 
     // Update specific profiles if applicable
     if (user.role === Role.STUDENT) {
-      await prisma.studentProfile.update({
+      const studentData = {
+        parentName: data.parentName || null,
+        parentPhone: data.parentPhone || null,
+        city: data.city || null,
+        chessComId: data.chessComId || null,
+        lichessId: data.lichessId || null,
+        chessComRating: data.chessComRating,
+        lichessRating: data.lichessRating,
+        fideId: data.fideId || null,
+        fideRating: data.fideRating,
+        level: data.level ? (data.level as StudentLevel) : null,
+      };
+
+      await prisma.studentProfile.upsert({
         where: { userId: user.id },
-        data: {
-          parentName: data.parentName || null,
-          parentPhone: data.parentPhone || null,
-          city: data.city || null,
-          chessComId: data.chessComId || null,
-          lichessId: data.lichessId || null,
-          chessComRating: data.chessComRating,
-          lichessRating: data.lichessRating,
+        create: {
+          userId: user.id,
+          ...studentData,
         },
+        update: studentData,
       });
     } else if (user.role === Role.TEACHER) {
-      await prisma.coachProfile.update({
+      const coachData = {
+        bio: data.bio || null,
+        experience: data.experience || null,
+        city: data.city || null,
+      };
+
+      await prisma.coachProfile.upsert({
         where: { userId: user.id },
-        data: {
-          bio: data.bio || null,
-          experience: data.experience || null,
-          city: data.city || null,
+        create: {
+          userId: user.id,
+          ...coachData,
         },
+        update: coachData,
       });
     }
     

@@ -15,6 +15,7 @@ import { FieldError } from '@/components/ui/field-error';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select } from '@/components/ui/select';
+import { SYLLABUS, SYLLABUS_MAP, type BatchLevel } from '@/lib/syllabus';
 
 interface CoachOption {
   id: string;
@@ -77,6 +78,7 @@ function CreateBatchForm({
       startDate: '',
       payoutRate: 0,
       coachId: '',
+      level: '',
       schedules: [{ day: 'MONDAY', startTime: '16:00', endTime: '17:00' }],
     },
   });
@@ -84,7 +86,9 @@ function CreateBatchForm({
   const { fields, append, remove } = useFieldArray({ control, name: 'schedules' });
   const selectedCoachId = useWatch({ control, name: 'coachId' });
   const selectedType = useWatch({ control, name: 'type' });
+  const selectedLevel = useWatch({ control, name: 'level' }) as BatchLevel | '';
   const [prevType, setPrevType] = useState('GROUP_SESSION');
+  const [prevLevel, setPrevLevel] = useState<BatchLevel | ''>('');
 
   useEffect(() => {
     if (selectedType && selectedType !== prevType) {
@@ -96,6 +100,15 @@ function CreateBatchForm({
       setPrevType(selectedType);
     }
   }, [selectedType, prevType, setValue]);
+
+  useEffect(() => {
+    if (selectedLevel && selectedLevel !== prevLevel) {
+      if (SYLLABUS_MAP[selectedLevel]) {
+        setValue('name', SYLLABUS_MAP[selectedLevel].label);
+      }
+      setPrevLevel(selectedLevel);
+    }
+  }, [selectedLevel, prevLevel, setValue]);
 console.log("selectedCoachId:", selectedCoachId);
   function handleCreateMeetLink() {
     window.open('https://meet.google.com/new', '_blank');
@@ -115,15 +128,41 @@ console.log("selectedCoachId:", selectedCoachId);
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div>
+          <Label htmlFor="level">Batch Level (Syllabus) <span className="text-slate-400 font-normal ml-1">(Optional)</span></Label>
+          <Select id="level" {...register('level')}>
+            <option value="">Custom (No Syllabus)</option>
+            {SYLLABUS.map((syllabus) => (
+              <option key={syllabus.level} value={syllabus.level}>
+                {syllabus.label}
+              </option>
+            ))}
+          </Select>
+          <FieldError message={errors.level?.message} />
+        </div>
+        
+        {selectedLevel && SYLLABUS_MAP[selectedLevel] && (
+          <div className="flex items-center">
+            <div className="w-full bg-blue-50 border border-blue-100 rounded-md p-3 text-sm text-blue-800">
+               <strong>{SYLLABUS_MAP[selectedLevel].label}</strong> selected. <br/>
+               {SYLLABUS_MAP[selectedLevel].lectures} Lectures |  {SYLLABUS_MAP[selectedLevel].durationMonths} Months |  Auto-code: {SYLLABUS_MAP[selectedLevel].codePrefix}-XX
+            </div>
+          </div>
+        )}
+      </div>
+
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div>
           <Label htmlFor="name">Batch name <span className="text-red-500 ml-0.5">*</span></Label>
-          <Input id="name" {...register('name')} placeholder="e.g. Weekend Beginners" />
+          <Input id="name" {...register('name')} placeholder={selectedLevel && SYLLABUS_MAP[selectedLevel] ? `e.g. ${SYLLABUS_MAP[selectedLevel].label} — Weekend` : "e.g. Weekend Beginners"} />
           <FieldError message={errors.name?.message} />
         </div>
-        <div>
-          <Label htmlFor="code">Batch code <span className="text-red-500 ml-0.5">*</span></Label>
-          <Input id="code" {...register('code')} placeholder="e.g. WB-01" />
-          <FieldError message={errors.code?.message} />
-        </div>
+        {!selectedLevel && (
+          <div>
+            <Label htmlFor="code">Batch code <span className="text-red-500 ml-0.5">*</span></Label>
+            <Input id="code" {...register('code')} placeholder="e.g. WB-01" />
+            <FieldError message={errors.code?.message} />
+          </div>
+        )}
       </div>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -139,16 +178,18 @@ console.log("selectedCoachId:", selectedCoachId);
           </Select>
           <FieldError message={errors.type?.message} />
         </div>
-        <div>
-          <Label htmlFor="instancesCount">Number of classes to schedule (max 300) <span className="text-red-500 ml-0.5">*</span></Label>
-          <Input 
-            id="instancesCount" 
-            type="number" 
-            {...register('instancesCount', { valueAsNumber: true })} 
-            placeholder="e.g. 10" 
-          />
-          <FieldError message={errors.instancesCount?.message} />
-        </div>
+        {!selectedLevel && (
+          <div>
+            <Label htmlFor="instancesCount">Number of classes to schedule (max 300) <span className="text-red-500 ml-0.5">*</span></Label>
+            <Input 
+              id="instancesCount" 
+              type="number" 
+              {...register('instancesCount', { valueAsNumber: true })} 
+              placeholder="e.g. 10" 
+            />
+            <FieldError message={errors.instancesCount?.message} />
+          </div>
+        )}
       </div>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">

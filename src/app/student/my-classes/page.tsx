@@ -128,7 +128,14 @@ export default async function StudentMyClassesPage() {
                             <p className="font-medium text-slate-900">
                               {new Date(instance.date).toLocaleDateString("en-US", { weekday: 'short', month: 'short', day: 'numeric' })}
                             </p>
-                            <p className="text-xs text-slate-500 flex items-center mt-0.5">
+                            {/* @ts-ignore */}
+                            {instance.lectureName && (
+                              <p className="text-sm font-semibold text-brand-700 mt-0.5">
+                                {/* @ts-ignore */}
+                                📖 {instance.lectureName}
+                              </p>
+                            )}
+                            <p className="text-xs text-slate-500 flex items-center mt-1">
                               <Clock className="w-3 h-3 mr-1" />
                               {instance.startTime} - {instance.endTime}
                             </p>
