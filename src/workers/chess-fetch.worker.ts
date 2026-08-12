@@ -14,7 +14,7 @@
  */
 
 import { Worker, type Job } from 'bullmq';
-import { connection } from '@/jobs/queue';
+import { connection } from '@/workers/queue';
 import { QUEUE_NAMES, LEADERBOARD_CONFIG } from '@/lib/leaderboard-config';
 import { prisma } from '@/lib/prisma';
 import { redis, releaseLock } from '@/lib/redis';

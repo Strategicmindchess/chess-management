@@ -18,7 +18,7 @@ import { requireRole, getCurrentUser } from '@/lib/dal';
 import { Role } from '@/lib/enums';
 import { acquireLock, redisGet, redis } from '@/lib/redis';
 import { LEADERBOARD_CONFIG, REDIS_KEYS, JOB_NAMES, QUEUE_NAMES } from '@/lib/leaderboard-config';
-import { chessFetchQueue, leaderboardCalcQueue } from '@/jobs/leaderboard.queues';
+import { chessFetchQueue, leaderboardCalcQueue } from '@/workers/leaderboard.queues';
 import { revalidatePath } from 'next/cache';
 import { getCurrentPeriod } from '@/lib/leaderboard-period';
 

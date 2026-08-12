@@ -2,7 +2,7 @@
 
 import { z } from 'zod';
 import { revalidatePath } from 'next/cache';
-import { batchQueue } from '@/jobs/queue';
+import { batchQueue } from '@/workers/queue';
 import { prisma } from '@/lib/prisma';
 import { requireRole, getCurrentUser } from '@/lib/dal';
 import { Weekday, BatchType, BatchLevel } from '@/lib/enums';

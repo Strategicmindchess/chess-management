@@ -5,7 +5,7 @@ import { requireRole, getCurrentUser } from '@/lib/dal';
 import { Role } from '@/lib/enums';
 import { verifyChessComUser } from '@/services/chess/chesscom';
 import { verifyLichessUser } from '@/services/chess/lichess';
-import { chessFetchQueue } from '@/jobs/leaderboard.queues';
+import { chessFetchQueue } from '@/workers/leaderboard.queues';
 import { JOB_NAMES } from '@/lib/leaderboard-config';
 import { getCurrentPeriod } from '@/lib/leaderboard-period';
 import { revalidatePath } from 'next/cache';

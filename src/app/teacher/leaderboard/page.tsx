@@ -4,7 +4,7 @@ import { prisma } from '@/lib/prisma';
 import { getLeaderboard, getCoachFeedback } from '@/actions/leaderboard/leaderboard-actions';
 import { LeaderboardTable } from '@/components/leaderboard/LeaderboardTable';
 import { RewardsPanel } from '@/components/leaderboard/RewardsPanel';
-import { CoachFeedbackForm } from '@/components/leaderboard/CoachFeedbackForm';
+import { TeacherFeedbackManager } from '@/components/leaderboard/TeacherFeedbackManager';
 import { Trophy, Users, Star } from 'lucide-react';
 
 import Link from 'next/link';
@@ -139,9 +139,17 @@ export default async function TeacherLeaderboardPage({ searchParams }: { searchP
               <span className="text-xs text-slate-400">({myEntries.length} students ranked)</span>
             </div>
             
-            <div className="flex items-center bg-slate-100 rounded-lg p-1">
-              <Link href="?period=MONTHLY" className={`px-3 py-1 text-xs rounded-md font-medium transition-colors ${periodType === 'MONTHLY' ? 'bg-white shadow text-brand-700' : 'text-slate-500 hover:text-slate-700'}`}>Monthly</Link>
-              <Link href="?period=WEEKLY" className={`px-3 py-1 text-xs rounded-md font-medium transition-colors ${periodType === 'WEEKLY' ? 'bg-white shadow text-brand-700' : 'text-slate-500 hover:text-slate-700'}`}>Weekly</Link>
+            <div className="flex items-center gap-3">
+              <div className="flex items-center bg-slate-100 rounded-lg p-1">
+                <Link href="?period=MONTHLY" className={`px-3 py-1 text-xs rounded-md font-medium transition-colors ${periodType === 'MONTHLY' ? 'bg-white shadow text-brand-700' : 'text-slate-500 hover:text-slate-700'}`}>Monthly</Link>
+                <Link href="?period=WEEKLY" className={`px-3 py-1 text-xs rounded-md font-medium transition-colors ${periodType === 'WEEKLY' ? 'bg-white shadow text-brand-700' : 'text-slate-500 hover:text-slate-700'}`}>Weekly</Link>
+              </div>
+              <TeacherFeedbackManager
+                students={myStudents}
+                periodType={periodType}
+                periodStart={periodStart}
+                existingFeedbacks={Object.fromEntries(feedbackMap)}
+              />
             </div>
           </div>
 
@@ -157,28 +165,7 @@ export default async function TeacherLeaderboardPage({ searchParams }: { searchP
             </div>
           )}
 
-          {/* Feedback Forms */}
-          <div className="mt-8">
-            <h2 className="text-base font-bold text-slate-800 mb-4">
-              Submit Monthly Feedback
-            </h2>
-            <div className="grid grid-cols-1 gap-4">
-              {myStudents.map((student) => (
-                <div
-                  key={student.studentProfileId}
-                  className="bg-white border border-slate-200 rounded-xl p-5"
-                >
-                  <CoachFeedbackForm
-                    studentProfileId={student.studentProfileId}
-                    studentName={student.name}
-                    periodType={periodType}
-                    periodStart={periodStart}
-                    existing={feedbackMap.get(student.studentProfileId) ?? null}
-                  />
-                </div>
-              ))}
-            </div>
-          </div>
+
         </div>
 
         {/* Rewards panel */}

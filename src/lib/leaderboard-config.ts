@@ -92,6 +92,8 @@ export const REDIS_KEYS = {
 export const QUEUE_NAMES = {
   CHESS_FETCH: 'chess-fetch',
   LEADERBOARD_CALC: 'leaderboard-calc',
+  LOG_CLEANUP: 'log-cleanup',
+  ATTENDANCE_SUMMARY: 'attendance-summary',
 } as const;
 
 // ── Job names ────────────────────────────────────────────────────────────────
@@ -99,4 +101,6 @@ export const JOB_NAMES = {
   FETCH_STUDENT: 'fetch-student',       // Fetch one student's chess data
   FETCH_ALL: 'fetch-all',               // Admin: fetch all students
   CALC_LEADERBOARD: 'calc-leaderboard', // Run score calculation
+  PURGE_OLD_LOGS: 'purge-old-logs',     // Delete fetch logs > 30 days
+  CALC_ATTENDANCE: 'calc-attendance',   // Calculate attendance % for period
 } as const;

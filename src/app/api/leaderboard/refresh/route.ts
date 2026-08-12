@@ -58,7 +58,7 @@ export async function POST(req: NextRequest) {
   }
 
   // Dynamically import queues (avoids bundling heavy deps at edge)
-  const { chessFetchQueue, leaderboardCalcQueue } = await import('@/jobs/leaderboard.queues');
+  const { chessFetchQueue, leaderboardCalcQueue } = await import('@/workers/leaderboard.queues');
 
   const results: string[] = [];
 

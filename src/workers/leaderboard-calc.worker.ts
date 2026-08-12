@@ -14,7 +14,7 @@
  */
 
 import { Worker, type Job } from 'bullmq';
-import { connection } from '@/jobs/queue';
+import { connection } from '@/workers/queue';
 import { QUEUE_NAMES, POINTS, REDIS_KEYS, LEADERBOARD_CONFIG } from '@/lib/leaderboard-config';
 import { prisma } from '@/lib/prisma';
 import { redis, redisDel } from '@/lib/redis';
@@ -225,8 +225,20 @@ async function processLeaderboardCalc(job: Job<LeaderboardCalcJobData>) {
 
   // ── Sort & assign ranks ───────────────────────────────────────────────────
   entries.sort((a, b) => b.totalScore - a.totalScore);
-  let rank = 1;
-  for (const entry of entries) {
+  
+  let currentRank = 1;
+  let previousScore = -1;
+
+  for (let i = 0; i < entries.length; i++) {
+    const entry = entries[i];
+    
+    // Standard Competition Ranking logic:
+    // If the score is different from previous, update the rank to current index + 1
+    if (entry.totalScore !== previousScore) {
+      currentRank = i + 1;
+    }
+    previousScore = entry.totalScore;
+
     await prisma.leaderboardEntry.upsert({
       where: {
         studentProfileId_periodType_periodStart: {
@@ -253,7 +265,7 @@ async function processLeaderboardCalc(job: Job<LeaderboardCalcJobData>) {
         tournament: entry.tournament,
         bulletPenalty: entry.bulletPenalty,
         totalScore: entry.totalScore,
-        rank,
+        rank: currentRank,
         calculatedAt: new Date(),
       },
       update: {
@@ -271,11 +283,10 @@ async function processLeaderboardCalc(job: Job<LeaderboardCalcJobData>) {
         tournament: entry.tournament,
         bulletPenalty: entry.bulletPenalty,
         totalScore: entry.totalScore,
-        rank,
+        rank: currentRank,
         calculatedAt: new Date(),
       },
     });
-    rank++;
   }
 
   // ── Clean up obsolete entries ──────────────────────────────────────────────

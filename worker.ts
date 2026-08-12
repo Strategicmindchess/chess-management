@@ -24,29 +24,39 @@ logger.info('Worker process starting...', { pid: process.pid, node: process.vers
 
 Promise.all([
   // Existing batch queue worker (class instance generation)
-  import('./src/jobs/batch.worker').then(() => {
+  import('./src/workers/batch.worker').then(() => {
     logger.info('batch-queue worker started');
   }),
 
   // Chess data fetch worker — fetches Chess.com + Lichess data per student
-  import('./src/jobs/chess-fetch.worker').then(() => {
+  import('./src/workers/chess-fetch.worker').then(() => {
     logger.info('chess-fetch worker started');
   }),
 
   // Leaderboard score calculation worker — reads snapshots, writes LeaderboardEntry
-  import('./src/jobs/leaderboard-calc.worker').then(() => {
+  import('./src/workers/leaderboard-calc.worker').then(() => {
     logger.info('leaderboard-calc worker started');
+  }),
+
+  // Log cleanup worker — deletes fetch logs > 30 days
+  import('./src/workers/log-cleanup.worker').then(() => {
+    logger.info('log-cleanup worker started');
+  }),
+
+  // Attendance summary worker — calculates attendance %
+  import('./src/workers/attendance-summary.worker').then(() => {
+    logger.info('attendance-summary worker started');
   }),
 ])
   .then(async () => {
     logger.info('All BullMQ workers running — listening for jobs', {
-      queues: ['batch-queue', 'chess-fetch-queue', 'leaderboard-calc-queue'],
+      queues: ['batch-queue', 'chess-fetch-queue', 'leaderboard-calc-queue', 'log-cleanup-queue', 'attendance-summary-queue'],
     });
 
     // Log queue depths every 5 minutes
     setInterval(async () => {
       try {
-        const { chessFetchQueue, leaderboardCalcQueue } = await import('./src/jobs/leaderboard.queues');
+        const { chessFetchQueue, leaderboardCalcQueue } = await import('./src/workers/leaderboard.queues');
         const [fetchCounts, calcCounts] = await Promise.all([
           chessFetchQueue.getJobCounts(),
           leaderboardCalcQueue.getJobCounts(),
@@ -67,15 +77,19 @@ Promise.all([
 async function shutdown(signal: string) {
   logger.info(`Received ${signal} — shutting down gracefully...`);
   try {
-    const [{ chessFetchWorker }, { leaderboardCalcWorker }, { default: batchWorker }] = await Promise.all([
-      import('./src/jobs/chess-fetch.worker'),
-      import('./src/jobs/leaderboard-calc.worker'),
-      import('./src/jobs/batch.worker'),
+    const [{ chessFetchWorker }, { leaderboardCalcWorker }, { logCleanupWorker }, { attendanceSummaryWorker }, { batchWorker }] = await Promise.all([
+      import('./src/workers/chess-fetch.worker'),
+      import('./src/workers/leaderboard-calc.worker'),
+      import('./src/workers/log-cleanup.worker'),
+      import('./src/workers/attendance-summary.worker'),
+      import('./src/workers/batch.worker'),
     ]);
     await Promise.all([
       chessFetchWorker.close(),
       leaderboardCalcWorker.close(),
-      batchWorker.close(),
+      logCleanupWorker.close(),
+      attendanceSummaryWorker.close(),
+      batchWorker?.close?.(),
     ]);
     logger.info('All workers closed cleanly.');
     process.exit(0);
