@@ -17,12 +17,17 @@ export default async function TeacherBatchesPage() {
 
   const { todayInstances, upcomingInstances } = await getTeacherDashboardData(coachProfile.id);
 
-  // Filter out instances that have already ended today based on current time
-  const now = new Date();
-  const currentHour = now.getHours();
-  const currentMin = now.getMinutes();
+  const { getISTNow } = await import("@/lib/timezone");
+  const { getHours, getMinutes } = await import("date-fns");
+  
+  const istNow = getISTNow();
+  const currentHour = getHours(istNow);
+  const currentMin = getMinutes(istNow);
 
   const filteredTodayInstances = todayInstances.filter(instance => {
+    // Keep cancelled classes visible for the entire day
+    if (instance.status === 'CANCELLED') return true;
+    
     const [endH, endM] = instance.endTime.split(":").map(Number);
     if (currentHour > endH || (currentHour === endH && currentMin >= endM)) {
       return false; // already ended

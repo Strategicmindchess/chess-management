@@ -4,15 +4,16 @@ model Batch {
   name           String
   code           String            @unique
   meetLink       String
-  type           BatchType         @default(GROUP_SESSION)
   isActive       Boolean           @default(true)
   createdAt      DateTime          @default(now())
   updatedAt      DateTime          @updatedAt
   coachProfileId String?
   payoutRate     Int               @default(0)
   startDate      DateTime?
-  startSession   Int?              @default(1) /// 1-based: the session number the syllabus starts from for this batch
+  type           BatchType         @default(GROUP_SESSION)
   level          BatchLevel?
+  /// 1-based: the session number the syllabus starts from for this batch
+  startSession   Int?              @default(1)
   assignments    BatchAssignment[]
   schedules      BatchSchedule[]
   students       BatchStudent[]
@@ -24,20 +25,23 @@ model Batch {
 }
 
 model ClassInstance {
-  id          String      @id @default(cuid())
-  batchId     String
-  date        DateTime
-  startTime   String
-  endTime     String
-  status      ClassStatus @default(SCHEDULED)
-  classLogId  String?     @unique
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
+  id            String      @id @default(cuid())
+  batchId       String
+  date          DateTime
+  startTime     String
+  endTime       String
+  status        ClassStatus @default(SCHEDULED)
+  classLogId    String?     @unique
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
   lectureName   String?
-  sessionNumber Int?        /// 1-based session number matching the syllabus (e.g. 4 = "Lecture 4")
-  batch       Batch       @relation(fields: [batchId], references: [id], onDelete: Cascade)
-  classLog    ClassLog?   @relation(fields: [classLogId], references: [id])
- 
+  /// 1-based session number matching the syllabus (e.g. 4 = "Lecture 4")
+  sessionNumber Int?
+  /// Set when teacher marks class as held — anchor for the 24-hour assignment release timer
+  completedAt   DateTime?
+  batch         Batch       @relation(fields: [batchId], references: [id], onDelete: Cascade)
+  classLog      ClassLog?   @relation(fields: [classLogId], references: [id])
+
   @@index([batchId, date])
   @@map("class_instances")
 }

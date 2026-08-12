@@ -23,49 +23,62 @@ model User {
 }
 
 model StudentProfile {
-  id                String              @id @default(cuid())
-  userId            String              @unique
-  parentName        String?
-  parentPhone       String?
-  city              String?
-  chessComId        String?
-  lichessId         String?
-  joiningDate       DateTime?
-  assignedCoachId   String?
-  createdAt         DateTime            @default(now())
-  updatedAt         DateTime            @updatedAt
-  chessComRating    Int?
-  lichessRating     Int?
-  fideId            String?
-  fideRating        Int?
-  level             StudentLevel?
-  attendanceRecords AttendanceRecord[]
-  enrollments       BatchStudent[]
-  assignments       StudentAssignment[]
-  assignedCoach     CoachProfile?       @relation("StudentAssignedCoach", fields: [assignedCoachId], references: [id])
-  user              User                @relation(fields: [userId], references: [id], onDelete: Cascade)
-  createdTickets    Ticket[]            @relation("CreatedTickets")
+  id                    String                  @id @default(cuid())
+  userId                String                  @unique
+  parentName            String?
+  parentPhone           String?
+  city                  String?
+  chessComId            String?
+  chessComRating        Int?
+  lichessId             String?
+  lichessRating         Int?
+  joiningDate           DateTime?
+  assignedCoachId       String?
+  createdAt             DateTime                @default(now())
+  updatedAt             DateTime                @updatedAt
+  fideId                String?
+  fideRating            Int?
+  level                 StudentLevel?
+  assignmentScores      AssignmentScore[]
+  chessAccount          ChessAccount?
+  activitySnapshots     ChessActivitySnapshot[]
+  chessApiFetchLogs     ChessApiFetchLog[]
+  coachFeedbackReceived CoachFeedback[]         @relation("StudentFeedback")
+  fairPlayViolations    FairPlayViolation[]
+  leaderboardEntries    LeaderboardEntry[]
+  leaderboardRewards    LeaderboardReward[]
+  puzzleSolverAwards    PuzzleSolverAward[]
+  tournamentScores      TournamentScore[]       @relation("StudentTournament")
+  attendanceRecords     AttendanceRecord[]
+  enrollments           BatchStudent[]
+  leaderboardAttendance LeaderboardAttendance[]
+  assignments           StudentAssignment[]
+  assignedCoach         CoachProfile?           @relation("StudentAssignedCoach", fields: [assignedCoachId], references: [id])
+  user                  User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdTickets        Ticket[]                @relation("CreatedTickets")
 
   @@map("student_profiles")
 }
 
 model CoachProfile {
-  id               String              @id @default(cuid())
-  userId           String              @unique
-  bio              String?
-  experience       String?
-  city             String?
-  chessComId       String?
-  lichessId        String?
-  chessComRating   Int?
-  lichessRating    Int?
-  createdAt        DateTime            @default(now())
-  updatedAt        DateTime            @updatedAt
-  batches          Batch[]             @relation("BatchCoach")
-  classLogs        ClassLog[]
-  availabilities   CoachAvailability[] @relation("CoachAvailability")
-  user             User                @relation(fields: [userId], references: [id], onDelete: Cascade)
-  assignedStudents StudentProfile[]    @relation("StudentAssignedCoach")
+  id                    String              @id @default(cuid())
+  userId                String              @unique
+  bio                   String?
+  experience            String?
+  city                  String?
+  createdAt             DateTime            @default(now())
+  updatedAt             DateTime            @updatedAt
+  chessComId            String?
+  chessComRating        Int?
+  lichessId             String?
+  lichessRating         Int?
+  coachFeedbackGiven    CoachFeedback[]     @relation("CoachGivenFeedback")
+  tournamentScoresGiven TournamentScore[]   @relation("CoachTournament")
+  batches               Batch[]             @relation("BatchCoach")
+  classLogs             ClassLog[]
+  availabilities        CoachAvailability[] @relation("CoachAvailability")
+  user                  User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  assignedStudents      StudentProfile[]    @relation("StudentAssignedCoach")
 
   @@map("coach_profiles")
 }

@@ -3,21 +3,16 @@
 import { prisma } from '@/lib/prisma';
 import { requireRole } from '@/lib/dal';
 import { Role } from '@/lib/enums';
-import { startOfDay } from 'date-fns';
+import { getISTDayBounds } from '@/lib/timezone';
 
 export async function getTeacherDashboardData(coachProfileId: string) {
   await requireRole([Role.TEACHER]);
 
-  const today = startOfDay(new Date());
-  const tomorrow = new Date(today);
-  tomorrow.setDate(tomorrow.getDate() + 1);
-
-  const threeDaysLater = new Date(tomorrow);
-  threeDaysLater.setDate(threeDaysLater.getDate() + 3);
+  const { today, tomorrow, threeDaysLater } = getISTDayBounds();
 
   const todayInstances = await prisma.classInstance.findMany({
     where: {
-      status: 'SCHEDULED',
+      status: { in: ['SCHEDULED', 'CANCELLED'] },
       date: {
         gte: today,
         lt: tomorrow
@@ -39,7 +34,7 @@ export async function getTeacherDashboardData(coachProfileId: string) {
 
   const upcomingInstances = await prisma.classInstance.findMany({
     where: {
-      status: 'SCHEDULED',
+      status: { in: ['SCHEDULED', 'CANCELLED'] },
       date: {
         gte: tomorrow,
         lt: threeDaysLater
@@ -65,16 +60,11 @@ export async function getTeacherDashboardData(coachProfileId: string) {
 export async function getStudentDashboardData(studentProfileId: string) {
   await requireRole([Role.STUDENT]);
 
-  const today = startOfDay(new Date());
-  const tomorrow = new Date(today);
-  tomorrow.setDate(tomorrow.getDate() + 1);
-  
-  const threeDaysLater = new Date(tomorrow);
-  threeDaysLater.setDate(threeDaysLater.getDate() + 3);
+  const { today, tomorrow, threeDaysLater } = getISTDayBounds();
 
   const todayInstances = await prisma.classInstance.findMany({
     where: {
-      status: 'SCHEDULED',
+      status: { in: ['SCHEDULED', 'CANCELLED'] },
       date: {
         gte: today,
         lt: tomorrow
@@ -96,7 +86,7 @@ export async function getStudentDashboardData(studentProfileId: string) {
 
   const upcomingInstances = await prisma.classInstance.findMany({
     where: {
-      status: 'SCHEDULED',
+      status: { in: ['SCHEDULED', 'CANCELLED'] },
       date: {
         gte: tomorrow,
         lt: threeDaysLater

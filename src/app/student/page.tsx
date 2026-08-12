@@ -1,11 +1,17 @@
 import { requireRole } from "@/lib/dal";
 import { Role } from "@/lib/enums";
-import { Card, CardContent } from "@/components/ui/card";
-import { Trophy, Zap, Swords, Target, ExternalLink } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Trophy, Zap, Swords, Target, ExternalLink, GraduationCap } from "lucide-react";
 import Image from "next/image";
+import { getStudentAssignments } from "@/actions/assignment-actions";
+import { Progress } from "@/components/ui/progress";
 
 export default async function StudentDashboardPage() {
   const user = await requireRole([Role.STUDENT]);
+  const assignmentsData = await getStudentAssignments() as any;
+  const progress = assignmentsData.success && assignmentsData.progress 
+    ? assignmentsData.progress 
+    : { total: 0, score: 0, percentage: 0 };
 
   const practiceCards = [
     {
@@ -109,6 +115,30 @@ export default async function StudentDashboardPage() {
           })}
         </div>
       </div>
+
+      {/* Assignment Progress */}
+      {progress.total > 0 && (
+        <Card className="overflow-hidden border-slate-200">
+          <CardHeader className="bg-slate-50/50 pb-4">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-lg font-bold text-slate-900 flex items-center gap-2">
+                <GraduationCap className="h-5 w-5 text-brand-600" />
+                Assignment Progress
+              </CardTitle>
+              <div className="text-2xl font-black text-brand-600">
+                {Math.round(progress.percentage)}%
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="pt-6">
+            <Progress value={progress.percentage} className="h-3 rounded-full bg-slate-100" />
+            <div className="flex justify-between items-center mt-3 text-sm">
+              <span className="text-slate-500 font-medium">Completed: {progress.score}</span>
+              <span className="text-slate-500 font-medium">Total: {progress.total}</span>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       <Card>
         <CardContent className="py-6 text-sm text-slate-600">

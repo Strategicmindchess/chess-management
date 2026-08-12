@@ -82,6 +82,7 @@ export const updateClassTimingsSchema = z.object({
   instanceId: z.string().optional(),
   newStartTime: z.string().regex(TIME_REGEX, "Use 24h format, e.g. 16:00."),
   newEndTime: z.string().regex(TIME_REGEX, "Use 24h format, e.g. 17:00."),
+  newDate: z.string().optional(),
   updateAllFuture: z.boolean().default(false),
 }).refine(data => data.newEndTime > data.newStartTime, {
   message: "End time must be after start time.",

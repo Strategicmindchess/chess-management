@@ -1,4 +1,6 @@
-import { startOfDay, Day } from 'date-fns';
+import { startOfDay, Day, addDays } from 'date-fns';
+import { toZonedTime, fromZonedTime } from 'date-fns-tz';
+import { TIME_ZONE } from './timezone';
 import { prisma } from './prisma';
 import { SYLLABUS_MAP, type BatchLevel as SyllabusLevelType } from './syllabus';
 import { Weekday } from './enums';
@@ -38,17 +40,18 @@ export async function generateInstancesInternal(
   // ── Starting date ──────────────────────────────────────────────────────────
   let startDate: Date;
   if (customStartDate) {
-    startDate = startOfDay(customStartDate);
+    startDate = fromZonedTime(startOfDay(toZonedTime(customStartDate, TIME_ZONE)), TIME_ZONE);
   } else {
     const lastInstance = await prisma.classInstance.findFirst({
       where: { batchId },
       orderBy: { date: 'desc' },
     });
     if (lastInstance) {
-      startDate = startOfDay(new Date(lastInstance.date));
+      startDate = fromZonedTime(startOfDay(toZonedTime(new Date(lastInstance.date), TIME_ZONE)), TIME_ZONE);
       startDate.setDate(startDate.getDate() + 1); // Next day after latest
     } else {
-      startDate = startOfDay(batch.startDate ? new Date(batch.startDate) : new Date());
+      const baseDate = batch.startDate ? new Date(batch.startDate) : new Date();
+      startDate = fromZonedTime(startOfDay(toZonedTime(baseDate, TIME_ZONE)), TIME_ZONE);
     }
   }
 
@@ -60,8 +63,10 @@ export async function generateInstancesInternal(
 
   const existingKeys = new Set(
     existing.map(
-      (inst) =>
-        `${startOfDay(new Date(inst.date)).toISOString().split('T')[0]}|${inst.startTime}`,
+      (inst) => {
+        const normalizedDate = fromZonedTime(startOfDay(toZonedTime(new Date(inst.date), TIME_ZONE)), TIME_ZONE);
+        return `${normalizedDate.toISOString().split('T')[0]}|${inst.startTime}`;
+      }
     ),
   );
 
@@ -110,7 +115,8 @@ export async function generateInstancesInternal(
   let daysInspected = 0;
 
   while (newInstances.length < count && daysInspected < 730) {
-    const dayOfWeek = currentDate.getDay();
+    const zonedCurrent = toZonedTime(currentDate, TIME_ZONE);
+    const dayOfWeek = zonedCurrent.getDay();
     const matchingSchedules = batch.schedules
       .filter((s) => WEEKDAY_MAP[s.day as Weekday] === dayOfWeek)
       .sort((a, b) => a.startTime.localeCompare(b.startTime));
@@ -140,7 +146,7 @@ export async function generateInstancesInternal(
       }
     }
 
-    currentDate.setDate(currentDate.getDate() + 1);
+    currentDate = addDays(currentDate, 1);
     daysInspected++;
   }
 

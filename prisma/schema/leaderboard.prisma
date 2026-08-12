@@ -1,0 +1,247 @@
+model LeaderboardPeriod {
+  id         String     @id @default(cuid())
+  periodType PeriodType
+  startDate  DateTime
+  endDate    DateTime
+  isLocked   Boolean    @default(false)
+  lockedAt   DateTime?
+
+  @@unique([periodType, startDate])
+  @@index([endDate])
+}
+
+model ChessAccount {
+  id               String         @id @default(cuid())
+  studentProfileId String         @unique
+  chessComUsername String?        @unique
+  lichessUsername  String?        @unique
+  chessComVerified Boolean        @default(false)
+  lichessVerified  Boolean        @default(false)
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+  student          StudentProfile @relation(fields: [studentProfileId], references: [id], onDelete: Cascade)
+}
+
+model ChessApiFetchLog {
+  id               String         @id @default(cuid())
+  studentProfileId String
+  provider         ChessProvider
+  rawResponse      Json
+  fetchedAt        DateTime       @default(now())
+  student          StudentProfile @relation(fields: [studentProfileId], references: [id], onDelete: Cascade)
+
+  @@index([studentProfileId, provider, fetchedAt])
+}
+
+model ChessActivitySnapshot {
+  id               String            @id @default(cuid())
+  studentProfileId String
+  periodType       PeriodType
+  periodStart      DateTime
+  periodEnd        DateTime
+  rapidGames       Int               @default(0)
+  blitzGames       Int               @default(0)
+  classicalGames   Int               @default(0)
+  bulletGames      Int               @default(0)
+  ultraBulletGames Int               @default(0)
+  rapidWins        Int               @default(0)
+  blitzWins        Int               @default(0)
+  classicalWins    Int               @default(0)
+  puzzleAttempts   Int               @default(0)
+  puzzleSolved     Int               @default(0)
+  rapidRatingStart Int?
+  rapidRatingEnd   Int?
+  streakDays       Int               @default(0)
+  streakStartDate  DateTime?
+  fetchedAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  student          StudentProfile    @relation(fields: [studentProfileId], references: [id], onDelete: Cascade)
+  leaderboardEntry LeaderboardEntry?
+
+  @@unique([studentProfileId, periodType, periodStart])
+  @@index([studentProfileId, periodType])
+  @@index([periodEnd])
+}
+
+model CoachFeedback {
+  id               String         @id @default(cuid())
+  studentProfileId String
+  coachId          String
+  periodType       PeriodType
+  periodStart      DateTime
+  engagement       Int            @default(0)
+  behaviour        Int            @default(0)
+  conceptAdoption  Int            @default(0)
+  joiningOnTime    Int            @default(0)
+  cameraOn         Int            @default(0)
+  remarks          String?
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+  coach            CoachProfile   @relation("CoachGivenFeedback", fields: [coachId], references: [id], onDelete: Cascade)
+  student          StudentProfile @relation("StudentFeedback", fields: [studentProfileId], references: [id], onDelete: Cascade)
+
+  @@unique([studentProfileId, coachId, periodType, periodStart])
+  @@index([studentProfileId, periodType])
+}
+
+model LeaderboardAttendance {
+  id                String         @id @default(cuid())
+  studentProfileId  String
+  periodType        PeriodType
+  periodStart       DateTime
+  totalClasses      Int            @default(0)
+  classesAttended   Int            @default(0)
+  attendancePercent Float          @default(0)
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+  student           StudentProfile @relation(fields: [studentProfileId], references: [id], onDelete: Cascade)
+
+  @@unique([studentProfileId, periodType, periodStart])
+  @@index([studentProfileId, periodType])
+  @@map("leaderboard_attendance")
+}
+
+model AssignmentScore {
+  id               String         @id @default(cuid())
+  studentProfileId String
+  periodType       PeriodType
+  periodStart      DateTime
+  totalAssignments Int            @default(0)
+  completedCount   Int            @default(0)
+  score            Int            @default(0)
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+  student          StudentProfile @relation(fields: [studentProfileId], references: [id], onDelete: Cascade)
+
+  @@unique([studentProfileId, periodType, periodStart])
+  @@index([studentProfileId, periodType])
+}
+
+model TournamentScore {
+  id               String         @id @default(cuid())
+  studentProfileId String
+  coachId          String
+  periodType       PeriodType
+  periodStart      DateTime
+  tournamentDate   DateTime
+  score            Int            @default(0)
+  participation    Int?
+  performance      Int?
+  sportsmanship    Int?
+  notes            String?
+  createdAt        DateTime       @default(now())
+  coach            CoachProfile   @relation("CoachTournament", fields: [coachId], references: [id], onDelete: Cascade)
+  student          StudentProfile @relation("StudentTournament", fields: [studentProfileId], references: [id], onDelete: Cascade)
+
+  @@index([studentProfileId, periodType])
+  @@index([periodStart])
+}
+
+model LeaderboardEntry {
+  id                   String                  @id @default(cuid())
+  studentProfileId     String
+  snapshotId           String                  @unique
+  periodType           PeriodType
+  periodStart          DateTime
+  rapidClassicalPoints Int                     @default(0)
+  blitzPoints          Int                     @default(0)
+  puzzlePoints         Int                     @default(0)
+  winRateBonus         Int                     @default(0)
+  puzzleAccuracyBonus  Int                     @default(0)
+  ratingBonus          Int                     @default(0)
+  consistencyBonus     Int                     @default(0)
+  coachFeedback        Int                     @default(0)
+  attendance           Int                     @default(0)
+  assignment           Int                     @default(0)
+  tournament           Int                     @default(0)
+  bulletPenalty        Int                     @default(0)
+  totalScore           Int                     @default(0)
+  rank                 Int?
+  isDisqualified       Boolean                 @default(false)
+  disqualifiedReason   DisqualificationReason?
+  disqualifiedAt       DateTime?
+  calculatedAt         DateTime                @default(now())
+  updatedAt            DateTime                @updatedAt
+  snapshot             ChessActivitySnapshot   @relation(fields: [snapshotId], references: [id], onDelete: Cascade)
+  student              StudentProfile          @relation(fields: [studentProfileId], references: [id], onDelete: Cascade)
+
+  @@unique([studentProfileId, periodType, periodStart])
+  @@index([periodStart, rank])
+  @@index([totalScore])
+}
+
+model PuzzleSolverAward {
+  id                 String         @id @default(cuid())
+  studentProfileId   String
+  periodType         PeriodType
+  periodStart        DateTime
+  totalPuzzlesSolved Int
+  awardAmount        Int            @default(100)
+  awarded            Boolean        @default(false)
+  awardedAt          DateTime?
+  student            StudentProfile @relation(fields: [studentProfileId], references: [id], onDelete: Cascade)
+
+  @@unique([periodType, periodStart])
+  @@index([studentProfileId])
+}
+
+model LeaderboardReward {
+  id                String          @id @default(cuid())
+  periodType        PeriodType
+  periodStart       DateTime
+  rank              Int
+  rewardTitle       String
+  rewardDescription String?
+  studentProfileId  String?
+  awardedAt         DateTime?
+  student           StudentProfile? @relation(fields: [studentProfileId], references: [id])
+
+  @@unique([periodType, periodStart, rank])
+  @@index([studentProfileId])
+}
+
+model FairPlayViolation {
+  id               String         @id @default(cuid())
+  studentProfileId String
+  violationType    String
+  description      String
+  periodStart      DateTime
+  severity         Int            @default(1)
+  reportedAt       DateTime       @default(now())
+  resolvedAt       DateTime?
+  resolutionNotes  String?
+  student          StudentProfile @relation(fields: [studentProfileId], references: [id], onDelete: Cascade)
+
+  @@index([studentProfileId, periodStart])
+}
+
+model LeaderboardCalculationLog {
+  id                String     @id @default(cuid())
+  periodType        PeriodType
+  periodStart       DateTime
+  totalStudents     Int
+  calculatedCount   Int
+  disqualifiedCount Int
+  startedAt         DateTime   @default(now())
+  completedAt       DateTime?
+  errorLog          String?
+
+  @@unique([periodType, periodStart])
+}
+
+enum PeriodType {
+  WEEKLY
+  MONTHLY
+}
+
+enum ChessProvider {
+  CHESS_COM
+  LICHESS
+}
+
+enum DisqualificationReason {
+  EXCESSIVE_BULLET_GAMES
+  FAIR_PLAY_VIOLATION
+  SUSPICIOUS_ACTIVITY
+  INCOMPLETE_DATA
+}

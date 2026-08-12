@@ -15,6 +15,8 @@ interface Session {
   startTime: string;
   endTime: string;
   status: string;
+  lectureName?: string | null;
+  sessionNumber?: number | null;
 }
 
 interface ManageSessionsDialogProps {
@@ -30,7 +32,9 @@ export function ManageSessionsDialog({ batchId, batchName }: ManageSessionsDialo
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [addCount, setAddCount] = useState<number>(5);
 
-  const [editingSessionId, setEditingSessionId] = useState<string | null>(null);
+  const [updateDialogOpen, setUpdateDialogOpen] = useState(false);
+  const [selectedSession, setSelectedSession] = useState<Session | null>(null);
+  const [editDate, setEditDate] = useState<string>("");
   const [editStartTime, setEditStartTime] = useState<string>("");
   const [editEndTime, setEditEndTime] = useState<string>("");
   const [updateAllFuture, setUpdateAllFuture] = useState<boolean>(false);
@@ -90,6 +94,7 @@ export function ManageSessionsDialog({ batchId, batchName }: ManageSessionsDialo
       const result = await cancelClassInstance(sessionId);
       if (result.success) {
         setSuccessMessage("Session has been cancelled successfully.");
+        setUpdateDialogOpen(false);
         fetchSessions();
       } else {
         setError(result.error || "Failed to cancel session.");
@@ -97,16 +102,18 @@ export function ManageSessionsDialog({ batchId, batchName }: ManageSessionsDialo
     });
   }
 
-  function startEditing(session: Session) {
-    setEditingSessionId(session.id);
+  function openUpdateDialog(session: Session) {
+    setSelectedSession(session);
     setEditStartTime(session.startTime);
     setEditEndTime(session.endTime);
+    setEditDate(session.date.split("T")[0]);
     setUpdateAllFuture(false);
+    setUpdateDialogOpen(true);
   }
 
   function handleUpdateTiming(e: React.FormEvent) {
     e.preventDefault();
-    if (!editingSessionId) return;
+    if (!selectedSession) return;
 
     setError(null);
     setSuccessMessage(null);
@@ -114,17 +121,18 @@ export function ManageSessionsDialog({ batchId, batchName }: ManageSessionsDialo
     startTransition(async () => {
       const result = await updateClassTimings({
         batchId,
-        instanceId: editingSessionId,
+        instanceId: selectedSession.id,
         newStartTime: editStartTime,
         newEndTime: editEndTime,
+        newDate: editDate,
         updateAllFuture
       });
       if (result.success) {
-        setSuccessMessage("Timings updated successfully.");
-        setEditingSessionId(null);
+        setSuccessMessage("Session updated successfully.");
+        setUpdateDialogOpen(false);
         fetchSessions();
       } else {
-        setError(result.error || "Failed to update timings.");
+        setError(result.error || "Failed to update session.");
       }
     });
   }
@@ -244,16 +252,20 @@ export function ManageSessionsDialog({ batchId, batchName }: ManageSessionsDialo
                     <div key={session.id} className="p-3.5 flex flex-col gap-3 hover:bg-slate-50/30 transition-colors">
                       <div className="flex items-center justify-between">
                         <div className="space-y-1">
-                          <p className="text-sm font-semibold text-slate-900">
+                          <p className="text-sm font-semibold text-slate-900 flex items-center gap-2">
+                            {session.sessionNumber && session.lectureName ? (
+                              <span>Lecture {session.sessionNumber}: {session.lectureName}</span>
+                            ) : (
+                              <span>Class Session</span>
+                            )}
+                          </p>
+                          <p className="text-xs text-slate-500 flex items-center gap-1">
                             {sessionDate.toLocaleDateString("en-US", {
                               weekday: "short",
                               year: "numeric",
                               month: "short",
                               day: "numeric",
-                            })}
-                          </p>
-                          <p className="text-xs text-slate-500 flex items-center gap-1">
-                            {session.startTime} – {session.endTime}
+                            })} &bull; {session.startTime} – {session.endTime}
                           </p>
                         </div>
 
@@ -262,101 +274,19 @@ export function ManageSessionsDialog({ batchId, batchName }: ManageSessionsDialo
                             {session.status.toLowerCase()}
                           </Badge>
                           {isScheduled && (
-                            <div className="flex items-center gap-1">
-                              <Button
-                                type="button"
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => startEditing(session)}
-                                className="text-brand-600 hover:text-brand-700 hover:bg-brand-50 h-8 px-2 flex items-center gap-1 text-xs"
-                                title="Edit Session Time"
-                                disabled={isPending || editingSessionId === session.id}
-                              >
-                                <Clock className="h-3.5 w-3.5" />
-                                Edit Time
-                              </Button>
-                              <Button
-                                type="button"
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => handleCancelSession(session.id)}
-                                className="text-rose-600 hover:text-rose-700 hover:bg-rose-50 h-8 px-2 flex items-center gap-1 text-xs"
-                                title="Cancel Session"
-                                disabled={isPending}
-                              >
-                                <Ban className="h-3.5 w-3.5" />
-                                Cancel
-                              </Button>
-                            </div>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => openUpdateDialog(session)}
+                              className="text-brand-600 hover:text-brand-700 hover:bg-brand-50 h-8 px-3 flex items-center gap-1.5 text-xs font-medium"
+                              disabled={isPending}
+                            >
+                              Update
+                            </Button>
                           )}
                         </div>
                       </div>
-
-                      {/* Inline Edit Form */}
-                      {editingSessionId === session.id && (
-                        <form onSubmit={handleUpdateTiming} className="mt-2 p-3 bg-slate-50 border border-slate-200 rounded-md shadow-sm space-y-3">
-                          <div className="grid grid-cols-2 gap-3">
-                            <div className="space-y-1">
-                              <Label htmlFor={`start-${session.id}`} className="text-xs">Start Time</Label>
-                              <Input
-                                id={`start-${session.id}`}
-                                type="time"
-                                value={editStartTime}
-                                onChange={(e) => setEditStartTime(e.target.value)}
-                                className="h-8 text-xs"
-                                required
-                              />
-                            </div>
-                            <div className="space-y-1">
-                              <Label htmlFor={`end-${session.id}`} className="text-xs">End Time</Label>
-                              <Input
-                                id={`end-${session.id}`}
-                                type="time"
-                                value={editEndTime}
-                                onChange={(e) => setEditEndTime(e.target.value)}
-                                className="h-8 text-xs"
-                                required
-                              />
-                            </div>
-                          </div>
-                          
-                          <div className="flex items-center gap-2 mt-1">
-                            <input
-                              type="checkbox"
-                              id={`updateAll-${session.id}`}
-                              checked={updateAllFuture}
-                              onChange={(e) => setUpdateAllFuture(e.target.checked)}
-                              className="h-3.5 w-3.5 rounded border-slate-300 text-brand-600 focus:ring-brand-600"
-                            />
-                            <Label htmlFor={`updateAll-${session.id}`} className="text-xs font-normal text-slate-700 cursor-pointer">
-                              Update all future sessions of this batch
-                            </Label>
-                          </div>
-                          
-                          <div className="flex items-center justify-end gap-2 pt-2">
-                            <Button 
-                              type="button" 
-                              variant="ghost" 
-                              size="sm" 
-                              className="h-7 text-xs"
-                              onClick={() => setEditingSessionId(null)}
-                              disabled={isPending}
-                            >
-                              <X className="h-3 w-3 mr-1" />
-                              Cancel
-                            </Button>
-                            <Button 
-                              type="submit" 
-                              size="sm" 
-                              className="h-7 text-xs"
-                              disabled={isPending}
-                            >
-                              <Check className="h-3 w-3 mr-1" />
-                              Save Changes
-                            </Button>
-                          </div>
-                        </form>
-                      )}
                     </div>
                   );
                 })
@@ -370,6 +300,118 @@ export function ManageSessionsDialog({ batchId, batchName }: ManageSessionsDialo
             </Button>
           </div>
         </div>
+      </Dialog>
+
+      {/* Update Session Popup */}
+      <Dialog
+        open={updateDialogOpen}
+        onClose={() => setUpdateDialogOpen(false)}
+        title="Update Class Session"
+        className="max-w-md"
+      >
+        {selectedSession && (
+          <form onSubmit={handleUpdateTiming} className="space-y-5">
+            <div className="space-y-1 pb-3 border-b border-slate-100">
+              <h4 className="text-sm font-semibold text-slate-900">
+                {selectedSession.sessionNumber && selectedSession.lectureName
+                  ? `Lecture ${selectedSession.sessionNumber}: ${selectedSession.lectureName}`
+                  : "Class Session"}
+              </h4>
+              <p className="text-xs text-slate-500">
+                Reschedule this session's date and time, or cancel it entirely.
+              </p>
+            </div>
+
+            <div className="space-y-4">
+              <div className="space-y-1.5">
+                <Label htmlFor={`edit-date-${selectedSession.id}`} className="text-xs font-medium">Date</Label>
+                <Input
+                  id={`edit-date-${selectedSession.id}`}
+                  type="date"
+                  value={editDate}
+                  onChange={(e) => setEditDate(e.target.value)}
+                  className="text-sm"
+                  required
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <Label htmlFor={`edit-start-${selectedSession.id}`} className="text-xs font-medium">Start Time</Label>
+                  <Input
+                    id={`edit-start-${selectedSession.id}`}
+                    type="time"
+                    value={editStartTime}
+                    onChange={(e) => setEditStartTime(e.target.value)}
+                    className="text-sm"
+                    required
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor={`edit-end-${selectedSession.id}`} className="text-xs font-medium">End Time</Label>
+                  <Input
+                    id={`edit-end-${selectedSession.id}`}
+                    type="time"
+                    value={editEndTime}
+                    onChange={(e) => setEditEndTime(e.target.value)}
+                    className="text-sm"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 pt-2">
+                <input
+                  type="checkbox"
+                  id={`updateAll-${selectedSession.id}`}
+                  checked={updateAllFuture}
+                  onChange={(e) => setUpdateAllFuture(e.target.checked)}
+                  className="h-4 w-4 rounded border-slate-300 text-brand-600 focus:ring-brand-600 cursor-pointer"
+                />
+                <Label htmlFor={`updateAll-${selectedSession.id}`} className="text-xs font-normal text-slate-700 cursor-pointer">
+                  Update time for all future sessions of this batch
+                  <span className="block text-[10px] text-slate-500 mt-0.5">(Date changes only apply to this specific session)</span>
+                </Label>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between pt-4 border-t border-slate-100">
+              <Button
+                type="button"
+                variant="danger"
+                size="sm"
+                className="h-9 px-3 text-xs"
+                onClick={() => handleCancelSession(selectedSession.id)}
+                disabled={isPending}
+              >
+                <Ban className="h-3.5 w-3.5 mr-1.5" />
+                Cancel Session
+              </Button>
+              
+              <div className="flex items-center gap-2">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="h-9 text-xs"
+                  onClick={() => setUpdateDialogOpen(false)}
+                  disabled={isPending}
+                >
+                  Close
+                </Button>
+                <Button
+                  type="submit"
+                  size="sm"
+                  className="h-9 px-4 text-xs"
+                  disabled={isPending}
+                >
+                  <Check className="h-3.5 w-3.5 mr-1.5" />
+                  Save Changes
+                </Button>
+              </div>
+            </div>
+          </form>
+        )}
       </Dialog>
     </>
   );

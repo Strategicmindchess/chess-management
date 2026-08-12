@@ -7,6 +7,8 @@ import { prisma } from '@/lib/prisma';
 import { requireRole, getCurrentUser } from '@/lib/dal';
 import { Weekday, BatchType, BatchLevel } from '@/lib/enums';
 import { startOfDay } from 'date-fns';
+import { toZonedTime, fromZonedTime } from 'date-fns-tz';
+import { getISTDayBounds, TIME_ZONE } from '@/lib/timezone';
 import type { Day } from 'date-fns';
 import { generateInstancesInternal } from '@/lib/instance-generator';
 import {
@@ -98,7 +100,8 @@ export async function createBatch(input: CreateBatchInput): Promise<ActionResult
     },
   });
 
-  const baseDate = startOfDay(startDate ? new Date(startDate) : new Date());
+  const baseRawDate = startDate ? new Date(startDate) : new Date();
+  const baseDate = fromZonedTime(startOfDay(toZonedTime(baseRawDate, TIME_ZONE)), TIME_ZONE);
   await generateInstancesInternal(createdBatch.id, finalInstancesCount, baseDate);
 
   revalidatePath('/admin/batches');
@@ -408,6 +411,8 @@ export async function getBatchSessions(batchId: string) {
         startTime: inst.startTime,
         endTime: inst.endTime,
         status: inst.status,
+        lectureName: inst.lectureName,
+        sessionNumber: inst.sessionNumber,
       })),
     };
   } catch (err: any) {
@@ -440,11 +445,11 @@ export async function updateClassTimings(input: z.infer<typeof updateClassTiming
     return { success: false, error: parsed.error.issues[0]?.message ?? 'Invalid input.' };
   }
 
-  const { batchId, instanceId, newStartTime, newEndTime, updateAllFuture } = parsed.data;
+  const { batchId, instanceId, newStartTime, newEndTime, newDate, updateAllFuture } = parsed.data;
 
   try {
     if (updateAllFuture) {
-      const today = startOfDay(new Date());
+      const { today } = getISTDayBounds();
       await prisma.classInstance.updateMany({
         where: {
           batchId,
@@ -475,6 +480,7 @@ export async function updateClassTimings(input: z.infer<typeof updateClassTiming
       await prisma.classInstance.update({
         where: { id: instanceId },
         data: {
+          ...(newDate ? { date: fromZonedTime(startOfDay(toZonedTime(new Date(newDate), TIME_ZONE)), TIME_ZONE) } : {}),
           startTime: newStartTime,
           endTime: newEndTime,
         },

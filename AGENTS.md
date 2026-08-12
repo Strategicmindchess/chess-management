@@ -265,3 +265,109 @@ We are rooting for you.
 ♟   Strategic Mind Chess  ·  Where Strategic Thinkers Are Made   ♟ 
 © 2025 Strategic Mind Chess. All Rights Reserved. 
 Page 14 
+Phase 2 -- Week 2: Chess.com / Lichess Leaderboard
+1. Chess.com & Lichess.org Account Integration
+Every student profile should have the option to link a Chess.com Username and a Lichess Username. The system should automatically fetch activity data from both platforms and generate the leaderboard without any manual entry.
+Data to Fetch
+●	Rapid games played
+●	Blitz games played
+●	Classical games played
+●	Puzzle attempts
+●	Rapid Rating
+●	Rapid + Blitz Win Rate
+●	Puzzle Success Rate
+●	Daily activity (for streak calculation)
+The system should combine activity from Chess.com + Lichess.
+2. Automatic Leaderboard
+●	Weekly Leaderboard
+●	Monthly Leaderboard
+Maximum Possible Score: 1000 Points. The leaderboard should automatically refresh whenever new activity is fetched.
+3. Leaderboard Point System
+A. Games Played
+●	Rapid + Classical Games: 2 points per game, max 87 games counted, max 174 points
+●	Blitz Games: 1 point per game, max 51 games counted, max 51 points
+B. Puzzle Solving
+●	0.5 point per puzzle solved, max 450 puzzles counted, max 225 points
+C. Game Win Rate Bonus (combined Rapid + Blitz)
+●	Win Rate > 50% → +75 Points
+●	Win Rate < 50% → −50 Points
+D. Puzzle Accuracy Bonus
+●	Puzzle Success Rate > 70% → +50 Points
+●	Puzzle Success Rate < 70% → −25 Points
+E. Rating Improvement Bonus (New)
+Based on Rapid Rating improvement. Award +25 points for every +50 rating gained. Maximum Bonus = 100 Points. Resets every month.
+●	+50 Rating = +25
+●	+100 Rating = +50
+●	+150 Rating = +75
+●	+200 Rating or above = +100
+F. Consistency Bonus (New)
+Based on continuous daily activity across Chess.com and Lichess combined.
+●	7-Day Streak = +5
+●	14-Day Streak = +10
+●	21-Day Streak = +15
+●	30-Day Streak = +25
+Maximum Bonus = 25 Points.
+Important Rule: Once the maximum points for a category are reached, no additional points should be awarded. Scores should never exceed the category limit.
+4. Coach Feedback Module (50 Marks)
+Add a Student Feedback section inside the Coach Portal. Every month the coach can award marks (0–10) in:
+●	Student Engagement
+●	Behaviour in Class
+●	Concept Adoption
+●	Joining on Time
+●	Camera On During Class
+Maximum = 50 Marks.
+5. Attendance Score (50 Marks)
+Already implemented. Attendance ≥ 75% → 50 Marks; Attendance < 75% → 0 Marks.
+6. Assignment Score (100 Marks)
+Automatically calculated based on assignment completion: All Completed → 100 Marks; Around Half Completed → 50 Marks; No Assignments Completed / All Pending → 0 Marks.
+7. Weekly Tournament Score (100 Marks)
+Weekly online tournaments (primarily Lichess). Coach can manually award 0–100 Marks based on Participation, Performance, and Sportsmanship.
+Note: Bullet/ultra-bullet games score 0 points; if a student plays more than 50 bullet/ultra-bullet games in a month, apply −200 points.
+8. Leaderboard Rewards Section
+Display the monthly rewards beside the leaderboard:
+Rank	Reward
+1st	1 Month Chess.com Premium Membership
+2nd	1 Month Chess.com Gold Membership
+3rd	Dairy Milk Chocolate
+4th - 10th	Opportunity to play a Live Game against the Head Coach
+
+9. Special Monthly Award
+“Highest Puzzle Solver of the Month” — awarded to the student with the highest total number of puzzles solved (Chess.com + Lichess combined). This award is independent of leaderboard ranking. Prize: ₹100 Cash Reward.
+10. Rule Book / Point System Section
+Inside the Leaderboard page, add a “Rule Book / Point System” tab explaining the complete point calculation, category-wise maximums, reward details, important rules, and Fair Play policy. Students should be able to access it anytime.
+11. Overall Score Calculation
+Category	Maximum Points
+Rapid + Classical Games	174
+Blitz Games	51
+Puzzle Solving	225
+Game Win Rate Bonus	75
+Puzzle Accuracy Bonus	50
+Rating Improvement Bonus	100
+Consistency Bonus	25
+Coach Feedback	50
+Attendance	50
+Assignments	100
+Weekly Tournament	100
+Total	1000
+
+12. Leaderboard UI Requirements
+The leaderboard should display: Student Rank, Student Name, Profile Picture, Total Score, Chess.com Username, Lichess Username.
+Clicking a profile should show a detailed score breakdown:
+●	Rapid + Classical Points
+●	Blitz Points
+●	Puzzle Points
+●	Win Rate Bonus
+●	Puzzle Accuracy Bonus
+●	Rating Improvement Bonus
+●	Consistency Bonus
+●	Coach Feedback
+●	Attendance
+●	Assignments
+●	Tournament Score
+●	Total Score
+Notes
+●	Weekly and Monthly leaderboards should recalculate automatically.
+●	Activity should be fetched automatically from Chess.com and Lichess.
+●	Scores must never exceed category limits.
+●	Once the monthly leaderboard resets, the monthly rating improvement and consistency bonus should also reset.
+●	Fair Play is mandatory — admin can disqualify a flagged student from the leaderboard for that period.

@@ -1,14 +1,18 @@
 model Resource {
-  id          String            @id @default(cuid())
-  title       String
-  description String?
-  url         String
-  type        ResourceType
-  source      String?
-  driveFileId String?
-  createdAt   DateTime          @default(now())
-  updatedAt   DateTime          @updatedAt
-  assignments BatchAssignment[]
+  id            String            @id @default(cuid())
+  title         String
+  description   String?
+  url           String
+  type          ResourceType
+  source        String?
+  driveFileId   String?
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+  /// 1-based lecture number — maps to ClassInstance.sessionNumber
+  lectureNumber Int?
+  /// Syllabus level this resource belongs to (null = not syllabus-linked)
+  level         BatchLevel?
+  assignments   BatchAssignment[]
 
   @@map("resources")
 }
@@ -19,6 +23,10 @@ model BatchAssignment {
   resourceId      String
   assignedAt      DateTime            @default(now())
   dueDate         DateTime?
+  /// Denormalized from Resource.lectureNumber — enables fast "has Lecture N been released?" queries without joins
+  lectureNumber   Int?
+  /// Timestamp when this assignment was auto-released to students (audit trail)
+  releasedAt      DateTime?
   batch           Batch               @relation(fields: [batchId], references: [id], onDelete: Cascade)
   resource        Resource            @relation(fields: [resourceId], references: [id], onDelete: Cascade)
   studentStatuses StudentAssignment[]
@@ -34,6 +42,7 @@ model StudentAssignment {
   status            AssignmentStatus @default(PENDING)
   completionLevel   CompletionLevel  @default(NOT_DONE)
   updatedAt         DateTime         @updatedAt
+  completedAt       DateTime?
   batchAssignment   BatchAssignment  @relation(fields: [batchAssignmentId], references: [id], onDelete: Cascade)
   student           StudentProfile   @relation(fields: [studentProfileId], references: [id], onDelete: Cascade)
 

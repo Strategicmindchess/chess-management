@@ -6,24 +6,23 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { MarkClassHeldDialog } from "@/components/coach/mark-class-held-dialog";
 import { startOfDay } from "date-fns";
+import { getISTDayBounds } from "@/lib/timezone";
 
 export default async function TeacherAttendancePage() {
   const user = await requireRole([Role.TEACHER]);
 
-  // For a CRM used in India, ideally use IST or configurable tz.
-  // For simplicity, we use server local time, but warn if timezones mismatch.
-  const today = startOfDay(new Date());
+  const { today, tomorrow } = getISTDayBounds();
 
   const coachProfile = await prisma.coachProfile.findUnique({
     where: { userId: user.id }
   });
   if (!coachProfile) return <div>Coach profile not found.</div>;
 
-  // Get all un-marked class instances for this coach up to today
+  // Get all un-marked class instances for this coach up to today (including today's classes)
   const pendingInstances = await prisma.classInstance.findMany({
     where: {
       batch: { coachProfileId: coachProfile.id, isActive: true },
-      date: { lte: today },
+      date: { lt: tomorrow },
       status: "SCHEDULED"
     },
     include: {
@@ -87,9 +86,10 @@ export default async function TeacherAttendancePage() {
 
                   <div className="mt-auto">
                     <MarkClassHeldDialog 
-                      batchId={instance.id} // We pass instance.id to the MarkClassHeldDialog
+                      batchId={instance.id} 
                       batchName={batch.name}
                       students={batch.students.map(s => ({ id: s.student.id, name: s.student.user.name }))}
+                      scheduleDate={instance.date.toISOString()}
                       scheduleStartTime={instance.startTime}
                       scheduleEndTime={instance.endTime}
                       // @ts-ignore

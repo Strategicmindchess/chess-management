@@ -45,6 +45,7 @@ export async function submitClassLog(input: SubmitClassLogInput) {
         batch: { 
           select: { 
             id: true, 
+            level: true,
             coachProfileId: true, 
             payoutRate: true, 
             type: true,
@@ -69,7 +70,7 @@ export async function submitClassLog(input: SubmitClassLogInput) {
     }
 
     await prisma.$transaction(async (tx) => {
-      // Create the class log
+      // Create the class log                        
       const classLog = await tx.classLog.create({
         data: {
           batchId: batch.id,
@@ -81,12 +82,14 @@ export async function submitClassLog(input: SubmitClassLogInput) {
         },
       });
 
+      const completedAt = new Date();
       // Update the class instance status and link to log
       await tx.classInstance.update({
         where: { id: classInstance.id },
         data: {
           status: "COMPLETED",
-          classLogId: classLog.id
+          classLogId: classLog.id,
+          completedAt: completedAt, // Anchor for 24-hour assignment release timer
         }
       });
 
@@ -98,6 +101,86 @@ export async function submitClassLog(input: SubmitClassLogInput) {
             status: att.status,
           })),
         });
+      }
+
+      // Automatically create assignments for this lecture if syllabus linked
+      if (batch.level && classInstance.sessionNumber) {
+        console.log(`[ClassLog] Checking resources for level ${batch.level}, session ${classInstance.sessionNumber}`);
+        const resources = await tx.resource.findMany({
+          where: {
+            level: batch.level as any,
+            lectureNumber: classInstance.sessionNumber,
+          },
+        });
+        console.log(`[ClassLog] Found ${resources.length} resources for this lecture.`);
+
+        if (resources.length > 0) {
+          const releaseDate = completedAt;
+          // Removed 7 day due date boundary — assignments stay open until completed
+
+          const enrolledStudents = await tx.batchStudent.findMany({
+            where: { batchId: batch.id },
+          });
+          console.log(`[ClassLog] Found ${enrolledStudents.length} enrolled students in batch ${batch.id}`);
+
+          for (const resource of resources) {
+            let batchAssignmentId = "";
+            try {
+              console.log(`[ClassLog] Attempting to create BatchAssignment for resource ${resource.id}`);
+              const batchAssignment = await tx.batchAssignment.create({
+                data: {
+                  batchId: batch.id,
+                  resourceId: resource.id,
+                  lectureNumber: classInstance.sessionNumber,
+                  releasedAt: releaseDate,
+                  // dueDate is intentionally left null
+                },
+              });
+              batchAssignmentId = batchAssignment.id;
+              console.log(`[ClassLog] Created BatchAssignment with ID ${batchAssignmentId}`);
+            } catch (err: any) {
+              // P2002 = unique constraint violation on @@unique([batchId, resourceId])
+              if (err.code === "P2002") {
+                console.log(`[ClassLog] P2002: BatchAssignment already exists. Fetching existing...`);
+                const existing = await tx.batchAssignment.findUnique({
+                  where: {
+                    batchId_resourceId: {
+                      batchId: batch.id,
+                      resourceId: resource.id,
+                    }
+                  }
+                });
+                if (existing) {
+                  batchAssignmentId = existing.id;
+                  console.log(`[ClassLog] Fetched existing BatchAssignment ID ${batchAssignmentId}`);
+                  
+                  // Update release date just in case
+                  await tx.batchAssignment.update({
+                    where: { id: batchAssignmentId },
+                    data: { releasedAt: releaseDate }
+                  });
+                }
+              } else {
+                console.error(`[ClassLog] Error creating BatchAssignment:`, err);
+                throw err;
+              }
+            }
+
+            if (batchAssignmentId && enrolledStudents.length > 0) {
+              console.log(`[ClassLog] Creating ${enrolledStudents.length} StudentAssignments for BatchAssignment ${batchAssignmentId}`);
+              const created = await tx.studentAssignment.createMany({
+                data: enrolledStudents.map((s) => ({
+                  batchAssignmentId: batchAssignmentId,
+                  studentProfileId: s.studentProfileId,
+                })),
+                skipDuplicates: true, // Handle multiple student additions safely
+              });
+              console.log(`[ClassLog] Successfully created ${created.count} StudentAssignments`);
+            } else {
+              console.log(`[ClassLog] Skipping StudentAssignments. batchAssignmentId: ${!!batchAssignmentId}, enrolledStudents: ${enrolledStudents.length}`);
+            }
+          }
+        }
       }
 
       // Check if batch should be auto-archived

@@ -12,16 +12,34 @@ const TabsContext = React.createContext<{
 });
 
 export function Tabs({
-  value,
-  onValueChange,
+  value: controlledValue,
+  defaultValue,
+  onValueChange: controlledOnValueChange,
   children,
   className,
 }: {
-  value: string;
-  onValueChange: (value: string) => void;
+  value?: string;
+  defaultValue?: string;
+  onValueChange?: (value: string) => void;
   children: React.ReactNode;
   className?: string;
 }) {
+  const [internalValue, setInternalValue] = React.useState(
+    defaultValue ?? controlledValue ?? ""
+  );
+
+  // If controlled, use the controlled value; else use internal state
+  const isControlled = controlledValue !== undefined;
+  const value = isControlled ? controlledValue : internalValue;
+
+  const onValueChange = React.useCallback(
+    (v: string) => {
+      if (!isControlled) setInternalValue(v);
+      controlledOnValueChange?.(v);
+    },
+    [isControlled, controlledOnValueChange]
+  );
+
   return (
     <TabsContext.Provider value={{ value, onValueChange }}>
       <div className={cn("w-full", className)}>{children}</div>
@@ -102,3 +120,4 @@ export function TabsContent({
     </div>
   );
 }
+

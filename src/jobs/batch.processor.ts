@@ -53,7 +53,7 @@ export async function processBatchSync(job: Job) {
 
     console.log(`[BatchProcessor] Completed | JobID: ${job.id}`);
   } catch (error: any) {
-    console.error(`[BatchProcessor] Failed | JobID: ${job.id} | Error: ${error.message}`);
+    console.error(`[BatchProcessor] Failed | JobID: ${job.id} | Error:`, error);
     throw error;
   }
 }

@@ -57,9 +57,16 @@ export function ClassSessionCard({ role, session, isUpcoming = false }: ClassSes
             </p>
           )}
         </div>
-        <Badge variant="neutral" className="bg-white/20 text-white hover:bg-white/30 border-none shrink-0 ml-2">
-          {batch.code}
-        </Badge>
+        <div className="flex gap-2">
+          {session.status === 'CANCELLED' && (
+            <Badge variant="danger" className="shrink-0 bg-red-500/90 hover:bg-red-500">
+              Cancelled
+            </Badge>
+          )}
+          <Badge variant="neutral" className="bg-white/20 text-white hover:bg-white/30 border-none shrink-0 ml-2">
+            {batch.code}
+          </Badge>
+        </div>
       </div>
       
       <CardContent className="p-0 flex flex-col flex-grow">
@@ -88,7 +95,11 @@ export function ClassSessionCard({ role, session, isUpcoming = false }: ClassSes
         <div className="p-4 bg-slate-50 border-t border-slate-100 mt-auto space-y-3 shrink-0">
           {role === 'teacher' ? (
             <>
-              {isUpcoming ? (
+              {session.status === 'CANCELLED' ? (
+                <div title="This class was cancelled" className="w-full text-center py-2 px-3 text-sm font-semibold text-red-500 bg-red-50 rounded-md cursor-not-allowed border border-red-100">
+                  Class Cancelled
+                </div>
+              ) : isUpcoming ? (
                 <div title="Class not yet open" className="w-full text-center py-2 px-3 text-sm font-semibold text-slate-400 bg-slate-100 rounded-md cursor-not-allowed">
                   Start Batch (Opens later)
                 </div>
@@ -105,7 +116,11 @@ export function ClassSessionCard({ role, session, isUpcoming = false }: ClassSes
             </>
           ) : (
             <div className="flex justify-end">
-              {isUpcoming ? (
+              {session.status === 'CANCELLED' ? (
+                <span title="This class was cancelled" className="inline-flex items-center gap-1.5 text-sm font-semibold text-red-500 bg-red-50 border border-red-100 px-3 py-1.5 rounded-md cursor-not-allowed">
+                  Cancelled
+                </span>
+              ) : isUpcoming ? (
                 <span title="Class not yet open" className="inline-flex items-center gap-1.5 text-sm font-semibold text-slate-400 bg-slate-100 px-3 py-1.5 rounded-md cursor-not-allowed">
                   Join Class <ExternalLink className="h-3.5 w-3.5" />
                 </span>

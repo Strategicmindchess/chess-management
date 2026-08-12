@@ -19,6 +19,7 @@ export function MarkClassHeldDialog({
   batchId,
   batchName,
   students,
+  scheduleDate,
   scheduleStartTime,
   scheduleEndTime,
   lectureName,
@@ -26,6 +27,7 @@ export function MarkClassHeldDialog({
   batchId: string;
   batchName: string;
   students: StudentOption[];
+  scheduleDate: string;
   scheduleStartTime: string;
   scheduleEndTime: string;
   lectureName?: string | null;
@@ -38,9 +40,9 @@ export function MarkClassHeldDialog({
   const [topicCovered, setTopicCovered] = useState(lectureName || "");
   const [durationMins, setDurationMins] = useState<number | "">(60);
   
-  // Format today's date for display
-  const today = new Date();
-  const dateStr = today.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+  // Format the class date for display
+  const classDateObj = new Date(scheduleDate);
+  const dateStr = classDateObj.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
   
   const [attendance, setAttendance] = useState<Record<string, AttendanceStatus>>(() => {
     const initial: Record<string, AttendanceStatus> = {};
@@ -49,14 +51,20 @@ export function MarkClassHeldDialog({
   });
 
   // Check if class has finished
+  const today = new Date();
   const currentHour = today.getHours();
   const currentMin = today.getMinutes();
   const [endHourStr, endMinStr] = scheduleEndTime.split(':');
   const endHour = parseInt(endHourStr, 10);
   const endMin = parseInt(endMinStr, 10);
   
-  // Disable if current time < end time
-  const isTimeValid = currentHour > endHour || (currentHour === endHour && currentMin >= endMin);
+  // We consider the class in the past if the current day is strictly after the class day
+  const isPastDay = today.getFullYear() > classDateObj.getFullYear() || 
+                    (today.getFullYear() === classDateObj.getFullYear() && today.getMonth() > classDateObj.getMonth()) ||
+                    (today.getFullYear() === classDateObj.getFullYear() && today.getMonth() === classDateObj.getMonth() && today.getDate() > classDateObj.getDate());
+  
+  // Valid if it's a past day, OR if it's today and the current time is past the end time
+  const isTimeValid = isPastDay || (currentHour > endHour || (currentHour === endHour && currentMin >= endMin));
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

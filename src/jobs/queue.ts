@@ -52,4 +52,8 @@ export const connection = new IORedis(redisUrl, {
   maxRetriesPerRequest: null, // Required by BullMQ
 });
 
+connection.on('error', (err) => {
+  console.error('[Redis] BullMQ Connection Error:', err.message);
+});
+
 export const batchQueue = new Queue('batch-queue', { connection });
