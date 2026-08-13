@@ -137,7 +137,6 @@ export async function updateAssignmentStatus(
   }
 }
 
-import { Prisma } from "@prisma/client";
 
 export async function getAssignmentReport() {
   const user = await getCurrentUser();
