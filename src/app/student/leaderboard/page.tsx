@@ -135,7 +135,7 @@ export default async function StudentLeaderboardPage() {
                 </h2>
                 {monthlyData.calculatedAt && (
                   <span className="text-[10px] text-slate-400">
-                    Calculated: {monthlyData.calculatedAt.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                    Calculated: {monthlyData.calculatedAt.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Kolkata' })}
                   </span>
                 )}
               </div>

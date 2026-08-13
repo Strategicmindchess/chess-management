@@ -66,7 +66,7 @@ export default async function AdminLeaderboardPage({ searchParams }: { searchPar
     {
       label: 'Last Calculated',
       value: calcLog?.completedAt
-        ? calcLog.completedAt.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })
+        ? calcLog.completedAt.toLocaleString('en-IN', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Kolkata' })
         : 'Never',
       icon: Clock,
       color: 'text-slate-500',
@@ -145,7 +145,7 @@ export default async function AdminLeaderboardPage({ searchParams }: { searchPar
           </div>
           {calcLog.completedAt && (
             <p className="text-xs text-slate-400 mt-2 text-center">
-              Completed: {calcLog.completedAt.toLocaleString('en-IN')}
+              Completed: {calcLog.completedAt.toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })}
             </p>
           )}
         </div>
@@ -180,7 +180,7 @@ export default async function AdminLeaderboardPage({ searchParams }: { searchPar
             </div>
             {leaderboardData.calculatedAt && (
               <span className="text-xs text-slate-400">
-                Calc: {leaderboardData.calculatedAt.toLocaleString('en-IN')}
+                Calc: {leaderboardData.calculatedAt.toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })}
               </span>
             )}
           </div>
