@@ -412,7 +412,7 @@ export async function getStudentCoachFeedback(
   const user = await getCurrentUser();
   if (user.role !== Role.STUDENT) return null;
 
-  const profile = await prisma.studentProfile.fineddUnique({
+  const profile = await prisma.studentProfile.findUnique({
     where: { userId: user.id },
     select: { id: true },
   });
