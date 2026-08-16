@@ -55,6 +55,7 @@ model StudentProfile {
   assignments           StudentAssignment[]
   assignedCoach         CoachProfile?           @relation("StudentAssignedCoach", fields: [assignedCoachId], references: [id])
   user                  User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  stats                 StudentChessStats?
   createdTickets        Ticket[]                @relation("CreatedTickets")
 
   @@map("student_profiles")

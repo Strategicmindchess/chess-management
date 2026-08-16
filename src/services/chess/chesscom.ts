@@ -113,6 +113,7 @@ export async function fetchChessComActivity(
     const games = await fetchChessComMonthGames(archiveUrl);
     for (const g of games) {
       const d = new Date(g.end_time * 1000);
+      d.setMinutes(d.getMinutes() + 330); // IST
       if (d >= since && d <= until) {
         activeDates.add(d.toISOString().slice(0, 10));
       }
@@ -127,6 +128,48 @@ export async function fetchChessComActivity(
     d.setDate(d.getDate() + 1);
   }
   return result;
+}
+
+/** 
+ * Fetch all active dates for a user by scanning archives backwards.
+ * Stops automatically when a month is reached where the streak breaks.
+ */
+export async function fetchChessComTrueStreakDates(username: string): Promise<string[]> {
+  const archives = await fetchChessComArchives(username);
+  if (archives.length === 0) return [];
+  
+  const activeDates = new Set<string>();
+  const todayStr = new Date().toISOString().slice(0, 10);
+  
+  // Iterate backwards from the most recent archive
+  for (let i = archives.length - 1; i >= 0; i--) {
+    const archiveUrl = archives[i];
+    const games = await fetchChessComMonthGames(archiveUrl);
+    
+    const monthDates = new Set<string>();
+    for (const g of games) {
+      const d = new Date(g.end_time * 1000);
+      d.setMinutes(d.getMinutes() + 330); // IST
+      monthDates.add(d.toISOString().slice(0, 10));
+    }
+    
+    for (const d of monthDates) activeDates.add(d);
+    
+    const archiveMonthStr = archiveUrl.split('/').slice(-2).join('-'); // "YYYY-MM"
+    const firstDayOfMonth = `${archiveMonthStr}-01`;
+    
+    // If we didn't play on the 1st, the streak broke in this month.
+    // Exception: If today IS the 1st and we haven't played today, we still need to check last month.
+    const today = new Date();
+    today.setMinutes(today.getMinutes() + 330);
+    const todayStr = today.toISOString().slice(0, 10);
+    
+    if (!monthDates.has(firstDayOfMonth) && todayStr !== firstDayOfMonth) {
+      break;
+    }
+  }
+  
+  return [...activeDates].sort();
 }
 
 /** Verify a Chess.com username exists */

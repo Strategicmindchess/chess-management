@@ -22,11 +22,44 @@ model ChessAccount {
   student          StudentProfile @relation(fields: [studentProfileId], references: [id], onDelete: Cascade)
 }
 
+model StudentChessStats {
+  id               String         @id @default(cuid())
+  studentProfileId String         @unique
+  student          StudentProfile @relation(fields: [studentProfileId], references: [id], onDelete: Cascade)
+
+  // Chess.com Current/Lifetime
+  ccRapidRating  Int?
+  ccBlitzRating  Int?
+  ccBulletRating Int?
+  ccTotalRapid   Int?
+  ccTotalBlitz   Int?
+  ccTotalBullet  Int?
+  ccPuzzleRating Int?
+  ccStreak       Int?
+
+  // Lichess Current/Lifetime
+  liRapidRating  Int?
+  liBlitzRating  Int?
+  liBulletRating Int?
+  liTotalRapid   Int?
+  liTotalBlitz   Int?
+  liTotalBullet  Int?
+  liPuzzleRating Int?
+  liStreak       Int?
+
+  lastSyncedAt DateTime @default(now())
+}
+
 model ChessApiFetchLog {
   id               String         @id @default(cuid())
   studentProfileId String
   provider         ChessProvider
-  rawResponse      Json
+  periodStart      DateTime?
+  periodEnd        DateTime?
+  success          Boolean        @default(true)
+  statusCode       Int?
+  gameCount        Int            @default(0)
+  rawResponse      Json // small response metadata/sample
   fetchedAt        DateTime       @default(now())
   student          StudentProfile @relation(fields: [studentProfileId], references: [id], onDelete: Cascade)
 

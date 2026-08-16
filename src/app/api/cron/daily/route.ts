@@ -13,7 +13,7 @@ export async function GET(req: Request) {
     // 1. Queue fetch jobs for ALL students for WEEKLY and MONTHLY periods
     const activeStudents = await prisma.user.findMany({
       where: { role: 'STUDENT', isActive: true },
-      select: { studentProfile: { select: { id: true, chessAccount: true } } },
+      select: { studentProfile: { select: { id: true, chessComId: true, lichessId: true } } },
     });
 
     const now = toDate(new Date(), { timeZone: TIMEZONE });
@@ -25,16 +25,17 @@ export async function GET(req: Request) {
 
     const fetchJobs = [];
     for (const u of activeStudents) {
-      if (!u.studentProfile || !u.studentProfile.chessAccount) continue;
+      if (!u.studentProfile) continue;
       const p = u.studentProfile;
-      const account = p.chessAccount!;
+      if (!p.chessComId && !p.lichessId) continue;
+      
       // Push weekly fetch
       fetchJobs.push({
         name: JOB_NAMES.FETCH_STUDENT,
         data: {
           studentProfileId: p.id,
-          chessComUsername: account.chessComUsername,
-          lichessUsername: account.lichessUsername,
+          chessComUsername: p.chessComId,
+          lichessUsername: p.lichessId,
           periodType: 'WEEKLY' as const,
           periodStart: wStart,
           periodEnd: wEnd,
@@ -45,8 +46,8 @@ export async function GET(req: Request) {
         name: JOB_NAMES.FETCH_STUDENT,
         data: {
           studentProfileId: p.id,
-          chessComUsername: account.chessComUsername,
-          lichessUsername: account.lichessUsername,
+          chessComUsername: p.chessComId,
+          lichessUsername: p.lichessId,
           periodType: 'MONTHLY' as const,
           periodStart: mStart,
           periodEnd: mEnd,

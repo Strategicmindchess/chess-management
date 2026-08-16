@@ -403,3 +403,34 @@ export async function getCoachFeedback(
     },
   });
 }
+
+/** Student: Get their own coach feedback for a period */
+export async function getStudentCoachFeedback(
+  periodType: 'WEEKLY' | 'MONTHLY',
+  periodStart: string
+) {
+  const user = await getCurrentUser();
+  if (user.role !== Role.STUDENT) return null;
+
+  const profile = await prisma.studentProfile.fineddUnique({
+    where: { userId: user.id },
+    select: { id: true },
+  });
+  
+  if (!profile) return null;
+
+  return prisma.coachFeedback.findFirst({
+    where: {
+      studentProfileId: profile.id,
+      periodType,
+      periodStart: new Date(periodStart),
+    },
+    include: {
+      coach: {
+        include: {
+          user: { select: { name: true } },
+        },
+      },
+    },
+  });
+}

@@ -7,6 +7,7 @@
 
 import type { ChessComRawStats, ChessComRawGame } from './chesscom';
 import type { LichessRawUser, LichessRawActivityEntry } from './lichess';
+import { epochToISTDateStr } from './aggregator';
 
 /**
  * Unified chess activity DTO.
@@ -104,17 +105,11 @@ export function normalizeChessCom(
     }
   }
 
-  // Puzzle (from lifetime stats — Chess.com doesn't expose period puzzles without OAuth)
-  const tactics = stats?.tactics;
-  const puzzleRush = stats?.puzzle_rush;
-  const rushBest = puzzleRush?.best;
-  const rushDaily = puzzleRush?.daily;
-
-  // Approximate: tactics = lifetime, puzzle_rush = period proxy
-  const puzzleAttempts = rushBest?.total_attempts ?? 0;
-  const puzzleSolved = rushBest?.score ?? 0;
-  const puzzleSuccessRate =
-    puzzleAttempts > 0 ? Math.round((puzzleSolved / puzzleAttempts) * 100) : null;
+  // Puzzle data on Chess.com cannot be fetched per-period without OAuth.
+  // Using lifetime best/tactics is incorrect for a monthly leaderboard.
+  const puzzleAttempts = 0;
+  const puzzleSolved = 0;
+  const puzzleSuccessRate = null;
 
   const rapidRating = stats?.chess_rapid?.last?.rating ?? null;
   const blitzRating = stats?.chess_blitz?.last?.rating ?? null;
@@ -138,13 +133,13 @@ export function normalizeChessCom(
 // Lichess normalization
 // ──────────────────────────────────────────────────────────────────────────────
 
-/** Normalize Lichess raw user data + period games + activity into ChessActivity */
 export function normalizeLichess(
   user: LichessRawUser | null,
   periodGames: Array<Record<string, unknown>>,
   activity: LichessRawActivityEntry[],
   since: Date,
-  until: Date
+  until: Date,
+  activitySince: Date = since
 ): ChessActivity {
   let rapidGames = 0, rapidWins = 0, rapidLosses = 0, rapidDraws = 0;
   let blitzGames = 0, blitzWins = 0, blitzLosses = 0, blitzDraws = 0;
@@ -178,19 +173,22 @@ export function normalizeLichess(
     }
   }
 
-  // Puzzles from activity (period-specific)
+  // Puzzles from activity (use activitySince to allow longer streaks)
   let puzzleAttempts = 0, puzzleSolved = 0;
   const activeDates: string[] = [];
   const sinceMs = since.getTime();
+  const activitySinceMs = activitySince.getTime();
   const untilMs = until.getTime();
 
   for (const entry of activity) {
     const ts = entry.interval?.start;
-    if (!ts || ts < sinceMs || ts > untilMs) continue;
+    // We only skip if it's older than activitySince
+    if (!ts || ts < activitySinceMs || ts > untilMs) continue;
 
-    const dateStr = new Date(ts).toISOString().slice(0, 10);
+    const dateStr = epochToISTDateStr(ts);
 
-    if (entry.puzzles) {
+    // Only count puzzles if they are within the actual period (sinceMs)
+    if (entry.puzzles && ts >= sinceMs) {
       const score = entry.puzzles.score;
       puzzleAttempts += score.win + score.loss + score.draw;
       puzzleSolved += score.win;
@@ -219,5 +217,56 @@ export function normalizeLichess(
     rapidRating,
     blitzRating,
     activeDates: [...new Set(activeDates)],
+  };
+}
+
+// ──────────────────────────────────────────────────────────────────────────────
+// Lifetime Stats Extraction
+// ──────────────────────────────────────────────────────────────────────────────
+
+import { calcStreak } from './aggregator';
+
+export function extractLifetimeStats(
+  ccStats: ChessComRawStats | null,
+  liUser: LichessRawUser | null,
+  ccActiveDates: string[] = [],
+  liActiveDates: string[] = []
+) {
+  // Chess.com
+  const ccRapid = ccStats?.chess_rapid;
+  const ccBlitz = ccStats?.chess_blitz;
+  const ccBullet = ccStats?.chess_bullet;
+  const ccTactics = ccStats?.tactics;
+
+  const ccTotalRapid = ccRapid?.record ? ccRapid.record.win + ccRapid.record.loss + ccRapid.record.draw : null;
+  const ccTotalBlitz = ccBlitz?.record ? ccBlitz.record.win + ccBlitz.record.loss + ccBlitz.record.draw : null;
+  const ccTotalBullet = ccBullet?.record ? ccBullet.record.win + ccBullet.record.loss + ccBullet.record.draw : null;
+
+  // Lichess
+  const liRapid = liUser?.perfs?.rapid;
+  const liBlitz = liUser?.perfs?.blitz;
+  const liBullet = liUser?.perfs?.bullet;
+  const liPuzzle = liUser?.perfs?.puzzle;
+
+  const ccStreak = calcStreak(ccActiveDates).streakDays;
+  const liStreak = calcStreak(liActiveDates).streakDays;
+
+  return {
+    ccRapidRating: ccRapid?.last?.rating ?? null,
+    ccBlitzRating: ccBlitz?.last?.rating ?? null,
+    ccBulletRating: ccBullet?.last?.rating ?? null,
+    ccTotalRapid,
+    ccTotalBlitz,
+    ccTotalBullet,
+    ccPuzzleRating: ccTactics?.highest?.rating ?? null,
+    ccStreak,
+    liRapidRating: liRapid?.rating ?? null,
+    liBlitzRating: liBlitz?.rating ?? null,
+    liBulletRating: liBullet?.rating ?? null,
+    liTotalRapid: liRapid?.games ?? null,
+    liTotalBlitz: liBlitz?.games ?? null,
+    liTotalBullet: liBullet?.games ?? null,
+    liPuzzleRating: liPuzzle?.rating ?? null,
+    liStreak,
   };
 }

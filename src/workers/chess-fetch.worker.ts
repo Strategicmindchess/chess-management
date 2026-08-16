@@ -25,6 +25,7 @@ import {
   fetchChessComArchives,
   fetchChessComMonthGames,
   fetchChessComActivity,
+  fetchChessComTrueStreakDates,
   type ChessComRawGame,
 } from '@/services/chess/chesscom';
 
@@ -32,10 +33,11 @@ import {
   fetchLichessUser,
   fetchLichessActivity,
   fetchLichessGamesInRange,
+  type LichessRawUser,
 } from '@/services/chess/lichess';
 
 // Normalizers
-import { normalizeChessCom, normalizeLichess } from '@/services/chess/normalizer';
+import { normalizeChessCom, normalizeLichess, extractLifetimeStats } from '@/services/chess/normalizer';
 import { aggregate } from '@/services/chess/aggregator';
 
 // Queue types
@@ -44,7 +46,7 @@ import { logger } from '@/lib/logger';
 
 // ──────────────────────────────────────────────────────────────────────────────
 
-async function processChessFetchJob(job: Job<ChessFetchJobData>) {
+export async function processChessFetchJob(job: Job<ChessFetchJobData>) {
   const {
     studentProfileId,
     chessComUsername,
@@ -58,6 +60,13 @@ async function processChessFetchJob(job: Job<ChessFetchJobData>) {
   const periodEnd = new Date(periodEndStr);
 
   logger.job.start('chess-fetch', { studentProfileId, periodType, periodStart: periodStartStr });
+
+  // Allow a 35-day lookback for streaks, instead of being bounded strictly to the period
+  const thirtyFiveDaysAgo = new Date();
+  thirtyFiveDaysAgo.setDate(thirtyFiveDaysAgo.getDate() - 35);
+  const pStart = new Date(periodStart);
+  const pEnd = new Date(periodEnd);
+  const activitySince = thirtyFiveDaysAgo < pStart ? thirtyFiveDaysAgo : pStart;
 
   // ── 1. Fetch Chess.com ────────────────────────────────────────────────────
   let chessComActivity = null;
@@ -91,23 +100,19 @@ async function processChessFetchJob(job: Job<ChessFetchJobData>) {
       chessComRawGames.push(...filtered);
     }
 
-    // Fetch activity dates for streak
-    const activityDates = await fetchChessComActivity(
-      chessComUsername,
-      periodStart,
-      periodEnd
-    );
-    const ccActiveDates = activityDates.filter((a) => a.hasActivity).map((a) => a.date);
+    // Fetch unbounded true active dates for streak
+    const ccActiveDates = await fetchChessComTrueStreakDates(chessComUsername);
 
-    // Log raw response
+    // Log raw response (lightweight)
     await prisma.chessApiFetchLog.create({
       data: {
         studentProfileId,
         provider: 'CHESS_COM',
+        periodStart,
+        periodEnd,
+        gameCount: chessComRawGames.length,
         rawResponse: {
-          stats: chessComStats as unknown,
-          gameCount: chessComRawGames.length,
-          periodGamesSample: chessComRawGames.slice(0, 5) as unknown,
+          msg: 'Fetched stats and archives successfully',
         } as object,
       },
     });
@@ -125,23 +130,27 @@ async function processChessFetchJob(job: Job<ChessFetchJobData>) {
 
   // ── 2. Fetch Lichess ──────────────────────────────────────────────────────
   let lichessActivity = null;
+  let lichessUser: LichessRawUser | null = null;
 
   if (lichessUsername) {
-    const [lichessUser, lichessGames, lichessActivityRaw] = await Promise.all([
+    const [fetchedUser, lichessGames, lichessActivityRaw] = await Promise.all([
       fetchLichessUser(lichessUsername),
       fetchLichessGamesInRange(lichessUsername, periodStart, periodEnd),
       fetchLichessActivity(lichessUsername),
     ]);
+    
+    lichessUser = fetchedUser;
 
-    // Log raw response
+    // Log raw response (lightweight)
     await prisma.chessApiFetchLog.create({
       data: {
         studentProfileId,
         provider: 'LICHESS',
+        periodStart,
+        periodEnd,
+        gameCount: lichessGames.length,
         rawResponse: {
-          perfs: lichessUser?.perfs as unknown,
-          count: lichessUser?.count as unknown,
-          gameCount: lichessGames.length,
+          msg: 'Fetched lichess perfs and games successfully',
           activityDays: lichessActivityRaw.length,
         } as object,
       },
@@ -149,17 +158,37 @@ async function processChessFetchJob(job: Job<ChessFetchJobData>) {
 
     // Normalize
     lichessActivity = normalizeLichess(
-      lichessUser,
-      lichessGames,
-      lichessActivityRaw,
-      periodStart,
-      periodEnd
-    );
+        fetchedUser,
+        lichessGames,
+        lichessActivityRaw,
+        pStart,
+        pEnd,
+        activitySince
+      );
   }
 
   await job.updateProgress(75);
 
-  // ── 3. Aggregate ─────────────────────────────────────────────────────────
+  // ── 3. Update Lifetime Stats ─────────────────────────────────────────────
+  const lifetimeStats = extractLifetimeStats(
+    chessComStats,
+    lichessUser,
+    chessComActivity?.activeDates ?? [],
+    lichessActivity?.activeDates ?? []
+  );
+  await prisma.studentChessStats.upsert({
+    where: { studentProfileId },
+    create: {
+      studentProfileId,
+      ...lifetimeStats,
+    },
+    update: {
+      ...lifetimeStats,
+      lastSyncedAt: new Date(),
+    },
+  });
+
+  // ── 4. Aggregate ─────────────────────────────────────────────────────────
   const combined = aggregate(chessComActivity, lichessActivity);
 
   // ── 4. Fetch rating baseline (for improvement bonus) ─────────────────────

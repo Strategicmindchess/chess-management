@@ -65,10 +65,8 @@ export default async function TeacherLeaderboardPage({ searchParams }: { searchP
   // Fetch leaderboard
   const leaderboardData = await getLeaderboard(periodType);
 
-  // Filter to only my students
-  const myEntries = leaderboardData.entries.filter((e) =>
-    myStudentIds.has(e.studentProfileId)
-  );
+  // The teacher sees the entire leaderboard, but their students are highlighted
+  const myEntries = leaderboardData.entries;
 
   // Get current period start for feedback forms
   const now = new Date();
@@ -134,9 +132,9 @@ export default async function TeacherLeaderboardPage({ searchParams }: { searchP
             <div className="flex items-center gap-2">
               <Users className="w-5 h-5 text-brand-600" />
               <h2 className="text-sm font-bold text-slate-800">
-                My Students — {periodType === 'WEEKLY' ? 'Weekly' : 'Monthly'} Rankings
+                Global {periodType === 'WEEKLY' ? 'Weekly' : 'Monthly'} Rankings
               </h2>
-              <span className="text-xs text-slate-400">({myEntries.length} students ranked)</span>
+              <span className="text-xs text-slate-400">({myEntries.length} students total, {myStudents.length} yours)</span>
             </div>
             
             <div className="flex items-center gap-3">
@@ -153,7 +151,7 @@ export default async function TeacherLeaderboardPage({ searchParams }: { searchP
             </div>
           </div>
 
-          <LeaderboardTable entries={myEntries} />
+          <LeaderboardTable entries={myEntries} highlightStudentIds={myStudentIds} />
 
           {myEntries.length === 0 && (
             <div className="text-center py-8 bg-slate-50 rounded-xl border border-slate-200">

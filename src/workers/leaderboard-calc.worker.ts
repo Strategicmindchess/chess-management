@@ -36,7 +36,8 @@ function calcBlitzPoints(blitzGames: number): number {
 
 function calcPuzzlePoints(puzzleSolved: number): number {
   const counted = Math.min(puzzleSolved, POINTS.PUZZLE_MAX_SOLVES);
-  return Math.floor(counted * POINTS.PUZZLE_PER_SOLVE);
+  // Use * 0.5 (not Math.floor) to preserve fractional points, matching report script
+  return counted * POINTS.PUZZLE_PER_SOLVE;
 }
 
 function calcWinRateBonus(
@@ -44,9 +45,10 @@ function calcWinRateBonus(
   blitzGames: number, blitzWins: number
 ): number {
   const totalGames = rapidGames + blitzGames;
-  if (totalGames === 0) return 0;
+  if (totalGames < 10) return 0; // need at least 10 games
   const winRate = (rapidWins + blitzWins) / totalGames;
-  return winRate > 0.5 ? POINTS.WIN_RATE_BONUS_HIGH : POINTS.WIN_RATE_PENALTY_LOW;
+  // >= 50% gets bonus, < 50% gets penalty (50% exactly should be rewarded)
+  return winRate >= 0.5 ? POINTS.WIN_RATE_BONUS_HIGH : POINTS.WIN_RATE_PENALTY_LOW;
 }
 
 function calcPuzzleAccuracyBonus(puzzleAttempts: number, puzzleSolved: number): number {
@@ -99,27 +101,32 @@ async function processLeaderboardCalc(job: Job<LeaderboardCalcJobData>) {
     update: { startedAt: new Date() },
   });
 
-  // ── Fetch snapshots ────────────────────────────────────────────────────────
+  // ── Fetch all active students ──────────────────────────────────────────────
+  const allActiveStudents = await prisma.studentProfile.findMany({
+    where: {
+      ...(studentProfileId ? { id: studentProfileId } : {}),
+      user: { isActive: true, role: 'STUDENT' },
+    },
+    include: { user: { select: { id: true, name: true } } },
+  });
+
+  // ── Fetch snapshots (students with chess accounts & data) ──────────────────
   const snapshotWhere: any = {
     periodType,
     periodStart,
     ...(studentProfileId ? { studentProfileId } : {}),
-    student: {
-      chessAccount: {
-        isNot: null,
-      },
-    },
   };
 
   const snapshots = await prisma.chessActivitySnapshot.findMany({
     where: snapshotWhere,
     include: { student: { include: { user: true } } },
   });
+  const snapshotMap = new Map(snapshots.map((s) => [s.studentProfileId, s]));
 
   await job.updateProgress(10);
 
-  // ── Fetch manual scores for all students in this period ───────────────────
-  const studentIds = snapshots.map((s) => s.studentProfileId);
+  // ── Fetch manual scores for ALL active students ───────────────────────────
+  const studentIds = allActiveStudents.map((s) => s.id);
 
   const [feedbacks, attendances, assignments, tournaments] = await Promise.all([
     prisma.coachFeedback.findMany({
@@ -179,17 +186,31 @@ async function processLeaderboardCalc(job: Job<LeaderboardCalcJobData>) {
     totalScore: number;
   }> = [];
 
-  for (const snap of snapshots) {
-    const sid = snap.studentProfileId;
+  // Pre-fetch all chess stats in one query for efficiency
+  const allChessStats = await prisma.studentChessStats.findMany({
+    where: { studentProfileId: { in: studentIds } },
+    select: { studentProfileId: true, ccStreak: true, liStreak: true },
+  });
+  const chessStatsMap = new Map(allChessStats.map((s) => [s.studentProfileId, s]));
 
-    const rapidClassicalPoints = calcRapidClassicalPoints(snap.rapidGames, snap.classicalGames);
-    const blitzPoints = calcBlitzPoints(snap.blitzGames);
-    const puzzlePoints = calcPuzzlePoints(snap.puzzleSolved);
-    const winRateBonus = calcWinRateBonus(snap.rapidGames, snap.rapidWins, snap.blitzGames, snap.blitzWins);
-    const puzzleAccuracyBonus = calcPuzzleAccuracyBonus(snap.puzzleAttempts, snap.puzzleSolved);
-    const ratingBonus = calcRatingBonus(snap.rapidRatingStart, snap.rapidRatingEnd);
-    const consistencyBonus = calcConsistencyBonus(snap.streakDays);
-    const bulletPenalty = calcBulletPenalty(snap.bulletGames, snap.ultraBulletGames);
+  for (const student of allActiveStudents) {
+    const sid = student.id;
+    const snap = snapshotMap.get(sid) ?? null;
+
+    // Chess scores: 0 if no snapshot
+    const rapidClassicalPoints = snap ? calcRapidClassicalPoints(snap.rapidGames, snap.classicalGames) : 0;
+    const blitzPoints = snap ? calcBlitzPoints(snap.blitzGames) : 0;
+    const puzzlePoints = snap ? calcPuzzlePoints(snap.puzzleSolved) : 0;
+    const winRateBonus = snap ? calcWinRateBonus(snap.rapidGames, snap.rapidWins, snap.blitzGames, snap.blitzWins) : 0;
+    const puzzleAccuracyBonus = snap ? calcPuzzleAccuracyBonus(snap.puzzleAttempts, snap.puzzleSolved) : 0;
+    const ratingBonus = snap ? calcRatingBonus(snap.rapidRatingStart, snap.rapidRatingEnd) : 0;
+
+    // Streak: max of CC and Lichess streaks from StudentChessStats
+    const chessStats = chessStatsMap.get(sid);
+    const liveStreak = Math.max(chessStats?.ccStreak ?? 0, chessStats?.liStreak ?? 0);
+    const consistencyBonus = calcConsistencyBonus(liveStreak);
+
+    const bulletPenalty = snap ? calcBulletPenalty(snap.bulletGames, snap.ultraBulletGames) : 0;
 
     const coachFeedback = feedbackMap.get(sid) ?? 0;
     const attendance = attendanceMap.get(sid) ?? 0;
@@ -206,7 +227,7 @@ async function processLeaderboardCalc(job: Job<LeaderboardCalcJobData>) {
 
     entries.push({
       studentProfileId: sid,
-      snapshotId: snap.id,
+      snapshotId: snap?.id ?? '',
       rapidClassicalPoints,
       blitzPoints,
       puzzlePoints,
@@ -222,6 +243,7 @@ async function processLeaderboardCalc(job: Job<LeaderboardCalcJobData>) {
       totalScore,
     });
   }
+
 
   // ── Sort & assign ranks ───────────────────────────────────────────────────
   entries.sort((a, b) => b.totalScore - a.totalScore);

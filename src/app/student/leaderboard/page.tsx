@@ -1,14 +1,14 @@
 import { requireRole } from '@/lib/dal';
 import { Role } from '@/lib/enums';
 import { prisma } from '@/lib/prisma';
-import { getLeaderboard } from '@/actions/leaderboard/leaderboard-actions';
+import { getLeaderboard, getStudentCoachFeedback } from '@/actions/leaderboard/leaderboard-actions';
 import { getMyRefreshStatus } from '@/actions/leaderboard/fetch-actions';
 import { LeaderboardTable } from '@/components/leaderboard/LeaderboardTable';
 import { RewardsPanel } from '@/components/leaderboard/RewardsPanel';
 import { RuleBook } from '@/components/leaderboard/RuleBook';
 import { RefreshStatusBadge } from '@/components/leaderboard/RefreshStatusBadge';
 import { LinkChessAccountForm } from '@/components/leaderboard/LinkChessAccountForm';
-import { Trophy, Calendar, Flame, Star, BookOpen, Link2 } from 'lucide-react';
+import { Trophy, Calendar, Flame, Star, BookOpen, Link2, MessageSquareQuote } from 'lucide-react';
 
 export const dynamic = 'force-dynamic';
 
@@ -30,10 +30,11 @@ export default async function StudentLeaderboardPage() {
   const hasLinkedAccounts = !!(chessAccount?.chessComUsername || chessAccount?.lichessUsername);
 
   // Fetch leaderboard data
-  const [monthlyData, weeklyData, refreshStatus] = await Promise.all([
+  const [monthlyData, weeklyData, refreshStatus, coachFeedback] = await Promise.all([
     getLeaderboard('MONTHLY'),
     getLeaderboard('WEEKLY'),
     getMyRefreshStatus(),
+    getStudentCoachFeedback('MONTHLY', new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString())
   ]);
 
   const puzzleSolverAward = monthlyData.puzzleSolverAward as {
@@ -184,6 +185,58 @@ export default async function StudentLeaderboardPage() {
                   <p className="text-xs text-slate-500">
                   Rank #{studentProfile.leaderboardEntries[0].rank ?? '—'}
                 </p>
+              </div>
+            </div>
+          )}
+
+          {/* Teacher Feedback Report */}
+          {coachFeedback && (
+            <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
+              <h3 className="text-sm font-bold text-slate-800 mb-3 flex items-center gap-2">
+                <MessageSquareQuote className="w-4 h-4 text-brand-600" />
+                Coach Feedback Report
+              </h3>
+              <div className="space-y-3">
+                <div className="flex justify-between text-xs">
+                  <span className="text-slate-500">Coach</span>
+                  <span className="font-semibold text-slate-700">{coachFeedback.coach.user.name}</span>
+                </div>
+                
+                <div className="space-y-2 pt-2 border-t border-slate-100">
+                  <div className="flex justify-between text-xs">
+                    <span className="text-slate-500">Engagement</span>
+                    <span className="font-medium text-slate-700">{coachFeedback.engagement} / 10</span>
+                  </div>
+                  <div className="flex justify-between text-xs">
+                    <span className="text-slate-500">Behaviour</span>
+                    <span className="font-medium text-slate-700">{coachFeedback.behaviour} / 10</span>
+                  </div>
+                  <div className="flex justify-between text-xs">
+                    <span className="text-slate-500">Concept Adoption</span>
+                    <span className="font-medium text-slate-700">{coachFeedback.conceptAdoption} / 10</span>
+                  </div>
+                  <div className="flex justify-between text-xs">
+                    <span className="text-slate-500">Punctuality</span>
+                    <span className="font-medium text-slate-700">{coachFeedback.joiningOnTime} / 10</span>
+                  </div>
+                  <div className="flex justify-between text-xs">
+                    <span className="text-slate-500">Camera On</span>
+                    <span className="font-medium text-slate-700">{coachFeedback.cameraOn} / 10</span>
+                  </div>
+                </div>
+
+                <div className="pt-3 border-t border-slate-100 flex justify-between items-center text-sm">
+                  <span className="font-bold text-slate-700">Total Score</span>
+                  <span className="font-black text-brand-600">
+                    {coachFeedback.engagement + coachFeedback.behaviour + coachFeedback.conceptAdoption + coachFeedback.joiningOnTime + coachFeedback.cameraOn} <span className="text-xs text-slate-400 font-medium">/ 50</span>
+                  </span>
+                </div>
+
+                {coachFeedback.remarks && (
+                  <div className="mt-3 p-3 bg-brand-50 rounded-lg border border-brand-100">
+                    <p className="text-xs text-slate-700 italic">"{coachFeedback.remarks}"</p>
+                  </div>
+                )}
               </div>
             </div>
           )}

@@ -38,23 +38,47 @@ export interface CombinedActivity {
   activeDates: string[]; // all unique dates (YYYY-MM-DD)
 }
 
+/** IST offset in milliseconds: UTC+5:30 */
+const IST_OFFSET_MS = 5.5 * 60 * 60 * 1000;
+
+/** Get current date string in IST (YYYY-MM-DD) */
+export function getTodayIST(): string {
+  return new Date(Date.now() + IST_OFFSET_MS).toISOString().slice(0, 10);
+}
+
+/** Convert epoch ms to IST date string (YYYY-MM-DD) */
+export function epochToISTDateStr(ms: number): string {
+  return new Date(ms + IST_OFFSET_MS).toISOString().slice(0, 10);
+}
+
 /**
- * Calculate streak from an array of active date strings (YYYY-MM-DD).
- * Counts backwards from today — stops on first missing day.
+ * Calculate streak from an array of active date strings (YYYY-MM-DD, in IST).
+ * Counts backwards from today IST, allowing for a missing today
+ * (streak is still alive if yesterday has activity).
  */
-function calcStreak(activeDates: string[]): { streakDays: number; streakStartDate: Date | null } {
+export function calcStreak(activeDates: string[]): { streakDays: number; streakStartDate: Date | null } {
+  if (activeDates.length === 0) return { streakDays: 0, streakStartDate: null };
+
   const set = new Set(activeDates);
+  const nowMs = Date.now();
+  const todayIST  = epochToISTDateStr(nowMs);
+  const yestIST   = epochToISTDateStr(nowMs - 86_400_000);
+
+  // Start from today if active, else try yesterday — streak can be alive even if today isn't logged yet
+  const startIST = set.has(todayIST) ? todayIST : yestIST;
+  if (!set.has(startIST)) return { streakDays: 0, streakStartDate: null };
+
   let streakDays = 0;
   let streakStartDate: Date | null = null;
-  const today = new Date();
+  // Walk backwards day-by-day from startIST
+  let checkMs = set.has(todayIST) ? nowMs : nowMs - 86_400_000;
 
-  for (let i = 0; i <= 35; i++) {
-    const d = new Date(today);
-    d.setDate(d.getDate() - i);
-    const ds = d.toISOString().slice(0, 10);
-    if (set.has(ds)) {
+  while (true) {
+    const checkIST = epochToISTDateStr(checkMs);
+    if (set.has(checkIST)) {
       streakDays++;
-      streakStartDate = d;
+      streakStartDate = new Date(checkMs); // UTC epoch — caller can format
+      checkMs -= 86_400_000;
     } else {
       break;
     }
@@ -74,41 +98,57 @@ export function aggregate(
   const cc = chessCom;
   const li = lichess;
 
-  const rapidGames = (cc?.rapidGames ?? 0) + (li?.rapidGames ?? 0);
-  const rapidWins = (cc?.rapidWins ?? 0) + (li?.rapidWins ?? 0);
-  const rapidLosses = (cc?.rapidLosses ?? 0) + (li?.rapidLosses ?? 0);
-  const rapidDraws = (cc?.rapidDraws ?? 0) + (li?.rapidDraws ?? 0);
+  const bothLinked = cc !== null && li !== null;
 
-  const blitzGames = (cc?.blitzGames ?? 0) + (li?.blitzGames ?? 0);
-  const blitzWins = (cc?.blitzWins ?? 0) + (li?.blitzWins ?? 0);
-  const blitzLosses = (cc?.blitzLosses ?? 0) + (li?.blitzLosses ?? 0);
-  const blitzDraws = (cc?.blitzDraws ?? 0) + (li?.blitzDraws ?? 0);
+  // Helper to average or take the existing one
+  const avg = (a: number = 0, b: number = 0) => bothLinked ? Math.round((a + b) / 2) : (a + b);
 
-  const classicalGames = (cc?.classicalGames ?? 0) + (li?.classicalGames ?? 0);
-  const classicalWins = (cc?.classicalWins ?? 0) + (li?.classicalWins ?? 0);
+  const rapidGames = avg(cc?.rapidGames, li?.rapidGames);
+  const rapidWins = avg(cc?.rapidWins, li?.rapidWins);
+  const rapidLosses = avg(cc?.rapidLosses, li?.rapidLosses);
+  const rapidDraws = avg(cc?.rapidDraws, li?.rapidDraws);
 
-  const bulletGames = (cc?.bulletGames ?? 0) + (li?.bulletGames ?? 0);
-  const ultraBulletGames = (cc?.ultraBulletGames ?? 0) + (li?.ultraBulletGames ?? 0);
+  const blitzGames = avg(cc?.blitzGames, li?.blitzGames);
+  const blitzWins = avg(cc?.blitzWins, li?.blitzWins);
+  const blitzLosses = avg(cc?.blitzLosses, li?.blitzLosses);
+  const blitzDraws = avg(cc?.blitzDraws, li?.blitzDraws);
 
-  // Puzzles — combine totals
-  const puzzleAttempts = (cc?.puzzleAttempts ?? 0) + (li?.puzzleAttempts ?? 0);
-  const puzzleSolved = (cc?.puzzleSolved ?? 0) + (li?.puzzleSolved ?? 0);
-  const puzzleSuccessRate =
-    puzzleAttempts > 0
-      ? Math.round((puzzleSolved / puzzleAttempts) * 100)
-      : null;
+  const classicalGames = avg(cc?.classicalGames, li?.classicalGames);
+  const classicalWins = avg(cc?.classicalWins, li?.classicalWins);
+
+  const bulletGames = avg(cc?.bulletGames, li?.bulletGames);
+  const ultraBulletGames = avg(cc?.ultraBulletGames, li?.ultraBulletGames);
+
+  // Puzzles
+  const puzzleAttempts = avg(cc?.puzzleAttempts, li?.puzzleAttempts);
+  const puzzleSolved = avg(cc?.puzzleSolved, li?.puzzleSolved);
+  const puzzleSuccessRate = puzzleAttempts > 0 ? Math.round((puzzleSolved / puzzleAttempts) * 100) : null;
 
   // Rating — prefer Chess.com, fallback Lichess
   const rapidRating = cc?.rapidRating ?? li?.rapidRating ?? null;
   const blitzRating = cc?.blitzRating ?? li?.blitzRating ?? null;
 
-  // Streak — union of both platforms' active dates
+  // Streak — max of both platforms
+  const ccStreakData = calcStreak(cc?.activeDates ?? []);
+  const liStreakData = calcStreak(li?.activeDates ?? []);
+  
+  let streakDays = 0;
+  let streakStartDate: Date | null = null;
+  
+  if (ccStreakData.streakDays >= liStreakData.streakDays) {
+    streakDays = ccStreakData.streakDays;
+    streakStartDate = ccStreakData.streakStartDate;
+  } else {
+    streakDays = liStreakData.streakDays;
+    streakStartDate = liStreakData.streakStartDate;
+  }
+
+  // Active dates — union (still useful for UI/debugging)
   const allDatesSet = new Set([
     ...(cc?.activeDates ?? []),
     ...(li?.activeDates ?? []),
   ]);
   const activeDates = [...allDatesSet].sort();
-  const { streakDays, streakStartDate } = calcStreak(activeDates);
 
   return {
     rapidGames, rapidWins, rapidLosses, rapidDraws,

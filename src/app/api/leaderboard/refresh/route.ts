@@ -64,28 +64,28 @@ export async function POST(req: NextRequest) {
 
   // ── Step 1: Queue fetch jobs for all students ──────────────────────────────
   if (action === 'fetch' || action === 'all') {
-    const accounts = await prisma.chessAccount.findMany({
+    const profiles = await prisma.studentProfile.findMany({
       where: {
         OR: [
-          { chessComUsername: { not: null } },
-          { lichessUsername: { not: null } },
+          { chessComId: { not: null } },
+          { lichessId: { not: null } },
         ],
       },
       select: {
-        studentProfileId: true,
-        chessComUsername: true,
-        lichessUsername: true,
+        id: true,
+        chessComId: true,
+        lichessId: true,
       },
     });
 
-    if (accounts.length > 0) {
+    if (profiles.length > 0) {
       await chessFetchQueue.addBulk(
-        accounts.map((acc) => ({
+        profiles.map((p) => ({
           name: JOB_NAMES.FETCH_ALL,
           data: {
-            studentProfileId: acc.studentProfileId,
-            chessComUsername: acc.chessComUsername ?? null,
-            lichessUsername: acc.lichessUsername ?? null,
+            studentProfileId: p.id,
+            chessComUsername: p.chessComId ?? null,
+            lichessUsername: p.lichessId ?? null,
             periodType,
             periodStart: periodStart.toISOString(),
             periodEnd: periodEnd.toISOString(),
@@ -93,7 +93,7 @@ export async function POST(req: NextRequest) {
           opts: { delay: 0 },
         }))
       );
-      results.push(`Queued fetch for ${accounts.length} students`);
+      results.push(`Queued fetch for ${profiles.length} students`);
     } else {
       results.push('No students with linked accounts');
     }

@@ -7,6 +7,7 @@ import { Trophy, Medal, Star, ChevronDown, ChevronUp, Shield, ExternalLink, Crow
 interface LeaderboardTableProps {
   entries: LeaderboardRow[];
   currentStudentId?: string;
+  highlightStudentIds?: Set<string>;
   showBreakdown?: boolean;
 }
 
@@ -65,10 +66,14 @@ function BreakdownPanel({ row }: { row: LeaderboardRow }) {
       <div className="space-y-2">
         {items.map((item) => (
           <div key={item.label}>
-            <div className="flex justify-between mb-0.5">
-              <span className="text-xs text-slate-600">{item.label}</span>
+            <div className="flex justify-between items-center mb-0.5">
+              <span className="text-xs text-slate-600 flex items-center gap-1.5">
+                {item.label}
+                {item.value < 0 && <span className="text-[9px] bg-red-100 text-red-600 px-1 py-0.5 rounded uppercase font-bold">Penalty</span>}
+                {item.value === 0 && <span className="text-[9px] bg-slate-100 text-slate-500 px-1 py-0.5 rounded uppercase font-bold">No Score</span>}
+              </span>
               <span className={`text-xs font-bold ${item.value < 0 ? 'text-red-500' : 'text-slate-700'}`}>
-                {item.value >= 0 ? '+' : ''}{item.value}
+                {item.value > 0 ? '+' : ''}{item.value}
               </span>
             </div>
             <ScoreBar value={Math.max(0, item.value)} max={item.max} color={item.color} />
@@ -90,7 +95,7 @@ function BreakdownPanel({ row }: { row: LeaderboardRow }) {
   );
 }
 
-export function LeaderboardTable({ entries, currentStudentId, showBreakdown = true }: LeaderboardTableProps) {
+export function LeaderboardTable({ entries, currentStudentId, highlightStudentIds, showBreakdown = true }: LeaderboardTableProps) {
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
   if (entries.length === 0) {
@@ -107,11 +112,13 @@ export function LeaderboardTable({ entries, currentStudentId, showBreakdown = tr
     <div className="space-y-2">
       {entries.map((row) => {
         const isMe = row.studentProfileId === currentStudentId;
+        const isMyStudent = highlightStudentIds?.has(row.studentProfileId);
+        
         const rankStyle = RANK_STYLES[row.rank] ?? {
-          bg: isMe ? 'bg-brand-50' : 'bg-white',
+          bg: isMe || isMyStudent ? 'bg-brand-50' : 'bg-white',
           text: 'text-slate-600',
           icon: <span className="w-5 h-5 flex items-center justify-center text-xs font-bold text-slate-400">{row.rank}</span>,
-          border: isMe ? 'border-brand-300' : 'border-slate-200',
+          border: isMe || isMyStudent ? 'border-brand-300' : 'border-slate-200',
         };
 
         const isExpanded = expandedId === row.studentProfileId;
@@ -153,6 +160,7 @@ export function LeaderboardTable({ entries, currentStudentId, showBreakdown = tr
                   <p className={`text-sm font-bold truncate ${rankStyle.text}`}>
                     {row.studentName}
                     {isMe && <span className="ml-1.5 text-[10px] font-semibold bg-brand-600 text-white px-1.5 py-0.5 rounded-full">You</span>}
+                    {isMyStudent && !isMe && <span className="ml-1.5 text-[10px] font-semibold bg-brand-100 text-brand-700 border border-brand-200 px-1.5 py-0.5 rounded-full">My Student</span>}
                   </p>
                 </div>
                 <div className="flex items-center gap-2 mt-0.5">

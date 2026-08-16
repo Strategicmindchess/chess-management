@@ -33,16 +33,15 @@ export async function requestMyDataRefresh(periodType: 'WEEKLY' | 'MONTHLY' = 'M
 
   const studentProfile = await prisma.studentProfile.findUnique({
     where: { userId: user.id },
-    include: { chessAccount: true },
   });
 
   if (!studentProfile) {
     return { success: false, error: 'Student profile not found' };
   }
 
-  const { id: studentProfileId, chessAccount } = studentProfile;
+  const { id: studentProfileId, chessComId, lichessId } = studentProfile;
 
-  if (!chessAccount?.chessComUsername && !chessAccount?.lichessUsername) {
+  if (!chessComId && !lichessId) {
     return { success: false, error: 'No chess accounts linked. Please link your Chess.com or Lichess username first.' };
   }
 
@@ -77,8 +76,8 @@ export async function requestMyDataRefresh(periodType: 'WEEKLY' | 'MONTHLY' = 'M
     JOB_NAMES.FETCH_STUDENT,
     {
       studentProfileId,
-      chessComUsername: chessAccount.chessComUsername ?? null,
-      lichessUsername: chessAccount.lichessUsername ?? null,
+      chessComUsername: chessComId ?? null,
+      lichessUsername: lichessId ?? null,
       periodType,
       periodStart: periodStart.toISOString(),
       periodEnd: periodEnd.toISOString(),
@@ -122,31 +121,31 @@ export async function refreshAllStudents(periodType: 'WEEKLY' | 'MONTHLY' = 'MON
 
   const { periodStart, periodEnd } = getCurrentPeriod(periodType);
 
-  const accounts = await prisma.chessAccount.findMany({
+  const profiles = await prisma.studentProfile.findMany({
     where: {
       OR: [
-        { chessComUsername: { not: null } },
-        { lichessUsername: { not: null } },
+        { chessComId: { not: null } },
+        { lichessId: { not: null } },
       ],
     },
     select: {
-      studentProfileId: true,
-      chessComUsername: true,
-      lichessUsername: true,
+      id: true,
+      chessComId: true,
+      lichessId: true,
     },
   });
 
-  if (accounts.length === 0) {
+  if (profiles.length === 0) {
     return { success: false, error: 'No students with linked chess accounts found.' };
   }
 
   // Queue jobs for all students
-  const jobs = accounts.map((acc) => ({
+  const jobs = profiles.map((p) => ({
     name: JOB_NAMES.FETCH_ALL,
     data: {
-      studentProfileId: acc.studentProfileId,
-      chessComUsername: acc.chessComUsername ?? null,
-      lichessUsername: acc.lichessUsername ?? null,
+      studentProfileId: p.id,
+      chessComUsername: p.chessComId ?? null,
+      lichessUsername: p.lichessId ?? null,
       periodType,
       periodStart: periodStart.toISOString(),
       periodEnd: periodEnd.toISOString(),
@@ -159,8 +158,8 @@ export async function refreshAllStudents(periodType: 'WEEKLY' | 'MONTHLY' = 'MON
   revalidatePath('/admin/leaderboard');
   return {
     success: true,
-    message: `Refresh queued for ${accounts.length} students.`,
-    count: accounts.length,
+    message: `Refresh queued for ${profiles.length} students.`,
+    count: profiles.length,
   };
 }
 
