@@ -89,11 +89,13 @@ export const REDIS_KEYS = {
 } as const;
 
 // ── BullMQ Queue names ───────────────────────────────────────────────────────
+const envSuffix = process.env.NODE_ENV === 'production' ? '' : '-dev';
+
 export const QUEUE_NAMES = {
-  CHESS_FETCH: 'chess-fetch',
-  LEADERBOARD_CALC: 'leaderboard-calc',
-  LOG_CLEANUP: 'log-cleanup',
-  ATTENDANCE_SUMMARY: 'attendance-summary',
+  CHESS_FETCH: `chess-fetch${envSuffix}`,
+  LEADERBOARD_CALC: `leaderboard-calc${envSuffix}`,
+  LOG_CLEANUP: `log-cleanup${envSuffix}`,
+  ATTENDANCE_SUMMARY: `attendance-summary${envSuffix}`,
 } as const;
 
 // ── Job names ────────────────────────────────────────────────────────────────

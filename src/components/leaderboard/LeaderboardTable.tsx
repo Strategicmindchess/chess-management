@@ -9,6 +9,7 @@ interface LeaderboardTableProps {
   currentStudentId?: string;
   highlightStudentIds?: Set<string>;
   showBreakdown?: boolean;
+  hideOtherUsernames?: boolean;
 }
 
 const RANK_STYLES: Record<number, { bg: string; text: string; icon: React.ReactNode; border: string }> = {
@@ -97,7 +98,7 @@ function BreakdownPanel({ row }: { row: LeaderboardRow }) {
   );
 }
 
-export function LeaderboardTable({ entries, currentStudentId, highlightStudentIds, showBreakdown = true }: LeaderboardTableProps) {
+export function LeaderboardTable({ entries, currentStudentId, highlightStudentIds, showBreakdown = true, hideOtherUsernames = false }: LeaderboardTableProps) {
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
   if (entries.length === 0) {
@@ -166,7 +167,7 @@ export function LeaderboardTable({ entries, currentStudentId, highlightStudentId
                   </p>
                 </div>
                 <div className="flex items-center gap-2 mt-0.5">
-                  {row.chessComUsername && (
+                  {(!hideOtherUsernames || isMe) && row.chessComUsername && (
                     <a
                       href={`https://www.chess.com/member/${row.chessComUsername}`}
                       target="_blank"
@@ -177,7 +178,7 @@ export function LeaderboardTable({ entries, currentStudentId, highlightStudentId
                       ♟ {row.chessComUsername} <ExternalLink className="w-2.5 h-2.5" />
                     </a>
                   )}
-                  {row.lichessUsername && (
+                  {(!hideOtherUsernames || isMe) && row.lichessUsername && (
                     <a
                       href={`https://lichess.org/@/${row.lichessUsername}`}
                       target="_blank"
@@ -185,7 +186,7 @@ export function LeaderboardTable({ entries, currentStudentId, highlightStudentId
                       onClick={(e) => e.stopPropagation()}
                       className="text-[10px] text-slate-400 hover:text-brand-600 flex items-center gap-0.5"
                     >
-                      ⚡ {row.lichessUsername} <ExternalLink className="w-2.5 h-2.5" />
+                      ♞ {row.lichessUsername} <ExternalLink className="w-2.5 h-2.5" />
                     </a>
                   )}
                 </div>

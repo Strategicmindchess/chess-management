@@ -101,28 +101,29 @@ export function aggregate(
 
   const bothLinked = cc !== null && li !== null;
 
-  // Helper to average or take the existing one
-  const avg = (a: number = 0, b: number = 0) => bothLinked ? Math.round((a + b) / 2) : (a + b);
+  // Games and puzzles should be SUMMED, not averaged
+  const sum = (a: number = 0, b: number = 0) => a + b;
+  const avg = (a: number = 0 ,  b: number = 0) => bothLinked ? Math.round((a + b) / 2) : (a + b);
 
-  const rapidGames = avg(cc?.rapidGames, li?.rapidGames);
-  const rapidWins = avg(cc?.rapidWins, li?.rapidWins);
-  const rapidLosses = avg(cc?.rapidLosses, li?.rapidLosses);
-  const rapidDraws = avg(cc?.rapidDraws, li?.rapidDraws);
+  const rapidGames = sum(cc?.rapidGames, li?.rapidGames);
+  const rapidWins = sum(cc?.rapidWins, li?.rapidWins);
+  const rapidLosses = sum(cc?.rapidLosses, li?.rapidLosses);
+  const rapidDraws = sum(cc?.rapidDraws, li?.rapidDraws);
 
-  const blitzGames = avg(cc?.blitzGames, li?.blitzGames);
-  const blitzWins = avg(cc?.blitzWins, li?.blitzWins);
-  const blitzLosses = avg(cc?.blitzLosses, li?.blitzLosses);
-  const blitzDraws = avg(cc?.blitzDraws, li?.blitzDraws);
+  const blitzGames = sum(cc?.blitzGames, li?.blitzGames);
+  const blitzWins = sum(cc?.blitzWins, li?.blitzWins);
+  const blitzLosses = sum(cc?.blitzLosses, li?.blitzLosses);
+  const blitzDraws = sum(cc?.blitzDraws, li?.blitzDraws);
 
-  const classicalGames = avg(cc?.classicalGames, li?.classicalGames);
-  const classicalWins = avg(cc?.classicalWins, li?.classicalWins);
+  const classicalGames = sum(cc?.classicalGames, li?.classicalGames);
+  const classicalWins = sum(cc?.classicalWins, li?.classicalWins);
 
-  const bulletGames = avg(cc?.bulletGames, li?.bulletGames);
-  const ultraBulletGames = avg(cc?.ultraBulletGames, li?.ultraBulletGames);
+  const bulletGames = sum(cc?.bulletGames, li?.bulletGames);
+  const ultraBulletGames = sum(cc?.ultraBulletGames, li?.ultraBulletGames);
 
   // Puzzles
-  const puzzleAttempts = avg(cc?.puzzleAttempts, li?.puzzleAttempts);
-  const puzzleSolved = avg(cc?.puzzleSolved, li?.puzzleSolved);
+  const puzzleAttempts = sum(cc?.puzzleAttempts, li?.puzzleAttempts);
+  const puzzleSolved = sum(cc?.puzzleSolved, li?.puzzleSolved);
   const puzzleSuccessRate = puzzleAttempts > 0 ? Math.round((puzzleSolved / puzzleAttempts) * 100) : null;
 
   // Rating — prefer Chess.com, fallback Lichess

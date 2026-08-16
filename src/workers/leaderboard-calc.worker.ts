@@ -83,6 +83,8 @@ function calcBulletPenalty(bulletGames: number, ultraBulletGames: number): numbe
 
 export async function processLeaderboardCalc(job: Job<LeaderboardCalcJobData>) {
   const { periodType, periodStart: periodStartStr, periodEnd: periodEndStr, studentProfileId } = job.data;
+  await job.log(`Started Leaderboard Calculation (Period: ${periodType})`);
+  
   const periodStart = new Date(periodStartStr);
   const periodEnd = new Date(periodEndStr);
 
@@ -122,6 +124,7 @@ export async function processLeaderboardCalc(job: Job<LeaderboardCalcJobData>) {
     include: { student: { include: { user: true } } },
   });
   const snapshotMap = new Map(snapshots.map((s) => [s.studentProfileId, s]));
+  await job.log(`Found ${snapshots.length} snapshots to process.`);
 
   await job.updateProgress(10);
 
@@ -193,24 +196,30 @@ export async function processLeaderboardCalc(job: Job<LeaderboardCalcJobData>) {
   });
   const chessStatsMap = new Map(allChessStats.map((s) => [s.studentProfileId, s]));
 
+  let processedCount = 0;
   for (const student of allActiveStudents) {
     const sid = student.id;
     const snap = snapshotMap.get(sid) ?? null;
 
+    if (!snap) {
+      await job.log(`Skipping student ${student.user.name || sid} - no snapshot found.`);
+      continue;
+    }
+
     // Chess scores: 0 if no snapshot
-    const rapidClassicalPoints = snap ? calcRapidClassicalPoints(snap.rapidGames, snap.classicalGames) : 0;
-    const blitzPoints = snap ? calcBlitzPoints(snap.blitzGames) : 0;
-    const puzzlePoints = snap ? calcPuzzlePoints(snap.puzzleSolved) : 0;
-    const winRateBonus = snap ? calcWinRateBonus(snap.rapidGames, snap.rapidWins, snap.blitzGames, snap.blitzWins) : 0;
-    const puzzleAccuracyBonus = snap ? calcPuzzleAccuracyBonus(snap.puzzleAttempts, snap.puzzleSolved) : 0;
-    const ratingBonus = snap ? calcRatingBonus(snap.rapidRatingStart, snap.rapidRatingEnd) : 0;
+    const rapidClassicalPoints = calcRapidClassicalPoints(snap.rapidGames, snap.classicalGames);
+    const blitzPoints = calcBlitzPoints(snap.blitzGames);
+    const puzzlePoints = calcPuzzlePoints(snap.puzzleSolved);
+    const winRateBonus = calcWinRateBonus(snap.rapidGames, snap.rapidWins, snap.blitzGames, snap.blitzWins);
+    const puzzleAccuracyBonus = calcPuzzleAccuracyBonus(snap.puzzleAttempts, snap.puzzleSolved);
+    const ratingBonus = calcRatingBonus(snap.rapidRatingStart, snap.rapidRatingEnd);
 
     // Streak: max of CC and Lichess streaks from StudentChessStats
     const chessStats = chessStatsMap.get(sid);
     const liveStreak = Math.max(chessStats?.ccStreak ?? 0, chessStats?.liStreak ?? 0);
     const consistencyBonus = calcConsistencyBonus(liveStreak);
 
-    const bulletPenalty = snap ? calcBulletPenalty(snap.bulletGames, snap.ultraBulletGames) : 0;
+    const bulletPenalty = calcBulletPenalty(snap.bulletGames, snap.ultraBulletGames);
 
     const coachFeedback = feedbackMap.get(sid) ?? 0;
     const attendance = attendanceMap.get(sid) ?? 0;
@@ -227,7 +236,7 @@ export async function processLeaderboardCalc(job: Job<LeaderboardCalcJobData>) {
 
     entries.push({
       studentProfileId: sid,
-      snapshotId: snap?.id ?? '',
+      snapshotId: snap.id,
       rapidClassicalPoints,
       blitzPoints,
       puzzlePoints,
@@ -242,6 +251,11 @@ export async function processLeaderboardCalc(job: Job<LeaderboardCalcJobData>) {
       bulletPenalty,
       totalScore,
     });
+    
+    processedCount++;
+    if (processedCount % 10 === 0) {
+        await job.log(`Calculated ${processedCount} / ${allActiveStudents.length} students...`);
+    }
   }
 
 
@@ -310,6 +324,7 @@ export async function processLeaderboardCalc(job: Job<LeaderboardCalcJobData>) {
       },
     });
   }
+  await job.log(`Database updated successfully.`);
 
   // ── Clean up obsolete entries ──────────────────────────────────────────────
   await prisma.leaderboardEntry.deleteMany({
@@ -348,6 +363,7 @@ export async function processLeaderboardCalc(job: Job<LeaderboardCalcJobData>) {
   await job.updateProgress(90);
 
   // ── Invalidate Redis cache ─────────────────────────────────────────────────
+  await job.log(`Clearing Redis cache for leaderboard...`);
   const cacheKey = REDIS_KEYS.leaderboard(periodType, periodStartStr);
   const top10Key = REDIS_KEYS.top10(periodType, periodStartStr);
   await redis.del(cacheKey, top10Key);
@@ -357,6 +373,7 @@ export async function processLeaderboardCalc(job: Job<LeaderboardCalcJobData>) {
     const scoreKey = REDIS_KEYS.studentScore(entry.studentProfileId, periodType, periodStartStr);
     await redisDel(scoreKey);
   }
+  await job.log(`Cache cleared successfully.`);
 
   // ── Update calculation log ─────────────────────────────────────────────────
   await prisma.leaderboardCalculationLog.update({

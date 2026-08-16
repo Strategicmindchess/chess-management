@@ -30,8 +30,8 @@ export const chessFetchQueue = new Queue<ChessFetchJobData>(QUEUE_NAMES.CHESS_FE
   defaultJobOptions: {
     attempts: 3,
     backoff: { type: 'exponential', delay: 5_000 },
-    removeOnComplete: 100,
-    removeOnFail: 200,
+    removeOnComplete: { age: 86400, count: 500 },
+    removeOnFail: { age: 86400, count: 500 },
   },
 });
 
@@ -40,8 +40,8 @@ export const leaderboardCalcQueue = new Queue<LeaderboardCalcJobData>(QUEUE_NAME
   defaultJobOptions: {
     attempts: 2,
     backoff: { type: 'fixed', delay: 10_000 },
-    removeOnComplete: 50,
-    removeOnFail: 100,
+    removeOnComplete: { age: 86400, count: 500 },
+    removeOnFail: { age: 86400, count: 500 },
   },
 });
 

@@ -269,9 +269,9 @@ Phase 2 -- Week 2: Chess.com / Lichess Leaderboard
 1. Chess.com & Lichess.org Account Integration
 Every student profile should have the option to link a Chess.com Username and a Lichess Username. The system should automatically fetch activity data from both platforms and generate the leaderboard without any manual entry.
 Data to Fetch
-●	Rapid games played
-●	Blitz games played
-●	Classical games played
+●	Rapid games played sum ho gaya total 
+●	Blitz games played total ho gaya 
+●	Classical games played total ho gaya 
 ●	Puzzle attempts
 ●	Rapid Rating
 ●	Rapid + Blitz Win Rate

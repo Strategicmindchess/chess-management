@@ -65,20 +65,16 @@ export async function linkChessAccount(input: {
       },
     });
 
-    // Immediately queue a data fetch so their leaderboard updates quickly
-    const saved = await prisma.chessAccount.findUnique({
-      where: { studentProfileId: studentProfile.id },
-      select: { chessComUsername: true, lichessUsername: true },
+    // Sync to legacy fields on StudentProfile to prevent bugs
+    await prisma.studentProfile.update({
+      where: { id: studentProfile.id },
+      data: {
+        ...(input.chessComUsername !== undefined && { chessComId: input.chessComUsername?.trim() || null }),
+        ...(input.lichessUsername !== undefined && { lichessId: input.lichessUsername?.trim() || null }),
+      }
     });
-    const { periodStart, periodEnd } = getCurrentPeriod('MONTHLY');
-    await chessFetchQueue.add(JOB_NAMES.FETCH_STUDENT, {
-      studentProfileId: studentProfile.id,
-      chessComUsername: saved?.chessComUsername ?? null,
-      lichessUsername: saved?.lichessUsername ?? null,
-      periodType: 'MONTHLY',
-      periodStart: periodStart.toISOString(),
-      periodEnd: periodEnd.toISOString(),
-    }, { removeOnComplete: true, removeOnFail: 50 });
+
+    // The admin will trigger the fetch later. We no longer automatically queue the fetch job here.
 
     revalidatePath('/student/profile');
     revalidatePath('/student/leaderboard');
@@ -157,21 +153,7 @@ export async function adminLinkChessAccount(
       },
     });
 
-    // Queue a fetch job right after linking so the data is ready for the leaderboard
-    const saved = await prisma.chessAccount.findUnique({
-      where: { studentProfileId },
-      select: { chessComUsername: true, lichessUsername: true },
-    });
-    const { periodStart, periodEnd } = getCurrentPeriod('MONTHLY');
-    await chessFetchQueue.add(JOB_NAMES.FETCH_STUDENT, {
-      studentProfileId,
-      chessComUsername: saved?.chessComUsername ?? null,
-      lichessUsername: saved?.lichessUsername ?? null,
-      periodType: 'MONTHLY',
-      periodStart: periodStart.toISOString(),
-      periodEnd: periodEnd.toISOString(),
-    }, { removeOnComplete: true, removeOnFail: 50 });
-
+    // Admin will trigger fetch later. No longer auto-queueing.
     revalidatePath('/admin/leaderboard');
     return { success: true };
   } catch (err: unknown) {
@@ -275,20 +257,7 @@ export async function migrateSingleStudentFromProfile(studentProfileId: string) 
       },
     });
 
-    const saved = await prisma.chessAccount.findUnique({
-      where: { studentProfileId },
-      select: { chessComUsername: true, lichessUsername: true },
-    });
-    const { periodStart, periodEnd } = getCurrentPeriod('MONTHLY');
-    await chessFetchQueue.add(JOB_NAMES.FETCH_STUDENT, {
-      studentProfileId,
-      chessComUsername: saved?.chessComUsername ?? null,
-      lichessUsername: saved?.lichessUsername ?? null,
-      periodType: 'MONTHLY',
-      periodStart: periodStart.toISOString(),
-      periodEnd: periodEnd.toISOString(),
-    }, { removeOnComplete: true, removeOnFail: 50 });
-
+    // Admin will trigger fetch later. No longer auto-queueing.
     revalidatePath('/admin/leaderboard');
     return { success: true };
   } catch (err: unknown) {
@@ -331,15 +300,6 @@ export async function migrateAllChessAccountsFromProfiles() {
           lichessVerified: false,
         },
       });
-
-      await chessFetchQueue.add(JOB_NAMES.FETCH_STUDENT, {
-        studentProfileId: profile.id,
-        chessComUsername: profile.chessComId?.trim() ?? null,
-        lichessUsername: profile.lichessId?.trim() ?? null,
-        periodType: 'MONTHLY',
-        periodStart: periodStart.toISOString(),
-        periodEnd: periodEnd.toISOString(),
-      }, { removeOnComplete: true, removeOnFail: 50 });
 
       linked++;
     } catch {

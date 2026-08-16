@@ -143,6 +143,7 @@ export default async function StudentLeaderboardPage() {
               <LeaderboardTable
                 entries={monthlyData.entries}
                 currentStudentId={studentProfile?.id}
+                hideOtherUsernames={true}
               />
             </div>
           </div>

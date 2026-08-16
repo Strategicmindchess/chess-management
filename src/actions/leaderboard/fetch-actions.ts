@@ -33,15 +33,18 @@ export async function requestMyDataRefresh(periodType: 'WEEKLY' | 'MONTHLY' = 'M
 
   const studentProfile = await prisma.studentProfile.findUnique({
     where: { userId: user.id },
+    include: { chessAccount: true },
   });
 
   if (!studentProfile) {
     return { success: false, error: 'Student profile not found' };
   }
 
-  const { id: studentProfileId, chessComId, lichessId } = studentProfile;
+  const { id: studentProfileId } = studentProfile;
+  const chessComUsername = studentProfile.chessAccount?.chessComUsername;
+  const lichessUsername = studentProfile.chessAccount?.lichessUsername;
 
-  if (!chessComId && !lichessId) {
+  if (!chessComUsername && !lichessUsername) {
     return { success: false, error: 'No chess accounts linked. Please link your Chess.com or Lichess username first.' };
   }
 
@@ -76,8 +79,8 @@ export async function requestMyDataRefresh(periodType: 'WEEKLY' | 'MONTHLY' = 'M
     JOB_NAMES.FETCH_STUDENT,
     {
       studentProfileId,
-      chessComUsername: chessComId ?? null,
-      lichessUsername: lichessId ?? null,
+      chessComUsername: chessComUsername ?? null,
+      lichessUsername: lichessUsername ?? null,
       periodType,
       periodStart: periodStart.toISOString(),
       periodEnd: periodEnd.toISOString(),

@@ -56,6 +56,7 @@ export async function processChessFetchJob(job: Job<ChessFetchJobData>) {
     periodEnd: periodEndStr,
   } = job.data;
 
+  await job.log(`Started fetch for studentProfileId: ${studentProfileId} (CC: ${chessComUsername || 'none'}, Lichess: ${lichessUsername || 'none'})`);
   const periodStart = new Date(periodStartStr);
   const periodEnd = new Date(periodEndStr);
 
@@ -74,10 +75,11 @@ export async function processChessFetchJob(job: Job<ChessFetchJobData>) {
   let chessComStats = null;
 
   if (chessComUsername) {
-    await job.updateProgress(10);
-
+    await job.log(`Fetching Chess.com stats for ${chessComUsername}...`);
+    
     // Fetch stats + period games in parallel
     [chessComStats] = await Promise.all([fetchChessComStats(chessComUsername)]);
+    await job.log(`Fetched Chess.com stats: ${chessComStats ? 'Success' : 'Not found/Failed'}`);
 
     // Get period games from archives
     const archives = await fetchChessComArchives(chessComUsername);
@@ -133,6 +135,7 @@ export async function processChessFetchJob(job: Job<ChessFetchJobData>) {
   let lichessUser: LichessRawUser | null = null;
 
   if (lichessUsername) {
+    await job.log(`Fetching Lichess data for ${lichessUsername}...`);
     const [fetchedUser, lichessGames, lichessActivityRaw] = await Promise.all([
       fetchLichessUser(lichessUsername),
       fetchLichessGamesInRange(lichessUsername, periodStart, periodEnd),
@@ -170,6 +173,7 @@ export async function processChessFetchJob(job: Job<ChessFetchJobData>) {
   await job.updateProgress(75);
 
   // ── 3. Update Lifetime Stats ─────────────────────────────────────────────
+  await job.log(`Updating lifetime stats...`);
   const lifetimeStats = extractLifetimeStats(
     chessComStats,
     lichessUser,
@@ -189,6 +193,7 @@ export async function processChessFetchJob(job: Job<ChessFetchJobData>) {
   });
 
   // ── 4. Aggregate ─────────────────────────────────────────────────────────
+  await job.log(`Aggregating data...`);
   const combined = aggregate(chessComActivity, lichessActivity);
 
   // ── 4. Fetch rating baseline (for improvement bonus) ─────────────────────
@@ -210,7 +215,7 @@ export async function processChessFetchJob(job: Job<ChessFetchJobData>) {
   const rapidRatingEnd = combined.rapidRating ?? null;
 
   // ── 5. Save snapshot (always INSERT — never overwrite for history) ─────────
-  await prisma.chessActivitySnapshot.upsert({
+  const snapshot = await prisma.chessActivitySnapshot.upsert({
     where: {
       studentProfileId_periodType_periodStart: {
         studentProfileId,
@@ -254,6 +259,7 @@ export async function processChessFetchJob(job: Job<ChessFetchJobData>) {
       streakStartDate: combined.streakStartDate ?? undefined,
     },
   });
+  await job.log(`Successfully saved Snapshot to database. ID: ${snapshot.id}`);
 
   // ── 6. Update last refresh timestamp in Redis ─────────────────────────────
   const lockKey = `lock:refresh:${studentProfileId}`;

@@ -377,13 +377,17 @@ export async function cancelClassInstance(instanceId: string): Promise<ActionRes
       return { success: false, error: 'Class instance not found.' };
     }
 
-    if (instance.status === 'COMPLETED') {
-      return { success: false, error: 'Cannot cancel a completed class session.' };
+    if (instance.classLogId) {
+      await prisma.classLog.delete({ where: { id: instance.classLogId } });
     }
 
     await prisma.classInstance.update({
       where: { id: instanceId },
-      data: { status: 'CANCELLED' },
+      data: { 
+        status: 'CANCELLED',
+        classLogId: null,
+        completedAt: null 
+      },
     });
 
     revalidatePath('/admin/batches');
