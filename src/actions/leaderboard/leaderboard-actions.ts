@@ -38,6 +38,16 @@ export interface LeaderboardRow {
     tournament: number;
     bulletPenalty: number;
   };
+  rawStats: {
+    rapidClassicalGames: number;
+    blitzGames: number;
+    puzzleSolved: number;
+    winRate: number;
+    puzzleAccuracy: number;
+    ratingStart: number;
+    ratingEnd: number;
+    streakDays: number;
+  };
 }
 
 /** Get the full leaderboard for a period. Redis → DB fallback. */
@@ -77,8 +87,9 @@ export async function getLeaderboard(
             chessAccount: { select: { chessComUsername: true, lichessUsername: true } },
           },
         },
+        snapshot: true,
       },
-      orderBy: [{ rank: 'asc' }],
+      orderBy: { rank: 'asc' },
     }),
 
     prisma.puzzleSolverAward.findUnique({
@@ -119,6 +130,20 @@ export async function getLeaderboard(
       tournament: e.tournament,
       bulletPenalty: e.bulletPenalty,
     },
+    rawStats: {
+      rapidClassicalGames: (e.snapshot?.rapidGames ?? 0) + (e.snapshot?.classicalGames ?? 0),
+      blitzGames: e.snapshot?.blitzGames ?? 0,
+      puzzleSolved: e.snapshot?.puzzleSolved ?? 0,
+      winRate: (e.snapshot?.rapidGames ?? 0) + (e.snapshot?.blitzGames ?? 0) > 0 
+        ? ((e.snapshot?.rapidWins ?? 0) + (e.snapshot?.blitzWins ?? 0)) / ((e.snapshot?.rapidGames ?? 0) + (e.snapshot?.blitzGames ?? 0)) 
+        : 0,
+      puzzleAccuracy: e.snapshot?.puzzleAttempts && e.snapshot.puzzleAttempts > 0 
+        ? e.snapshot.puzzleSolved / e.snapshot.puzzleAttempts 
+        : 0,
+      ratingStart: e.snapshot?.rapidRatingStart ?? 0,
+      ratingEnd: e.snapshot?.rapidRatingEnd ?? 0,
+      streakDays: e.snapshot?.streakDays ?? 0,
+    }
   }));
 
   const calculatedAt = dbEntries[0]?.calculatedAt ?? null;
@@ -206,6 +231,20 @@ export async function getStudentLeaderboardEntry(
       tournament: entry.tournament,
       bulletPenalty: entry.bulletPenalty,
     },
+    rawStats: {
+      rapidClassicalGames: (entry.student.activitySnapshots[0]?.rapidGames ?? 0) + (entry.student.activitySnapshots[0]?.classicalGames ?? 0),
+      blitzGames: entry.student.activitySnapshots[0]?.blitzGames ?? 0,
+      puzzleSolved: entry.student.activitySnapshots[0]?.puzzleSolved ?? 0,
+      winRate: (entry.student.activitySnapshots[0]?.rapidGames ?? 0) + (entry.student.activitySnapshots[0]?.blitzGames ?? 0) > 0 
+        ? ((entry.student.activitySnapshots[0]?.rapidWins ?? 0) + (entry.student.activitySnapshots[0]?.blitzWins ?? 0)) / ((entry.student.activitySnapshots[0]?.rapidGames ?? 0) + (entry.student.activitySnapshots[0]?.blitzGames ?? 0)) 
+        : 0,
+      puzzleAccuracy: entry.student.activitySnapshots[0]?.puzzleAttempts && entry.student.activitySnapshots[0].puzzleAttempts > 0 
+        ? entry.student.activitySnapshots[0].puzzleSolved / entry.student.activitySnapshots[0].puzzleAttempts 
+        : 0,
+      ratingStart: entry.student.activitySnapshots[0]?.rapidRatingStart ?? 0,
+      ratingEnd: entry.student.activitySnapshots[0]?.rapidRatingEnd ?? 0,
+      streakDays: entry.student.activitySnapshots[0]?.streakDays ?? 0,
+    }
   };
 
   await redisSet(scoreKey, row, LEADERBOARD_CONFIG.CACHE_TTL_SECONDS);

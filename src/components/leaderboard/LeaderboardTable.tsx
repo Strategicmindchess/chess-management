@@ -45,18 +45,20 @@ function ScoreBar({ value, max, color }: { value: number; max: number; color: st
 
 function BreakdownPanel({ row }: { row: LeaderboardRow }) {
   const b = row.breakdown;
+  const raw = row.rawStats;
+
   const items = [
-    { label: 'Rapid + Classical', value: b.rapidClassicalPoints, max: 174, color: 'bg-blue-500' },
-    { label: 'Blitz Games', value: b.blitzPoints, max: 51, color: 'bg-indigo-500' },
-    { label: 'Puzzle Solving', value: b.puzzlePoints, max: 225, color: 'bg-violet-500' },
-    { label: 'Win Rate Bonus', value: b.winRateBonus, max: 75, color: b.winRateBonus >= 0 ? 'bg-green-500' : 'bg-red-400' },
-    { label: 'Puzzle Accuracy', value: b.puzzleAccuracyBonus, max: 50, color: b.puzzleAccuracyBonus >= 0 ? 'bg-teal-500' : 'bg-red-400' },
-    { label: 'Rating Improvement', value: b.ratingBonus, max: 100, color: 'bg-cyan-500' },
-    { label: 'Consistency Streak', value: b.consistencyBonus, max: 25, color: 'bg-emerald-500' },
-    { label: 'Coach Feedback', value: b.coachFeedback, max: 50, color: 'bg-pink-500' },
-    { label: 'Attendance', value: b.attendance, max: 50, color: 'bg-amber-500' },
-    { label: 'Assignments', value: b.assignment, max: 100, color: 'bg-orange-500' },
-    { label: 'Tournament', value: b.tournament, max: 100, color: 'bg-rose-500' },
+    { label: 'Rapid + Classical', value: b.rapidClassicalPoints, max: 174, color: 'bg-blue-500', subtext: `${raw.rapidClassicalGames} games` },
+    { label: 'Blitz Games', value: b.blitzPoints, max: 51, color: 'bg-indigo-500', subtext: `${raw.blitzGames} games` },
+    { label: 'Puzzle Solving', value: b.puzzlePoints, max: 225, color: 'bg-violet-500', subtext: `${raw.puzzleSolved} solved` },
+    { label: 'Win Rate Bonus', value: b.winRateBonus, max: 75, color: b.winRateBonus >= 0 ? 'bg-green-500' : 'bg-red-400', subtext: `${(raw.winRate * 100).toFixed(1)}% win` },
+    { label: 'Puzzle Accuracy', value: b.puzzleAccuracyBonus, max: 50, color: b.puzzleAccuracyBonus >= 0 ? 'bg-teal-500' : 'bg-red-400', subtext: `${(raw.puzzleAccuracy * 100).toFixed(1)}% acc` },
+    { label: 'Rating Improvement', value: b.ratingBonus, max: 100, color: 'bg-cyan-500', subtext: raw.ratingStart > 0 ? `${raw.ratingStart} → ${raw.ratingEnd}` : 'No games yet' },
+    { label: 'Consistency Streak', value: b.consistencyBonus, max: 25, color: 'bg-indigo-400', subtext: `${raw.streakDays} days` },
+    { label: 'Coach Feedback', value: b.coachFeedback, max: 50, color: 'bg-fuchsia-500', subtext: '0/50' },
+    { label: 'Attendance', value: b.attendance, max: 50, color: 'bg-amber-500', subtext: b.attendance > 0 ? '≥ 75%' : '< 75%' },
+    { label: 'Assignments', value: b.assignment, max: 100, color: 'bg-orange-500', subtext: b.assignment === 100 ? 'All done' : b.assignment === 50 ? 'Half done' : 'None' },
+    { label: 'Tournament', value: b.tournament, max: 100, color: 'bg-rose-500', subtext: '0/100' },
   ];
 
   return (
@@ -66,8 +68,9 @@ function BreakdownPanel({ row }: { row: LeaderboardRow }) {
         {items.map((item) => (
           <div key={item.label}>
             <div className="flex justify-between items-center mb-0.5">
-              <span className="text-xs text-slate-600 flex items-center gap-1.5">
+              <span className="text-xs text-slate-600 flex items-center gap-1.5 flex-wrap">
                 {item.label}
+                <span className="text-[10px] text-slate-400 px-1 border border-slate-200 rounded">{item.subtext}</span>
                 {item.value < 0 && <span className="text-[9px] bg-red-100 text-red-600 px-1 py-0.5 rounded uppercase font-bold">Penalty</span>}
                 {item.value === 0 && <span className="text-[9px] bg-slate-100 text-slate-500 px-1 py-0.5 rounded uppercase font-bold">No Score</span>}
               </span>

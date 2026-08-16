@@ -81,7 +81,7 @@ function calcBulletPenalty(bulletGames: number, ultraBulletGames: number): numbe
 // Main job processor
 // ──────────────────────────────────────────────────────────────────────────────
 
-async function processLeaderboardCalc(job: Job<LeaderboardCalcJobData>) {
+export async function processLeaderboardCalc(job: Job<LeaderboardCalcJobData>) {
   const { periodType, periodStart: periodStartStr, periodEnd: periodEndStr, studentProfileId } = job.data;
   const periodStart = new Date(periodStartStr);
   const periodEnd = new Date(periodEndStr);

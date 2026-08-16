@@ -203,7 +203,10 @@ export async function processChessFetchJob(job: Job<ChessFetchJobData>) {
     select: { rapidRatingEnd: true },
   });
 
-  const rapidRatingStart = prevSnapshot?.rapidRatingEnd ?? combined.rapidRating ?? null;
+  // Prefer the actual rating from their first game this month!
+  // Fallback to previous month's ending rating if they haven't played yet this month.
+  // Fallback to current rating if there is no previous month.
+  const rapidRatingStart = combined.rapidRatingStart ?? prevSnapshot?.rapidRatingEnd ?? combined.rapidRating ?? null;
   const rapidRatingEnd = combined.rapidRating ?? null;
 
   // ── 5. Save snapshot (always INSERT — never overwrite for history) ─────────

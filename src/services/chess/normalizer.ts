@@ -40,7 +40,8 @@ export interface ChessActivity {
   puzzleSolved: number;
   puzzleSuccessRate: number | null; // 0–100
 
-  // Rating (current snapshot — not period-diff)
+  // Rating
+  rapidRatingStart: number | null;
   rapidRating: number | null;
   blitzRating: number | null;
 
@@ -67,8 +68,12 @@ export function normalizeChessCom(
   let classicalGames = 0, classicalWins = 0, classicalLosses = 0, classicalDraws = 0;
   let bulletGames = 0, bulletWins = 0;
   let ultraBulletGames = 0;
+  let rapidRatingStart: number | null = null;
 
-  for (const game of periodGames) {
+  // Sort games chronologically to extract the starting rating from the first game
+  const sortedGames = [...periodGames].sort((a, b) => a.end_time - b.end_time);
+
+  for (const game of sortedGames) {
     if (game.rules !== 'chess') continue; // skip variants
 
     const playerSide =
@@ -87,6 +92,10 @@ export function normalizeChessCom(
       if (isWin) rapidWins++;
       else if (isLoss) rapidLosses++;
       else if (isDraw) rapidDraws++;
+      
+      if (rapidRatingStart === null) {
+        rapidRatingStart = playerData.rating;
+      }
     } else if (tc === 'blitz') {
       blitzGames++;
       if (isWin) blitzWins++;
@@ -123,6 +132,7 @@ export function normalizeChessCom(
     puzzleAttempts,
     puzzleSolved,
     puzzleSuccessRate,
+    rapidRatingStart,
     rapidRating,
     blitzRating,
     activeDates,
@@ -146,10 +156,12 @@ export function normalizeLichess(
   let classicalGames = 0, classicalWins = 0, classicalLosses = 0, classicalDraws = 0;
   let bulletGames = 0, bulletWins = 0;
   let ultraBulletGames = 0;
+  let rapidRatingStart: number | null = null;
 
   const username = user?.username?.toLowerCase() ?? '';
+  const sortedGames = [...periodGames].sort((a, b) => (a.createdAt as number) - (b.createdAt as number));
 
-  for (const game of periodGames) {
+  for (const game of sortedGames) {
     const speed = (game.speed as string)?.toLowerCase() ?? '';
     const players = game.players as Record<string, Record<string, unknown>> | undefined;
     const whiteUser = (players?.white?.user as Record<string, string> | undefined)?.name?.toLowerCase();
@@ -161,7 +173,12 @@ export function normalizeLichess(
     const isLoss = !isWin && !isDraw;
 
     if (speed === 'rapid') {
-      rapidGames++; if (isWin) rapidWins++; else if (isLoss) rapidLosses++; else rapidDraws++;
+      rapidGames++; 
+      if (isWin) rapidWins++; else if (isLoss) rapidLosses++; else rapidDraws++;
+      if (rapidRatingStart === null) {
+        const p = players?.[playerSide] as Record<string, any>;
+        rapidRatingStart = p?.rating ?? null;
+      }
     } else if (speed === 'blitz') {
       blitzGames++; if (isWin) blitzWins++; else if (isLoss) blitzLosses++; else blitzDraws++;
     } else if (speed === 'classical' || speed === 'correspondence') {
@@ -214,6 +231,7 @@ export function normalizeLichess(
     puzzleAttempts,
     puzzleSolved,
     puzzleSuccessRate,
+    rapidRatingStart,
     rapidRating,
     blitzRating,
     activeDates: [...new Set(activeDates)],

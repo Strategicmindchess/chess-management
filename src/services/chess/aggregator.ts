@@ -29,6 +29,7 @@ export interface CombinedActivity {
   puzzleSuccessRate: number | null; // weighted average, 0–100
 
   // ── Rating (prefer Chess.com, fallback Lichess) ──
+  rapidRatingStart: number | null;
   rapidRating: number | null;
   blitzRating: number | null;
 
@@ -125,6 +126,7 @@ export function aggregate(
   const puzzleSuccessRate = puzzleAttempts > 0 ? Math.round((puzzleSolved / puzzleAttempts) * 100) : null;
 
   // Rating — prefer Chess.com, fallback Lichess
+  const rapidRatingStart = cc?.rapidRatingStart ?? li?.rapidRatingStart ?? null;
   const rapidRating = cc?.rapidRating ?? li?.rapidRating ?? null;
   const blitzRating = cc?.blitzRating ?? li?.blitzRating ?? null;
 
@@ -156,7 +158,7 @@ export function aggregate(
     classicalGames, classicalWins,
     bulletGames, ultraBulletGames,
     puzzleAttempts, puzzleSolved, puzzleSuccessRate,
-    rapidRating, blitzRating,
+    rapidRatingStart, rapidRating, blitzRating,
     streakDays, streakStartDate,
     activeDates,
   };
