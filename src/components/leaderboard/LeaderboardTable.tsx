@@ -39,7 +39,6 @@ function ScoreBar({ value, max, color }: { value: number; max: number; color: st
       <div className="flex-1 bg-slate-100 rounded-full h-1.5 overflow-hidden">
         <div className={`h-full rounded-full ${color}`} style={{ width: `${pct}%` }} />
       </div>
-      <span className="text-slate-500 w-8 text-right">{value}</span>
     </div>
   );
 }
