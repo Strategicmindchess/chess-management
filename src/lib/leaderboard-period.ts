@@ -10,22 +10,20 @@ export function getCurrentPeriod(type: 'WEEKLY' | 'MONTHLY'): {
   const now = new Date();
 
   if (type === 'WEEKLY') {
-    // Monday-based week
-    const day = now.getDay(); // 0=Sun
+    // Monday-based week (UTC)
+    const day = now.getUTCDay(); // 0=Sun
     const mondayOffset = day === 0 ? -6 : 1 - day;
-    const monday = new Date(now);
-    monday.setDate(now.getDate() + mondayOffset);
-    monday.setHours(0, 0, 0, 0);
+    
+    const periodStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + mondayOffset, 0, 0, 0, 0));
+    const periodEnd = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + mondayOffset + 6, 23, 59, 59, 999));
 
-    const sunday = new Date(monday);
-    sunday.setDate(monday.getDate() + 6);
-    sunday.setHours(23, 59, 59, 999);
-
-    return { periodStart: monday, periodEnd: sunday };
+    return { periodStart, periodEnd };
   } else {
-    // Monthly: 1st to last day of current month
-    const periodStart = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0, 0);
-    const periodEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
+    // Monthly: 1st to last day of current month (UTC)
+    const periodStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1, 0, 0, 0, 0));
+    const periodEnd = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 0, 23, 59, 59, 999));
+    
     return { periodStart, periodEnd };
   }
 }
+
