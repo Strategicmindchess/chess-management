@@ -16,11 +16,44 @@
 import { prisma } from '@/lib/prisma';
 import { requireRole, getCurrentUser } from '@/lib/dal';
 import { Role } from '@/lib/enums';
-import { acquireLock, redisGet, redis } from '@/lib/redis';
+import { acquireLock, redis } from '@/lib/redis';
 import { LEADERBOARD_CONFIG, REDIS_KEYS, JOB_NAMES, QUEUE_NAMES } from '@/lib/leaderboard-config';
-import { chessFetchQueue, leaderboardCalcQueue } from '@/workers/leaderboard.queues';
 import { revalidatePath } from 'next/cache';
 import { getCurrentPeriod } from '@/lib/leaderboard-period';
+import IORedis from 'ioredis';
+import { Queue } from 'bullmq';
+
+// ── Short-lived queue factory (serverless-safe) ──────────────────────────────
+// Vercel serverless functions cannot hold persistent TCP connections.
+// We create a fresh IORedis + Queue per action call and close it immediately.
+function buildRedisUrl(): string {
+  const rawUrl = process.env.REDIS_URL ?? '';
+  if (rawUrl && !rawUrl.includes('${{')) return rawUrl;
+  const user = process.env.REDISUSER ?? 'default';
+  const pass = process.env.REDIS_PASSWORD ?? process.env.REDISPASSWORD ?? '';
+  const rawHost = process.env.REDISHOST ?? '';
+  const port = process.env.REDISPORT ?? '6379';
+  const host = rawHost && !rawHost.includes('${{') ? rawHost : 'localhost';
+  if (!pass || host === 'localhost') return `redis://${host}:${port}`;
+  if (user === 'default') return `redis://:${pass}@${host}:${port}`;
+  return `redis://${user}:${pass}@${host}:${port}`;
+}
+
+async function withQueue<T>(
+  queueName: string,
+  fn: (queue: Queue) => Promise<T>
+): Promise<T> {
+  const conn = new IORedis(buildRedisUrl(), { maxRetriesPerRequest: 3, enableReadyCheck: false });
+  const queue = new Queue(queueName, { connection: conn });
+  try {
+    const result = await fn(queue);
+    return result;
+  } finally {
+    await queue.close();
+    conn.disconnect();
+  }
+}
+
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -75,17 +108,19 @@ export async function requestMyDataRefresh(periodType: 'WEEKLY' | 'MONTHLY' = 'M
   // ── Queue the fetch job ───────────────────────────────────────────────────
   const { periodStart, periodEnd } = getCurrentPeriod(periodType);
 
-  await chessFetchQueue.add(
-    JOB_NAMES.FETCH_STUDENT,
-    {
-      studentProfileId,
-      chessComUsername: chessComUsername ?? null,
-      lichessUsername: lichessUsername ?? null,
-      periodType,
-      periodStart: periodStart.toISOString(),
-      periodEnd: periodEnd.toISOString(),
-    },
-    { priority: 2 } // lower priority than admin batch
+  await withQueue(QUEUE_NAMES.CHESS_FETCH, (q) =>
+    q.add(
+      JOB_NAMES.FETCH_STUDENT,
+      {
+        studentProfileId,
+        chessComUsername: chessComUsername ?? null,
+        lichessUsername: lichessUsername ?? null,
+        periodType,
+        periodStart: periodStart.toISOString(),
+        periodEnd: periodEnd.toISOString(),
+      },
+      { priority: 2 } // lower priority than admin batch
+    )
   );
 
   return {
@@ -142,7 +177,7 @@ export async function refreshAllStudents(periodType: 'WEEKLY' | 'MONTHLY' = 'MON
     return { success: false, error: 'No students with linked chess accounts found.' };
   }
 
-  // Queue jobs for all students
+  // Queue jobs for all students using a short-lived connection
   const jobs = profiles.map((p) => ({
     name: JOB_NAMES.FETCH_ALL,
     data: {
@@ -156,7 +191,7 @@ export async function refreshAllStudents(periodType: 'WEEKLY' | 'MONTHLY' = 'MON
     opts: { priority: 1 }, // high priority for admin batch
   }));
 
-  await chessFetchQueue.addBulk(jobs);
+  await withQueue(QUEUE_NAMES.CHESS_FETCH, (q) => q.addBulk(jobs));
 
   revalidatePath('/admin/leaderboard');
   return {
@@ -172,14 +207,16 @@ export async function triggerLeaderboardCalc(periodType: 'WEEKLY' | 'MONTHLY' = 
 
   const { periodStart, periodEnd } = getCurrentPeriod(periodType);
 
-  await leaderboardCalcQueue.add(
-    JOB_NAMES.CALC_LEADERBOARD,
-    {
-      periodType,
-      periodStart: periodStart.toISOString(),
-      periodEnd: periodEnd.toISOString(),
-    },
-    { priority: 1 }
+  await withQueue(QUEUE_NAMES.LEADERBOARD_CALC, (q) =>
+    q.add(
+      JOB_NAMES.CALC_LEADERBOARD,
+      {
+        periodType,
+        periodStart: periodStart.toISOString(),
+        periodEnd: periodEnd.toISOString(),
+      },
+      { priority: 1 }
+    )
   );
 
   return {
