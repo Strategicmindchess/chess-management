@@ -124,60 +124,50 @@ export async function submitClassLog(input: SubmitClassLogInput) {
           console.log(`[ClassLog] Found ${enrolledStudents.length} enrolled students in batch ${batch.id}`);
 
           for (const resource of resources) {
-            let batchAssignmentId = "";
-            try {
-              console.log(`[ClassLog] Attempting to create BatchAssignment for resource ${resource.id}`);
-              const batchAssignment = await tx.batchAssignment.create({
-                data: {
+            // Check whether this lecture assignment was already released
+            const existingBatchAssignment = await tx.batchAssignment.findUnique({
+              where: {
+                batchId_resourceId: {
                   batchId: batch.id,
                   resourceId: resource.id,
-                  lectureNumber: classInstance.sessionNumber,
-                  releasedAt: releaseDate,
-                  // dueDate is intentionally left null
                 },
-              });
-              batchAssignmentId = batchAssignment.id;
-              console.log(`[ClassLog] Created BatchAssignment with ID ${batchAssignmentId}`);
-            } catch (err: any) {
-              // P2002 = unique constraint violation on @@unique([batchId, resourceId])
-              if (err.code === "P2002") {
-                console.log(`[ClassLog] P2002: BatchAssignment already exists. Fetching existing...`);
-                const existing = await tx.batchAssignment.findUnique({
-                  where: {
-                    batchId_resourceId: {
-                      batchId: batch.id,
-                      resourceId: resource.id,
-                    }
-                  }
-                });
-                if (existing) {
-                  batchAssignmentId = existing.id;
-                  console.log(`[ClassLog] Fetched existing BatchAssignment ID ${batchAssignmentId}`);
-                  
-                  // Update release date just in case
-                  await tx.batchAssignment.update({
-                    where: { id: batchAssignmentId },
-                    data: { releasedAt: releaseDate }
-                  });
-                }
-              } else {
-                console.error(`[ClassLog] Error creating BatchAssignment:`, err);
-                throw err;
-              }
+              },
+              select: {
+                id: true,
+              },
+            });
+
+            // Lecture was already completed/released earlier.
+            // Do not release the same assignment again.
+            if (existingBatchAssignment) {
+              console.log(
+                `[ClassLog] Assignment already exists for batch ${batch.id}, resource ${resource.id}. Skipping release.`
+              );
+              continue;
             }
 
-            if (batchAssignmentId && enrolledStudents.length > 0) {
-              console.log(`[ClassLog] Creating ${enrolledStudents.length} StudentAssignments for BatchAssignment ${batchAssignmentId}`);
+            // First time this lecture is completed → create assignment
+            const batchAssignment = await tx.batchAssignment.create({
+              data: {
+                batchId: batch.id,
+                resourceId: resource.id,
+                lectureNumber: classInstance.sessionNumber,
+                releasedAt: releaseDate,
+              },
+            });
+
+            console.log(`[ClassLog] Created BatchAssignment ${batchAssignment.id}`);
+
+            if (enrolledStudents.length > 0) {
               const created = await tx.studentAssignment.createMany({
                 data: enrolledStudents.map((s) => ({
-                  batchAssignmentId: batchAssignmentId,
+                  batchAssignmentId: batchAssignment.id,
                   studentProfileId: s.studentProfileId,
                 })),
-                skipDuplicates: true, // Handle multiple student additions safely
+                skipDuplicates: true,
               });
+
               console.log(`[ClassLog] Successfully created ${created.count} StudentAssignments`);
-            } else {
-              console.log(`[ClassLog] Skipping StudentAssignments. batchAssignmentId: ${!!batchAssignmentId}, enrolledStudents: ${enrolledStudents.length}`);
             }
           }
         }
