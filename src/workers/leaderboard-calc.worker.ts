@@ -36,8 +36,8 @@ function calcBlitzPoints(blitzGames: number): number {
 
 function calcPuzzlePoints(puzzleSolved: number): number {
   const counted = Math.min(puzzleSolved, POINTS.PUZZLE_MAX_SOLVES);
-  // Use * 0.5 (not Math.floor) to preserve fractional points, matching report script
-  return counted * POINTS.PUZZLE_PER_SOLVE;
+  // Match Prisma Int schema by flooring the result (avoid Prisma float validation error)
+  return Math.floor(counted * POINTS.PUZZLE_PER_SOLVE);
 }
 
 function calcWinRateBonus(

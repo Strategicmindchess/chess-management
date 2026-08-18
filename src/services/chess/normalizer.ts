@@ -87,6 +87,11 @@ export function normalizeChessCom(
 
     const tc = game.time_class.toLowerCase();
 
+    // Do not count abandoned games at all
+    if (playerData.result === 'abandoned') {
+      continue;
+    }
+
     if (tc === 'rapid') {
       rapidGames++;
       if (isWin) rapidWins++;
@@ -169,6 +174,12 @@ export function normalizeLichess(
     const winner = game.winner as string | undefined;
     const isWin = winner === playerSide;
     const status = game.status as string | undefined;
+
+    // Do not count aborted or unstarted games at all
+    if (status === 'aborted' || status === 'noStart') {
+      continue;
+    }
+
     const isDraw = status === 'draw' || status === 'stalemate';
     const isLoss = !isWin && !isDraw;
 
