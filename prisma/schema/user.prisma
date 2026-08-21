@@ -53,6 +53,7 @@ model StudentProfile {
   enrollments           BatchStudent[]
   leaderboardAttendance LeaderboardAttendance[]
   assignments           StudentAssignment[]
+  syncRuns              StudentSyncRun[]
   assignedCoach         CoachProfile?           @relation("StudentAssignedCoach", fields: [assignedCoachId], references: [id])
   user                  User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
   stats                 StudentChessStats?

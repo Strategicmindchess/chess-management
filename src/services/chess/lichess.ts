@@ -2,29 +2,17 @@
  * Lichess.org Public API wrapper — raw data only, no normalization.
  * Docs: https://lichess.org/api
  * No API key required for public user data.
+ *
+ * All functions return ApiResult<T> so callers can distinguish
+ * genuine empty data (ok: true, data: []) from failed requests (ok: false).
+ *
+ * fetchLichessGamesInRange uses apiNdjsonFetch — same retry policy as apiFetch.
  */
 
+import { apiFetch, apiNdjsonFetch, type ApiResult } from './api-fetch';
+
 const BASE = 'https://lichess.org';
-
-const HEADERS: Record<string, string> = {
-  'User-Agent': 'SMC-CRM/1.0 (chess@strategicmindchess.in)',
-  Accept: 'application/json',
-};
-
-async function fetchJson<T>(url: string): Promise<T | null> {
-  try {
-    const res = await fetch(url, { headers: HEADERS, cache: 'no-store' });
-    if (res.status === 404) return null;
-    if (!res.ok) {
-      console.error(`[Lichess] API error ${res.status} for ${url}`);
-      return null;
-    }
-    return (await res.json()) as T;
-  } catch (err) {
-    console.error(`[Lichess] Fetch failed for ${url}:`, err);
-    return null;
-  }
-}
+const OPTS = { label: '[Lichess]' };
 
 export interface LichessPerf {
   games: number;
@@ -105,63 +93,62 @@ export interface LichessRawActivityEntry {
   };
 }
 
+let lastLichessCall = 0;
+async function throttleLichess() {
+  const now = Date.now();
+  const timeSinceLast = now - lastLichessCall;
+  if (timeSinceLast < 1000) {
+    await new Promise(r => setTimeout(r, 1000 - timeSinceLast));
+  }
+  lastLichessCall = Date.now();
+}
+
 /** Fetch Lichess user profile with all perfs */
-export async function fetchLichessUser(username: string): Promise<LichessRawUser | null> {
-  return fetchJson<LichessRawUser>(
-    `${BASE}/api/user/${encodeURIComponent(username)}`
+export async function fetchLichessUser(username: string): Promise<ApiResult<LichessRawUser>> {
+  await throttleLichess();
+  return apiFetch<LichessRawUser>(
+    `${BASE}/api/user/${encodeURIComponent(username)}`,
+    OPTS
   );
 }
 
 /** Fetch Lichess daily activity (last ~40 days, public endpoint) */
-export async function fetchLichessActivity(username: string): Promise<LichessRawActivityEntry[]> {
-  const data = await fetchJson<LichessRawActivityEntry[]>(
-    `${BASE}/api/user/${encodeURIComponent(username)}/activity`
+export async function fetchLichessActivity(username: string): Promise<ApiResult<LichessRawActivityEntry[]>> {
+  await throttleLichess();
+  return apiFetch<LichessRawActivityEntry[]>(
+    `${BASE}/api/user/${encodeURIComponent(username)}/activity`,
+    OPTS
   );
-  return data ?? [];
 }
 
 /**
  * Fetch Lichess games in a date range via NDJSON streaming endpoint.
- * Returns parsed game objects.
+ * Uses apiNdjsonFetch — same retry/backoff as apiFetch.
+ * Returns ApiResult<Array<Record<string, unknown>>>.
+ * ok: true + data: [] = genuine zero (player had no games in period).
+ * ok: false = fetch failed after retries — caller must NOT treat as zero.
  */
 export async function fetchLichessGamesInRange(
   username: string,
   since: Date,
   until: Date
-): Promise<Array<Record<string, unknown>>> {
+): Promise<ApiResult<Array<Record<string, unknown>>>> {
+  await throttleLichess();
   const url =
     `${BASE}/api/games/user/${encodeURIComponent(username)}` +
     `?since=${since.getTime()}&until=${until.getTime()}` +
     `&perfType=rapid,blitz,classical,bullet,ultraBullet` +
     `&clocks=false&evals=false&opening=false`;
 
-  try {
-    const res = await fetch(url, {
-      headers: { ...HEADERS, Accept: 'application/x-ndjson' },
-      cache: 'no-store',
-    });
-    if (!res.ok) {
-      console.error(`[Lichess] Games range error ${res.status}`);
-      return [];
-    }
-    const text = await res.text();
-    const games: Array<Record<string, unknown>> = [];
-    for (const line of text.trim().split('\n').filter(Boolean)) {
-      try {
-        games.push(JSON.parse(line));
-      } catch { /* skip */ }
-    }
-    return games;
-  } catch (err) {
-    console.error('[Lichess] Games range fetch failed:', err);
-    return [];
-  }
+  return apiNdjsonFetch<Record<string, unknown>>(url, OPTS);
 }
 
 /** Verify a Lichess username exists */
 export async function verifyLichessUser(username: string): Promise<boolean> {
-  const data = await fetchJson<Record<string, unknown>>(
-    `${BASE}/api/user/${encodeURIComponent(username)}`
+  await throttleLichess();
+  const result = await apiFetch<Record<string, unknown>>(
+    `${BASE}/api/user/${encodeURIComponent(username)}`,
+    OPTS
   );
-  return data !== null;
+  return result.ok;
 }

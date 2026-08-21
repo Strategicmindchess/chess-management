@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { leaderboardCalcQueue, attendanceSummaryQueue } from '@/workers/leaderboard.queues';
+import { leaderboardCalcQueue, attendanceSummaryQueue, assignmentSummaryQueue } from '@/workers/leaderboard.queues';
 import { logger } from '@/lib/logger';
 import { JOB_NAMES } from '@/lib/leaderboard-config';
 import { startOfMonth, endOfMonth } from 'date-fns';
@@ -14,6 +14,12 @@ export async function GET(req: Request) {
     const mEnd = endOfMonth(now).toISOString();
 
     await attendanceSummaryQueue.add(JOB_NAMES.CALC_ATTENDANCE, {
+      periodType: 'MONTHLY',
+      periodStart: mStart,
+      periodEnd: mEnd,
+    });
+    
+    await assignmentSummaryQueue.add(JOB_NAMES.CALC_ASSIGNMENT, {
       periodType: 'MONTHLY',
       periodStart: mStart,
       periodEnd: mEnd,

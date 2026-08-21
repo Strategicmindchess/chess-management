@@ -96,6 +96,7 @@ export const QUEUE_NAMES = {
   LEADERBOARD_CALC: `leaderboard-calc${envSuffix}`,
   LOG_CLEANUP: `log-cleanup${envSuffix}`,
   ATTENDANCE_SUMMARY: `attendance-summary${envSuffix}`,
+  ASSIGNMENT_SUMMARY: `assignment-summary${envSuffix}`,
 } as const;
 
 // ── Job names ────────────────────────────────────────────────────────────────
@@ -105,4 +106,5 @@ export const JOB_NAMES = {
   CALC_LEADERBOARD: 'calc-leaderboard', // Run score calculation
   PURGE_OLD_LOGS: 'purge-old-logs',     // Delete fetch logs > 30 days
   CALC_ATTENDANCE: 'calc-attendance',   // Calculate attendance % for period
+  CALC_ASSIGNMENT: 'calc-assignment',   // Calculate assignment completion for period
 } as const;

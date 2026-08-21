@@ -119,7 +119,14 @@ export async function requestMyDataRefresh(periodType: 'WEEKLY' | 'MONTHLY' = 'M
         periodStart: periodStart.toISOString(),
         periodEnd: periodEnd.toISOString(),
       },
-      { priority: 2 } // lower priority than admin batch
+      { 
+        priority: 2,
+        attempts: 20, // ~1 hour of retries
+        backoff: {
+          type: 'fixed',
+          delay: 3 * 60 * 1000 // 3 minutes between retries
+        }
+      }
     )
   );
 
@@ -159,17 +166,24 @@ export async function refreshAllStudents(periodType: 'WEEKLY' | 'MONTHLY' = 'MON
 
   const { periodStart, periodEnd } = getCurrentPeriod(periodType);
 
+  // Query students that have a linked ChessAccount (with at least one username set)
   const profiles = await prisma.studentProfile.findMany({
     where: {
-      OR: [
-        { chessComId: { not: null } },
-        { lichessId: { not: null } },
-      ],
+      chessAccount: {
+        OR: [
+          { chessComUsername: { not: null } },
+          { lichessUsername: { not: null } },
+        ],
+      },
     },
     select: {
       id: true,
-      chessComId: true,
-      lichessId: true,
+      chessAccount: {
+        select: {
+          chessComUsername: true,
+          lichessUsername: true,
+        },
+      },
     },
   });
 
@@ -182,13 +196,20 @@ export async function refreshAllStudents(periodType: 'WEEKLY' | 'MONTHLY' = 'MON
     name: JOB_NAMES.FETCH_ALL,
     data: {
       studentProfileId: p.id,
-      chessComUsername: p.chessComId ?? null,
-      lichessUsername: p.lichessId ?? null,
+      chessComUsername: p.chessAccount?.chessComUsername ?? null,
+      lichessUsername: p.chessAccount?.lichessUsername ?? null,
       periodType,
       periodStart: periodStart.toISOString(),
       periodEnd: periodEnd.toISOString(),
     },
-    opts: { priority: 1 }, // high priority for admin batch
+    opts: { 
+      priority: 1,
+      attempts: 20,
+      backoff: {
+        type: 'fixed',
+        delay: 3 * 60 * 1000
+      }
+    }, // high priority for admin batch
   }));
 
   await withQueue(QUEUE_NAMES.CHESS_FETCH, (q) => q.addBulk(jobs));

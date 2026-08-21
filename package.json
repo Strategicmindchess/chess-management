@@ -7,6 +7,10 @@
     "build": "next build",
     "start": "cross-env NODE_OPTIONS=\"--max-old-space-size=256\" next start -p ${PORT:-3000}",
     "worker": "tsx worker.ts",
+    "worker:start": "pm2 start ecosystem.config.js",
+    "worker:stop": "pm2 stop smc-worker",
+    "worker:restart": "pm2 restart smc-worker",
+    "worker:logs": "pm2 logs smc-worker",
     "lint": "eslint",
     "postinstall": "prisma generate",
     "db:generate": "prisma generate",
@@ -55,6 +59,7 @@
     "dotenv": "^17.4.2",
     "eslint": "^9",
     "eslint-config-next": "16.2.10",
+    "pm2": "^7.0.3",
     "prisma": "^7.8.0",
     "tailwindcss": "^4",
     "typescript": "^5"

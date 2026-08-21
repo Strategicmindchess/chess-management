@@ -184,7 +184,7 @@ export default async function AdminLeaderboardPage({ searchParams }: { searchPar
               </span>
             )}
           </div>
-          <LeaderboardTable entries={leaderboardData.entries} />
+          <LeaderboardTable entries={leaderboardData.entries} showAdminFlags={true} />
         </div>
 
         <div>

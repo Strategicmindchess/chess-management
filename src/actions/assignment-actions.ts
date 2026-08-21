@@ -57,7 +57,7 @@ export async function getStudentAssignments() {
       return {
         id: sa.id,
         title: sa.batchAssignment.resource.title,
-        description: sa.batchAssignment.resource.description,
+        description: sa.batchAssignment.resource.source,
         url: sa.batchAssignment.resource.url,
         type: sa.batchAssignment.resource.type,
         lectureNumber: sa.batchAssignment.lectureNumber,

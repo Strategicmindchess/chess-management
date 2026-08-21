@@ -1,0 +1,1 @@
+node -e "const Redis = require('ioredis'); const r = new Redis(process.env.REDIS_URL); r.ping().then(v => { console.log('PING:', v); process.exit(0); }).catch(e => { console.error('ERR:', e.message); process.exit(1); });"

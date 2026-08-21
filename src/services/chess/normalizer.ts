@@ -5,7 +5,7 @@
  * This layer is intentionally pure: no DB calls, no side effects.
  */
 
-import type { ChessComRawStats, ChessComRawGame } from './chesscom';
+import type { ChessComRawGame } from './chesscom';
 import type { LichessRawUser, LichessRawActivityEntry } from './lichess';
 import { epochToISTDateStr } from './aggregator';
 
@@ -58,7 +58,7 @@ export interface ChessActivity {
  * `periodGames` = games fetched for the specific period (already filtered by date).
  */
 export function normalizeChessCom(
-  stats: ChessComRawStats | null,
+  stats: Record<string, any> | null,
   periodGames: ChessComRawGame[],
   username: string,
   activeDates: string[]
@@ -218,8 +218,11 @@ export function normalizeLichess(
     // Only count puzzles if they are within the actual period (sinceMs)
     if (entry.puzzles && ts >= sinceMs) {
       const score = entry.puzzles.score;
-      puzzleAttempts += score.win + score.loss + score.draw;
-      puzzleSolved += score.win;
+      const win = score?.win ?? 0;
+      const loss = score?.loss ?? 0;
+      const draw = score?.draw ?? 0;
+      puzzleAttempts += win + loss + draw;
+      puzzleSolved += win;
     }
 
     if (entry.games || entry.puzzles || entry.storm || entry.practice) {
@@ -256,7 +259,7 @@ export function normalizeLichess(
 import { calcStreak } from './aggregator';
 
 export function extractLifetimeStats(
-  ccStats: ChessComRawStats | null,
+  ccStats: Record<string, any> | null,
   liUser: LichessRawUser | null,
   ccActiveDates: string[] = [],
   liActiveDates: string[] = []

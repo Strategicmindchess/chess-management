@@ -53,6 +53,8 @@ export async function listS3Folder(prefix: string): Promise<S3Item[]> {
       }
     }
 
+    items.sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' }));
+
     return items;
   } catch (error) {
     console.error("Error listing S3 folder:", error);

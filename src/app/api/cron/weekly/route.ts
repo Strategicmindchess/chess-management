@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { leaderboardCalcQueue, attendanceSummaryQueue } from '@/workers/leaderboard.queues';
+import { leaderboardCalcQueue, attendanceSummaryQueue, assignmentSummaryQueue } from '@/workers/leaderboard.queues';
 import { logger } from '@/lib/logger';
 import { JOB_NAMES } from '@/lib/leaderboard-config';
 import { startOfWeek, endOfWeek } from 'date-fns';
@@ -14,6 +14,12 @@ export async function GET(req: Request) {
     const wEnd = endOfWeek(now, { weekStartsOn: 1 }).toISOString();
 
     await attendanceSummaryQueue.add(JOB_NAMES.CALC_ATTENDANCE, {
+      periodType: 'WEEKLY',
+      periodStart: wStart,
+      periodEnd: wEnd,
+    });
+    
+    await assignmentSummaryQueue.add(JOB_NAMES.CALC_ASSIGNMENT, {
       periodType: 'WEEKLY',
       periodStart: wStart,
       periodEnd: wEnd,

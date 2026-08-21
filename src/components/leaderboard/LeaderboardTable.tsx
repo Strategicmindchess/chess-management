@@ -10,6 +10,7 @@ interface LeaderboardTableProps {
   highlightStudentIds?: Set<string>;
   showBreakdown?: boolean;
   hideOtherUsernames?: boolean;
+  showAdminFlags?: boolean; // admin-only: show data quality warnings
 }
 
 const RANK_STYLES: Record<number, { bg: string; text: string; icon: React.ReactNode; border: string }> = {
@@ -98,7 +99,7 @@ function BreakdownPanel({ row }: { row: LeaderboardRow }) {
   );
 }
 
-export function LeaderboardTable({ entries, currentStudentId, highlightStudentIds, showBreakdown = true, hideOtherUsernames = false }: LeaderboardTableProps) {
+export function LeaderboardTable({ entries, currentStudentId, highlightStudentIds, showBreakdown = true, hideOtherUsernames = false, showAdminFlags = false }: LeaderboardTableProps) {
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
   if (entries.length === 0) {
@@ -159,12 +160,22 @@ export function LeaderboardTable({ entries, currentStudentId, highlightStudentId
 
               {/* Name + usernames */}
               <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-1.5">
+                <div className="flex items-center gap-1.5 flex-wrap">
                   <p className={`text-sm font-bold truncate ${rankStyle.text}`}>
                     {row.studentName}
                     {isMe && <span className="ml-1.5 text-[10px] font-semibold bg-brand-600 text-white px-1.5 py-0.5 rounded-full">You</span>}
                     {isMyStudent && !isMe && <span className="ml-1.5 text-[10px] font-semibold bg-brand-100 text-brand-700 border border-brand-200 px-1.5 py-0.5 rounded-full">My Student</span>}
                   </p>
+                  {/* Admin-only data quality flags */}
+                  {showAdminFlags && row.isDataStale && !row.ccFetchFailed && !row.liFetchFailed && (
+                    <span title="Snapshot data is 2+ days old" className="text-[9px] font-bold bg-yellow-100 text-yellow-700 border border-yellow-300 px-1.5 py-0.5 rounded-full">⚠ STALE</span>
+                  )}
+                  {showAdminFlags && row.ccFetchFailed && (
+                    <span title="Chess.com data fetch failed (429 or API error)" className="text-[9px] font-bold bg-red-100 text-red-600 border border-red-300 px-1.5 py-0.5 rounded-full">✕ CC FAIL</span>
+                  )}
+                  {showAdminFlags && row.liFetchFailed && (
+                    <span title="Lichess data fetch failed (429 or API error)" className="text-[9px] font-bold bg-red-100 text-red-600 border border-red-300 px-1.5 py-0.5 rounded-full">✕ LI FAIL</span>
+                  )}
                 </div>
                 <div className="flex items-center gap-2 mt-0.5">
                   {(!hideOtherUsernames || isMe) && row.chessComUsername && (

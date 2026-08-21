@@ -1,0 +1,22 @@
+node:internal/modules/cjs/loader:1401
+  const err = new Error(message);
+              ^
+
+Error: Cannot find module './src/lib/prisma'
+Require stack:
+- C:\Users\techs\prototype\scratch\fix_lb.ts
+    at node:internal/modules/cjs/loader:1401:15
+    at nextResolveSimple (C:\Users\techs\prototype\node_modules\tsx\dist\register-BLUABhh3.cjs:10:1017)
+    at C:\Users\techs\prototype\node_modules\tsx\dist\register-BLUABhh3.cjs:9:4613
+    at C:\Users\techs\prototype\node_modules\tsx\dist\register-BLUABhh3.cjs:9:3894
+    at resolveTsPaths (C:\Users\techs\prototype\node_modules\tsx\dist\register-BLUABhh3.cjs:10:770)
+    at C:\Users\techs\prototype\node_modules\tsx\dist\register-BLUABhh3.cjs:10:1171
+    at T._resolveFilename (file:///C:/Users/techs/prototype/node_modules/tsx/dist/register-D5KIhaFJ.mjs:2:15244)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1057:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1062:22)
+    at Function._load (node:internal/modules/cjs/loader:1211:37) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [ 'C:\\Users\\techs\\prototype\\scratch\\fix_lb.ts' ]
+}
+
+Node.js v22.15.0

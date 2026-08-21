@@ -1,7 +1,6 @@
 Assignments:
 Beginner Level – 1
-Lecture 1: Introduction → Ranks, Files, Diagonals, Board setup, Rook, Square
-names
+Lecture 1: Introduction → Ranks, Files, Diagonals, Board setup, Rook, Square names
 Assignment - https://lichess.org/learn#/1 Practice the Rook
 Lecture 2: Bishop, King, Queen
 Assignment 1- https://lichess.org/learn#/2 Pratice Bishop
@@ -36,8 +35,7 @@ Lecture 12: Test-1
 Assignment – Play 5 Games on chess.com
 Lecture 13: Rules of Draw→ 50-move rule, insufficient material,3-fold repetition
 Assignment - https://lichess.org/study/GoUI22rD - Practice
-Lecture 14: One-Queen checkmate (L & cutoff rules) + two Rook
-Checkmate(ladder)
+Lecture 14: One-Queen checkmate (L & cutoff rules) + two Rook Checkmate(ladder)
 Assignment 1- https://lichess.org/study/ExJNARYE/MT1DBPCW Checkmate
 Lecture 15: Draw by Stealmate Practice
 Assignment- Play 5 games on chess.com and solve 10 puzzles
@@ -52,8 +50,7 @@ Lecture 19: One Rook CheckMate
 Assignment 1- https://lichess.org/study/z7qpFiJZ/NYJsNpT3 Mate with one Rook
 Lecture 20: Double Attack
 Assignment 1- https://lichess.org/study/gaoTvKcj Practice Double Attack
-Lecture 21: Opening principles: 5 rules
-• Control center
+Lecture 21: Opening principles: 5 rules • Control center
 • Develop knight
 • Develop bishop
 • Queen move
@@ -79,13 +76,10 @@ Lecture 6: Hard Mate in 2, intro & practice
 Assignment 1- https://lichess.org/study/vMhn65yM/Kv6WSPpD
 Lecture 7: The Battery
 Assignment 1- https://lichess.org/study/nwe6PSLg - Pratice Battery- 20 puzzles
-Lecture 8: Openning Traps ( Domino’s Mate, Legals Mate, Fischer pole Trap,
-Budapest trap)
-Assignment 1- https://lichess.org/training/trappedPiece Trap Opponet Pieces- 20
-puzzles
+Lecture 8: Openning Traps ( Domino’s Mate, Legals Mate, Fischer pole Trap, Budapest trap)
+Assignment 1- https://lichess.org/training/trappedPiece Trap Opponet Pieces- 20 puzzles
 Lecture 9: Practice: Discovered attack
-Assignment 1-
-https://lichess.org/practice/fundamental-tactics/discovered-attacks/MnsJEWnI
+Assignment 1- https://lichess.org/practice/fundamental-tactics/discovered-attacks/MnsJEWnI
 Lecture 10: Italian opening → Basics
 Assignment 1- https://lichess.org/training/Italian_Game - Italian 20 Puzzles
 Lecture 11: Decoy & Deflection
@@ -100,26 +94,20 @@ Assignment 1- https://lichess.org/study/ASi3WVyi
 Lecture 15: Caro-Kann Exchange + Advance Basics, Theory intro
 Assignment 1- https://lichess.org/training/Caro-Kann_Defense - 20 puzzles
 Lecture 16: checkmate Pattern ( Back Rank mate, Lollis Mate, Dovetailas mate)
-Assignment -1
-https://lichess.org/practice/checkmates/checkmate-patterns-i/fE4k21MW
+Assignment -1- https://lichess.org/practice/checkmates/checkmate-patterns-i/fE4k21MW
 Lecture 17: checkmate Pattern R+N ( Anasthisia mate, Hooks Mate, Arabian mate)
-Assignment -1
-https://lichess.org/practice/checkmates/checkmate-patterns-ii/8yadFPpU
-Assignment 2-
-https://lichess.org/practice/checkmates/checkmate-patterns-iii/PDkQDt6u
+Assignment -1- https://lichess.org/practice/checkmates/checkmate-patterns-ii/8yadFPpU
+Assignment 2- https://lichess.org/practice/checkmates/checkmate-patterns-iii/PDkQDt6u
 Lecture 18: Checkmate with two Bishops + Revision 1 Rook Checkmate
 Assignment 1- https://lichess.org/study/Me95n7N4
 Lecture 19: Overloading
-Assignment- 1
-https://lichess.org/practice/fundamental-tactics/overloaded-pieces/o734CNqp - 20
-puzzles
+Assignment- 1- https://lichess.org/practice/fundamental-tactics/overloaded-pieces/o734CNqp - 20 puzzles
 Lecture 20 : Trapping Opponents Pieces
 Assignment 1- https://lichess.org/training/trappedPiece - 20 puzzles
 Lecture 21: Colliner Move ( Easy) + Student Game Analysis
 Assignment 1- https://lichess.org/training/collinearMove - 20 puzzles
 Lecture 22 : Introduction of London System
-Assignment 1- https://lichess.org/training/Indian_Defense_London_System - 20
-puzzles
+Assignment 1- https://lichess.org/training/Indian_Defense_London_System - 20 puzzles
 Lecture 23: Checkmate Threat
 Assignment 1- https://lichess.org/study/siJkb98m
 Lecture 24: Test 2
@@ -144,11 +132,9 @@ Assignment 1- https://lichess.org/training/attraction - 20 puzzles
 Lecture 9: Clearence
 Assignment 1- https://lichess.org/training/clearance - 20 puzzles
 Lecture 10: London System (traps)
-Assignment 1- https://lichess.org/training/Indian_Defense_London_System -20
-puzzles
+Assignment 1- https://lichess.org/training/Indian_Defense_London_System -20 puzzles
 Lecture 11: London System (Master Games)
-Assignment 1- https://lichess.org/training/Indian_Defense_London_System - 20
-puzzles
+Assignment 1- https://lichess.org/training/Indian_Defense_London_System - 20 puzzles
 Lecture 12: Test-1
 Assignment 1- Play 5 games on chess.com of 10+0 time control
 Lecture 13: Pawn Breakthrough
@@ -163,8 +149,7 @@ Lecture 16: checkmate Pattern ( Smothered mate,boden’s mate, Balestra mate)
 Assignment 1- https://lichess.org/study/RIyCtYY8/pp3r8YkQ
 Lecture 17: Introduction of Kings Indian Defence
 Assignment 1- https://lichess.org/training/Kings_Indian_Defense -20 puzzles
-Lecture 18: Opening Traps: (shilling Kostic gambit, England gambit, (pros and
-cons.)
+Lecture 18: Opening Traps: (shilling Kostic gambit, England gambit, (pros and cons.)
 Assignments 1- https://lichess.org/training/trappedPiece - 20 puzzles
 Lecture 19: Windmill attack
 Assignment 1- https://lichess.org/study/KCVfcPkl
@@ -175,8 +160,7 @@ Assignment 1- https://lichess.org/training/collinearMove - 20 puzzles
 Lecture 22: Openings Traps in carokann
 Assignment 1- https://lichess.org/study/i5EqteMO/ssTBJyDn
 Lecture 23 : Basic Rook endgings( Lucena & Phillodor)
-Assignment 1-
-https://lichess.org/practice/rook-endgames/basic-rook-endgames/pqUSUw8Y
+Assignment 1- https://lichess.org/practice/rook-endgames/basic-rook-endgames/pqUSUw8Y
 Lecture 24: Test 2
 Core Level 3 (800–1000)
 Lecture 1: Revision Of core Level-2
@@ -217,12 +201,9 @@ Assignment 1- https://lichess.org/training/Kings_Indian_Defense - 20 puzzles
 Lecture 18: Stonewall Opening Attack
 Assignment 1- https://lichess.org/training/Queens_Pawn_Game_Stonewall_Attack -
 20 puzzles
-Lecture 19: Rook endgame( Vancura Position and Savedra position, revision lucena
-, phillodor) –
-Assignment 1-
-https://lichess.org/practice/rook-endgames/basic-rook-endgames/pqUSUw8Y
-Assignment 2-
-https://lichess.org/practice/rook-endgames/7th-rank-rook-pawn/MkDViieT
+Lecture 19: Rook endgame( Vancura Position and Savedra position, revision lucena , phillodor) –
+Assignment 1- https://lichess.org/practice/rook-endgames/basic-rook-endgames/pqUSUw8Y
+Assignment 2- https://lichess.org/practice/rook-endgames/7th-rank-rook-pawn/MkDViieT
 Lecture 20 : Student Game Analysis
 Assignment 1- Play 5 Rapid chess games on chess.com
 Lecture 21: Good bishop vs Bad Bishops
@@ -253,8 +234,7 @@ Lecture 9: Opposite color bishop Endgame
 Assignment 1- https://lichess.org/training/bishopEndgame
 Lecture 10: Fortress- Part 1
 Assignment 1- https://lichess.org/study/zuslLZks
-Lecture 11: Queen vs 7
-th Rank Pawn
+Lecture 11: Queen vs 7 th Rank Pawn
 Assignment 1- https://lichess.org/training/queenEndgame - 20 puzzles
 Lecture 12: Test-1
 Assignment 1- Play 5 games on chess,com
@@ -262,8 +242,7 @@ Lecture 13: Sicillian Defence- Taimanov Variation
 Assignment 1- https://lichess.org/training/Sicilian_Defense_Taimanov_Variation -
 20 puzzles
 Lecture 14: Contering sicillian with Delayed Alpin Variation
-Assignment 1-
-https://lichess.org/training/Sicilian_Defense_Delayed_Alapin_Variation - 20 puzzles
+Assignment 1- https://lichess.org/training/Sicilian_Defense_Delayed_Alapin_Variation - 20 puzzles
 Lecture 15: Tactical theme- Clearence
 Assignment 1- https://lichess.org/training/clearance 20 puzzles
 Lecture 16: Student Game Analysis
@@ -273,8 +252,7 @@ Assignment 1- https://lichess.org/training/Caro-Kann_Defense_Exchange_Variation
 - 20 puzzles
 Lecture 18: Defensive Moves- part 2
 Assignment 1- https://lichess.org/training/defensiveMove - 20 puzzles
-Lecture 19: Rook endgame( Pawn on 7
-th Rank)
+Lecture 19: Rook endgame( Pawn on 7 th Rank)
 Assignment 1- https://lichess.org/training/rookEndgame - 20 puzzles
 Lecture 20: Student Game Analysis
 Assignment 1- Play 5 Games of 10+0 time ctrl
@@ -304,8 +282,7 @@ Assignment 1- https://lichess.org/training/middlegame - 20 puzzles
 Lecture 32: Test 2
 Bridge Level ( 8 Lectures)
 Lecture 1: Pin, Skewer,Deflection, Attraction,Overloading,X-ray attack,Intermezzo
-Lecture 2: Positional revision (outpost, week square, minority attack, good B vs Bad
-B, Good K vs Bad Bishop)
+Lecture 2: Positional revision (outpost, week square, minority attack, good B vs Bad B, Good K vs Bad Bishop)
 Lecture 3: :Endgame( Full Rook endinsg)
 Lecture 4: endgame( same color and opposite color Bishops)
 Lecture 5: Attack & Defence(Greek gift, defensive move,counter attack)
@@ -330,8 +307,7 @@ Assignment -1 https://lichess.org/training/Caro-Kann_Defense_Maroczy_Variation -
 Lecture 7: Student games analysis
 Assignment 1- Play 5 rapid Games on chess.com
 Lecture 8: Tactics- Tal
-Assignment 1-
-https://lichess.org/training/Sicilian_Defense_Richter-Rauzer_Variation 20 puzzles
+Assignment 1- https://lichess.org/training/Sicilian_Defense_Richter-Rauzer_Variation 20 puzzles
 Lecture 9: The Bishop Pair
 Assignment 1- https://lichess.org/study/C3ihYJIf - Analyse Bishop Pair
 Lecture 10: Caro Kann Advance Variation
@@ -350,12 +326,10 @@ Assignment -1 https://lichess.org/training/advantage - 20 puzzles
 Lecture 16: Student Game Analysis
 Assignment 1- Play 5 games on chess.com
 Lecture 17: Pawn Structure- IQP
-Assignment 1- https://lichess.org/training/Caro-Kann_Defense_Panov_Attack - 20
-puzzles
+Assignment 1- https://lichess.org/training/Caro-Kann_Defense_Panov_Attack - 20 puzzles
 Lecture 18: Defensive Moves- part 2
 Assignment -1 https://lichess.org/training/defensiveMove - 20 puzzles
-Lecture 19: Rook endgame( Pawn on 7
-th Rank)
+Lecture 19: Rook endgame( Pawn on 7 th Rank)
 Assignment 1- https://lichess.org/training/rookEndgame - 20 puzzles
 Lecture 20: Student Game Analysis
 Assignment 1- Play 5 games on chess.com
@@ -393,11 +367,9 @@ Assignment 1- Play 5 games on chess.com
 Lecture 36: Test-3
 Intermediate Level 2 (1400-1600)
 Lecture 1: Revision- Pawn structure- IQP
-Assignment 1- https://lichess.org/training/Caro-Kann_Defense_Panov_Attack 20
-puzzles
+Assignment 1- https://lichess.org/training/Caro-Kann_Defense_Panov_Attack 20 puzzles
 Lecture 2: Revision- Pawn structure- Hanging Pawn Structure + Minority Attack
-Assignment -1 https://lichess.org/training/Caro-Kann_Defense_Main_Line 20
-puzzles
+Assignment -1 https://lichess.org/training/Caro-Kann_Defense_Main_Line 20 puzzles
 Lecture 3: Flank Attack
 Assignment 1- https://lichess.org/training/Sicilian_Defense_Najdorf_Variation 20
 puzzle
@@ -411,8 +383,7 @@ Lecture 7: Student games analysis
 Assignment 1- Play 5 games on chess.com
 Lecture 8: Tactics- Carlsen
 Assignment 1- https://lichess.org/training/middlegame 20 puzzles
-Lecture 9: Rook Endgame- Theoretical 6
-th
+Lecture 9: Rook Endgame- Theoretical 6 th
 rank pawn
 Assignment 1- https://lichess.org/training/rookEndgame - 20 puzzles
 Lecture 10: pawn structure Maróczy Bind → Introduction & Main Ideas
@@ -431,8 +402,7 @@ Assignment 1- https://lichess.org/training/trappedPiece 20 puzzles
 Lecture 16: Theoretical Knight Endgame
 Assignment 1- https://lichess.org/training/knightEndgame 20 puzzles
 Lecture 17: Checkmate with Knight + Bishop
-Assignment 1-
-https://lichess.org/practice/checkmates/knight-bishop-mate/ByhlXnmM
+Assignment 1- https://lichess.org/practice/checkmates/knight-bishop-mate/ByhlXnmM
 Lecture 18: Tactical Trainning- Knight vs Knight Endgame( medium Level)
 Assignment 1- https://lichess.org/training/knightEndgame 20 puzzles
 Lecture 19: Strategical Training- Converting Bishop Endings(Medium Level)
@@ -448,8 +418,7 @@ Assignment 1- https://lichess.org/study/C56q6Skj Solve puzzles
 Lecture 24 : Student Game Analysis
 Assignment 1- Play 5 games on chess.com
 Lecture 25: Opening- Sicillian Dragon
-Assignment 1- https://lichess.org/training/Sicilian_Defense_Dragon_Variation 20
-puzzles
+Assignment 1- https://lichess.org/training/Sicilian_Defense_Dragon_Variation 20 puzzles
 Lecture 26: Tactical Trainning- King Side Attack
 Assignment 1- https://lichess.org/training/kingsideAttack 20 puzzles
 Lecture 27: Sacrifice the piece for 2 pawns
@@ -459,8 +428,7 @@ Assignment 1- https://lichess.org/training/Scotch_Game 20 puzzles
 Lecture 29: Mate in 4 Practice
 Assignment 1- https://lichess.org/training/mateIn4 20 puzzles
 Lecture: 30: Sicillian Delayed Alpin
-Assignment 1- https://lichess.org/training/Sicilian_Defense_Alapin_Variation 20
-puzzles
+Assignment 1- https://lichess.org/training/Sicilian_Defense_Alapin_Variation 20 puzzles
 Lecture 31: Carokann side variations
 Assignment 1- https://lichess.org/training/Caro-Kann_Defense 20 puzzles
 Lecture 32: Tactical Trainning- Queen Side Attack( Level Medium)
@@ -477,8 +445,7 @@ Lecture 1: Dynamic Pawn structure- Maroczy, Benoni, Benko
 Assignment 1- https://lichess.org/training/Benko_Gambit 20 puzzles
 Assignment 2- https://lichess.org/training/Benoni_Defense 20 puzzles
 Lecture 2: Statatic Pawn structure- Hanging Pawn Structure,Carlsbud, IQP
-Assignment 1- https://lichess.org/training/Caro-Kann_Defense_Panov_Attack 20
-puzzles
+Assignment 1- https://lichess.org/training/Caro-Kann_Defense_Panov_Attack 20 puzzles
 Lecture 3: Tactics- Mate in 5 Practice
 Assignment 1- https://lichess.org/training/mateIn5 -20 puzzles
 Lecture 4: Opening- Sicilian Nimzowitch
@@ -495,12 +462,9 @@ Assignment 1- https://lichess.org/training/quietMove 20 puzzles
 Lecture 9: Rook Endgame- One Extra Pawn Convertion
 Assignment 1 - https://lichess.org/training/rookEndgame 20 puzzles
 Lecture 10: pawn structure Schevengien - Ideas
-Assignment 1- https://lichess.org/training/Sicilian_Defense_Taimanov_Variation 20
-puzzles
+Assignment 1- https://lichess.org/training/Sicilian_Defense_Taimanov_Variation 20 puzzles
 Lecture 11: Opening- Queen’s Gambit Declined
-Assignment 1
-https://lichess.org/training/Zukertort_Opening_Queens_Gambit_Invitation - 20
-puzzles
+Assignment 1- https://lichess.org/training/Zukertort_Opening_Queens_Gambit_Invitation - 20 puzzles
 Lecture 12: Test-1
 Assignment 1- Play 5 games on chess.com
 Lecture 13: Model Games- Sicillian Nimzowitch
@@ -523,8 +487,7 @@ Assignment 1- Play 5 games on chess.com
 Lecture 21: Opposite Colored Endings
 Assignment 1- https://lichess.org/training/bishopEndgame 20 puzzles
 Lecture 22: Botwnik – The Legend ( Mikhail Botvinnik vs. Vasily Smyslov )
-Assignment 1- https://lichess.org/training/Caro-Kann_Defense_Endgame_Offer 20
-puzzles
+Assignment 1- https://lichess.org/training/Caro-Kann_Defense_Endgame_Offer 20 puzzles
 Lecture 23 : Focal Point Attack (h6 -h3) weekness- part 2
 Assignment 1- https://lichess.org/study/TVwH9esF 20 puzzles
 Lecture 24 : Student Game Analysis
@@ -566,8 +529,7 @@ Advance Level 1 (1800-2000)
 Lecture 1: Revision- Volga Benko Struture
 Assignment -1 https://lichess.org/training/Benko_Gambit - 60 puzzles hard
 Lecture 2: Statatic Pawn structure- Hanging Pawn Structure, IQP
-Assignment 1- https://lichess.org/training/Caro-Kann_Defense_Panov_Attack - 60
-puzzles
+Assignment 1- https://lichess.org/training/Caro-Kann_Defense_Panov_Attack - 60 puzzles
 Lecture 3: Dynamic Pawn Strcutures
 Assignment 1- https://lichess.org/study/8VyCgyRa Analyse games
 Lecture 4: Rook end with extra a-h passed pawn
@@ -579,15 +541,13 @@ Assignment 1- https://lichess.org/training/endgame 30 puzzles Hard
 Lecture 7: Student games analysis
 Assignment 1- Play and analyse 3 games on chess.com
 Lecture 8: Opening Sicillian Delayed Alpin- Basman Pantnik Gambit
-Assignment 1-
-https://lichess.org/training/Sicilian_Defense_Delayed_Alapin_Variation - 30 puzzles
+Assignment 1- https://lichess.org/training/Sicilian_Defense_Delayed_Alapin_Variation - 30 puzzles
 hard level
 Lecture 9: Opening Semi Slav
 Assignment 1- https://lichess.org/training/Semi-Slav_Defense_Accepted 30 puzzles
 Hard level
 Lecture 10: pawn structure Rosolimo Attack
-Assignment 1-
-https://lichess.org/training/Sicilian_Defense_Nyezhmetdinov-Rossolimo_Attack - 30
+Assignment 1- https://lichess.org/training/Sicilian_Defense_Nyezhmetdinov-Rossolimo_Attack - 30
 puzzles Hard level
 Lecture 11: Opening- French Winawer
 Assignment 1- https://lichess.org/training/French_Defense_Winawer_Variation 30
@@ -601,8 +561,7 @@ Lecture 14: Prophylaxix- part 2
 Assignment 1- https://lichess.org/study/dwATHyhI - Self Analysis
 Lecture 15: Endgame- Rook deep ideas
 Assignment 1- https://lichess.org/training/endgame 30 puzzles hard
-Lecture 16: 7
-th Rank Theoretical Plans in Rook Endgame
+Lecture 16: 7 th Rank Theoretical Plans in Rook Endgame
 Assignment 1- https://lichess.org/training/rookEndgame 30 puzzles Hard
 Lecture 17: Opening- Grunfeld – Dynamic center Attack
 Assignment 1- https://lichess.org/training/Grunfeld_Defense 30 puzzles hard
@@ -657,8 +616,7 @@ Lecture 41: Opening- Caro kann Advance in detail
 Assignment -1 https://lichess.org/training/Caro-Kann_Defense_Advance_Variation
 - 30 puzzles hard
 Lecture 42: Opposite Side Flank Attack
-Assignment -1 https://lichess.org/training/Sicilian_Defense_Najdorf_Variation - 30
-puzzles
+Assignment -1 https://lichess.org/training/Sicilian_Defense_Najdorf_Variation - 30 puzzles
 Lecture 43: Opening – Caro Kann Classical variation- side prep for tournaments
 Assignment -1 https://lichess.org/training/Caro-Kann_Defense_Classical_Variation
 - 30 puzzles

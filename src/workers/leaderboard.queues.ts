@@ -28,8 +28,8 @@ export interface LeaderboardCalcJobData {
 export const chessFetchQueue = new Queue<ChessFetchJobData>(QUEUE_NAMES.CHESS_FETCH, {
   connection,
   defaultJobOptions: {
-    attempts: 3,
-    backoff: { type: 'exponential', delay: 5_000 },
+    attempts: 10,
+    backoff: { type: 'exponential', delay: 60_000 },
     removeOnComplete: { age: 86400, count: 500 },
     removeOnFail: { age: 86400, count: 500 },
   },
@@ -61,6 +61,22 @@ export interface AttendanceSummaryJobData {
 }
 
 export const attendanceSummaryQueue = new Queue<AttendanceSummaryJobData>(QUEUE_NAMES.ATTENDANCE_SUMMARY, {
+  connection,
+  defaultJobOptions: {
+    attempts: 2,
+    backoff: { type: 'fixed', delay: 5_000 },
+    removeOnComplete: 50,
+    removeOnFail: 100,
+  },
+});
+
+export interface AssignmentSummaryJobData {
+  periodType: 'WEEKLY' | 'MONTHLY';
+  periodStart: string; // ISO string
+  periodEnd: string;   // ISO string
+}
+
+export const assignmentSummaryQueue = new Queue<AssignmentSummaryJobData>(QUEUE_NAMES.ASSIGNMENT_SUMMARY, {
   connection,
   defaultJobOptions: {
     attempts: 2,

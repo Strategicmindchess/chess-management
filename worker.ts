@@ -47,10 +47,15 @@ Promise.all([
   import('./src/workers/attendance-summary.worker').then(() => {
     logger.info('attendance-summary worker started');
   }),
+
+  // Assignment summary worker — calculates assignment completion
+  import('./src/workers/assignment-summary.worker').then(() => {
+    logger.info('assignment-summary worker started');
+  }),
 ])
   .then(async () => {
     logger.info('All BullMQ workers running — listening for jobs', {
-      queues: ['batch-queue', 'chess-fetch-queue', 'leaderboard-calc-queue', 'log-cleanup-queue', 'attendance-summary-queue'],
+      queues: ['batch-queue', 'chess-fetch-queue', 'leaderboard-calc-queue', 'log-cleanup-queue', 'attendance-summary-queue', 'assignment-summary-queue'],
     });
 
     // Log queue depths every 5 minutes
@@ -77,11 +82,12 @@ Promise.all([
 async function shutdown(signal: string) {
   logger.info(`Received ${signal} — shutting down gracefully...`);
   try {
-    const [{ chessFetchWorker }, { leaderboardCalcWorker }, { logCleanupWorker }, { attendanceSummaryWorker }, { batchWorker }] = await Promise.all([
+    const [{ chessFetchWorker }, { leaderboardCalcWorker }, { logCleanupWorker }, { attendanceSummaryWorker }, { assignmentSummaryWorker }, { batchWorker }] = await Promise.all([
       import('./src/workers/chess-fetch.worker'),
       import('./src/workers/leaderboard-calc.worker'),
       import('./src/workers/log-cleanup.worker'),
       import('./src/workers/attendance-summary.worker'),
+      import('./src/workers/assignment-summary.worker'),
       import('./src/workers/batch.worker'),
     ]);
     await Promise.all([
@@ -89,6 +95,7 @@ async function shutdown(signal: string) {
       leaderboardCalcWorker.close(),
       logCleanupWorker.close(),
       attendanceSummaryWorker.close(),
+      assignmentSummaryWorker.close(),
       batchWorker?.close?.(),
     ]);
     logger.info('All workers closed cleanly.');

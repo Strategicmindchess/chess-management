@@ -106,7 +106,6 @@ export async function processLeaderboardCalc(job: Job<LeaderboardCalcJobData>) {
   // ── Fetch all active students ──────────────────────────────────────────────
   const allActiveStudents = await prisma.studentProfile.findMany({
     where: {
-      ...(studentProfileId ? { id: studentProfileId } : {}),
       user: { isActive: true, role: 'STUDENT' },
     },
     include: { user: { select: { id: true, name: true } } },
@@ -116,7 +115,6 @@ export async function processLeaderboardCalc(job: Job<LeaderboardCalcJobData>) {
   const snapshotWhere: any = {
     periodType,
     periodStart,
-    ...(studentProfileId ? { studentProfileId } : {}),
   };
 
   const snapshots = await prisma.chessActivitySnapshot.findMany({
@@ -327,6 +325,7 @@ export async function processLeaderboardCalc(job: Job<LeaderboardCalcJobData>) {
   await job.log(`Database updated successfully.`);
 
   // ── Clean up obsolete entries ──────────────────────────────────────────────
+  // Full recalculation: delete any student not in the newly calculated entries
   await prisma.leaderboardEntry.deleteMany({
     where: {
       periodType,

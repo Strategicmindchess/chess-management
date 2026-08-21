@@ -58,7 +58,7 @@ export async function POST(req: NextRequest) {
   }
 
   // Dynamically import queues (avoids bundling heavy deps at edge)
-  const { chessFetchQueue, leaderboardCalcQueue } = await import('@/workers/leaderboard.queues');
+  const { chessFetchQueue, leaderboardCalcQueue, attendanceSummaryQueue, assignmentSummaryQueue } = await import('@/workers/leaderboard.queues');
 
   const results: string[] = [];
 
@@ -99,10 +99,20 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  // ── Step 2: Queue leaderboard calculation ─────────────────────────────────
+  // ── Step 2: Queue summaries & leaderboard calculation ───────────────────────
   if (action === 'calc' || action === 'all') {
-    // Delay by 5 minutes so fetch jobs complete first
+    // Delay calculation by 5 minutes so fetch jobs complete first (if action='all')
     const delayMs = action === 'all' ? 5 * 60 * 1000 : 0;
+
+    await attendanceSummaryQueue.add(
+      JOB_NAMES.CALC_ATTENDANCE,
+      { periodType, periodStart: periodStart.toISOString(), periodEnd: periodEnd.toISOString() }
+    );
+
+    await assignmentSummaryQueue.add(
+      JOB_NAMES.CALC_ASSIGNMENT,
+      { periodType, periodStart: periodStart.toISOString(), periodEnd: periodEnd.toISOString() }
+    );
 
     await leaderboardCalcQueue.add(
       JOB_NAMES.CALC_LEADERBOARD,
@@ -113,7 +123,7 @@ export async function POST(req: NextRequest) {
       },
       { delay: delayMs, priority: 1 }
     );
-    results.push(`Leaderboard recalc queued (delay: ${delayMs / 1000}s)`);
+    results.push(`Summaries & Leaderboard recalc queued (calc delay: ${delayMs / 1000}s)`);
   }
 
   return NextResponse.json({

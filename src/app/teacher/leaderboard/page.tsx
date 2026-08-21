@@ -134,7 +134,6 @@ export default async function TeacherLeaderboardPage({ searchParams }: { searchP
               <h2 className="text-sm font-bold text-slate-800">
                 Global {periodType === 'WEEKLY' ? 'Weekly' : 'Monthly'} Rankings
               </h2>
-              <span className="text-xs text-slate-400">({myEntries.length} students total, {myStudents.length} yours)</span>
             </div>
             
             <div className="flex items-center gap-3">
@@ -151,7 +150,7 @@ export default async function TeacherLeaderboardPage({ searchParams }: { searchP
             </div>
           </div>
 
-          <LeaderboardTable entries={myEntries} highlightStudentIds={myStudentIds} />
+          <LeaderboardTable entries={myEntries} highlightStudentIds={myStudentIds} hideOtherUsernames={true} />
 
           {myEntries.length === 0 && (
             <div className="text-center py-8 bg-slate-50 rounded-xl border border-slate-200">

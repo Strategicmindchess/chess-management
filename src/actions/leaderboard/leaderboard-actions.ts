@@ -24,6 +24,10 @@ export interface LeaderboardRow {
   chessComUsername: string | null;
   lichessUsername: string | null;
   isDisqualified: boolean;
+  // Admin-only data quality flags
+  isDataStale: boolean;    // snapshot not updated in 2+ days
+  ccFetchFailed: boolean;  // latest Chess.com fetch had success:false
+  liFetchFailed: boolean;  // latest Lichess fetch had success:false
   breakdown: {
     rapidClassicalPoints: number;
     blitzPoints: number;
@@ -74,7 +78,7 @@ export async function getLeaderboard(
   }
 
   // ── DB query ──────────────────────────────────────────────────────────────
-  const [dbEntries, puzzleSolverAward] = await Promise.all([
+  const [dbEntries, puzzleSolverAward, failedFetchLogs] = await Promise.all([
     prisma.leaderboardEntry.findMany({
       where: {
         periodType,
@@ -105,7 +109,21 @@ export async function getLeaderboard(
         },
       },
     }),
+
+    // Fetch latest failed fetch logs for this period
+    prisma.chessApiFetchLog.findMany({
+      where: {
+        periodStart: resolvedPeriodStart,
+        success: false,
+      },
+      select: { studentProfileId: true, provider: true },
+    }),
   ]);
+
+  // Build failure sets for quick lookup
+  const ccFailedSet = new Set(failedFetchLogs.filter(l => l.provider === 'CHESS_COM').map(l => l.studentProfileId));
+  const liFailedSet = new Set(failedFetchLogs.filter(l => l.provider === 'LICHESS').map(l => l.studentProfileId));
+  const twoDaysAgo = new Date(Date.now() - 2 * 24 * 60 * 60 * 1000);
 
   const entries: LeaderboardRow[] = dbEntries.map((e) => ({
     rank: e.rank ?? 999,
@@ -116,6 +134,9 @@ export async function getLeaderboard(
     chessComUsername: e.student.chessAccount?.chessComUsername ?? null,
     lichessUsername: e.student.chessAccount?.lichessUsername ?? null,
     isDisqualified: e.isDisqualified,
+    isDataStale: e.snapshot ? e.snapshot.updatedAt < twoDaysAgo : false,
+    ccFetchFailed: ccFailedSet.has(e.studentProfileId),
+    liFetchFailed: liFailedSet.has(e.studentProfileId),
     breakdown: {
       rapidClassicalPoints: e.rapidClassicalPoints,
       blitzPoints: e.blitzPoints,
@@ -217,6 +238,9 @@ export async function getStudentLeaderboardEntry(
     chessComUsername: entry.student.chessAccount?.chessComUsername ?? null,
     lichessUsername: entry.student.chessAccount?.lichessUsername ?? null,
     isDisqualified: entry.isDisqualified,
+    isDataStale: false,    // not checked in student view
+    ccFetchFailed: false,
+    liFetchFailed: false,
     breakdown: {
       rapidClassicalPoints: entry.rapidClassicalPoints,
       blitzPoints: entry.blitzPoints,
