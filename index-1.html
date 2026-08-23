@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Student Ledger</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; }
+  body { margin:0; background:#F5F3EE; font-family:'Inter',sans-serif; color:#1F2A24; padding-bottom:40px; }
+  .chess-corner { position:fixed; top:0; right:0; width:120px; height:120px;
+    background-image:linear-gradient(45deg,#1F2A24 25%,transparent 25%),linear-gradient(-45deg,#1F2A24 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#1F2A24 75%),linear-gradient(-45deg,transparent 75%,#1F2A24 75%);
+    background-size:20px 20px; background-position:0 0,0 10px,10px -10px,-10px 0px; opacity:0.04; pointer-events:none; z-index:0; }
+  header { display:flex; justify-content:space-between; align-items:center; padding:24px 20px 16px; position:relative; z-index:1; }
+  .header-left { display:flex; align-items:center; gap:10px; }
+  .crown-wrap { width:34px; height:34px; border-radius:9px; background:#1F2A24; display:flex; align-items:center; justify-content:center; flex-shrink:0; color:#B8935A; font-size:16px; }
+  h1 { font-family:'Fraunces',serif; font-weight:600; font-size:20px; margin:0; letter-spacing:-0.01em; }
+  .subtitle { font-size:12px; color:#8A8478; margin:2px 0 0; }
+  .add-btn { display:flex; align-items:center; gap:6px; background:#2F6F4E; color:#fff; border:none; border-radius:10px; padding:9px 14px; font-size:13px; font-weight:600; cursor:pointer; }
+  .period-bar { display:flex; align-items:center; gap:12px; padding:0 20px; margin-top:4px; position:relative; z-index:1; }
+  .period-arrow { width:28px; height:28px; border-radius:8px; border:1px solid #E4DFD3; background:#fff; color:#1F2A24; font-size:16px; cursor:pointer; line-height:1; }
+  .period-label { font-family:'JetBrains Mono',monospace; font-size:13px; font-weight:500; min-width:90px; text-align:center; }
+  .today-btn { font-size:11px; color:#2F6F4E; background:none; border:none; cursor:pointer; font-weight:600; text-decoration:underline; }
+  .summary-row { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; padding:16px 20px 4px; position:relative; z-index:1; }
+  .summary-card { background:#fff; border:1px solid #E4DFD3; border-radius:12px; padding:10px 6px; text-align:center; }
+  .summary-value { font-family:'Fraunces',serif; font-size:17px; font-weight:600; }
+  .summary-label { font-size:10px; color:#9A9488; margin-top:2px; text-transform:uppercase; letter-spacing:0.04em; }
+  .controls { display:flex; gap:8px; padding:14px 20px 8px; flex-wrap:wrap; position:relative; z-index:1; }
+  .search-wrap { flex:1 1 160px; display:flex; align-items:center; gap:6px; background:#fff; border:1px solid #E4DFD3; border-radius:10px; padding:8px 10px; }
+  .search-wrap input { border:none; outline:none; font-size:13px; background:transparent; flex:1; color:#1F2A24; font-family:'Inter',sans-serif; }
+  select { border:1px solid #E4DFD3; border-radius:10px; padding:8px 10px; font-size:12px; background:#fff; color:#1F2A24; font-family:'Inter',sans-serif; }
+  .list { padding:8px 20px 0; display:flex; flex-direction:column; gap:10px; position:relative; z-index:1; }
+  .empty-state { text-align:center; color:#9A9488; font-size:13px; padding:40px 20px; }
+  .card { background:#fff; border:1px solid #E4DFD3; border-radius:14px; overflow:hidden; }
+  .card-main { display:flex; align-items:center; justify-content:space-between; padding:12px 14px; cursor:pointer; }
+  .card-main-left { display:flex; align-items:center; gap:10px; min-width:0; }
+  .avatar { width:36px; height:36px; border-radius:10px; background:#F1EDE4; color:#1F2A24; display:flex; align-items:center; justify-content:center; font-weight:600; font-family:'Fraunces',serif; font-size:15px; flex-shrink:0; }
+  .card-name { font-weight:600; font-size:14px; }
+  .card-meta { font-size:11.5px; color:#9A9488; margin-top:2px; }
+  .card-main-right { display:flex; align-items:center; gap:10px; flex-shrink:0; }
+  .status-pill { border:none; border-radius:999px; padding:5px 11px; font-size:11.5px; font-weight:700; cursor:pointer; }
+  .status-paid { background:#E7F1EA; color:#2F6F4E; }
+  .status-unpaid { background:#FBEAE7; color:#B84C3E; }
+  .chevron { transition:transform .18s ease; color:#9A9488; font-size:12px; }
+  .chevron.open { transform:rotate(180deg); }
+  .card-detail { border-top:1px solid #EFEBE1; padding:14px; background:#FCFBF8; display:none; }
+  .card-detail.open { display:block; }
+  .detail-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:14px; }
+  .detail-icon-row { display:flex; align-items:center; gap:5px; font-size:10.5px; color:#9A9488; text-transform:uppercase; letter-spacing:0.03em; }
+  .detail-value { font-size:13px; font-weight:500; margin-top:3px; color:#1F2A24; }
+  .history-label { font-size:10.5px; color:#9A9488; text-transform:uppercase; letter-spacing:0.03em; margin-bottom:6px; }
+  .cycles-list { display:flex; flex-direction:column; gap:8px; margin-bottom:10px; }
+  .cycle-row { border:1px solid #E4DFD3; border-radius:10px; padding:10px; background:#fff; }
+  .cycle-row.cycle-active { border-color:#B8935A; box-shadow:0 0 0 1px #B8935A inset; }
+  .cycle-top { display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; }
+  .cycle-index { font-size:11px; font-weight:600; color:#8A8478; }
+  .cycle-fields { display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin-bottom:8px; }
+  .cycle-field { display:flex; flex-direction:column; gap:3px; font-size:10px; color:#9A9488; }
+  .cycle-field input { border:1px solid #E4DFD3; border-radius:7px; padding:6px 7px; font-size:12px; font-family:'Inter',sans-serif; color:#1F2A24; outline:none; background:#FCFBF8; }
+  .cycle-bottom { display:flex; justify-content:space-between; align-items:center; }
+  .cycle-paiddate { font-size:11px; color:#8A8478; }
+  .cycle-delete { background:none; border:none; color:#B84C3E; font-size:11px; font-weight:600; cursor:pointer; }
+  .add-cycle-btn { width:100%; background:#F1EDE4; border:1px dashed #C9BFA9; border-radius:9px; padding:9px; font-size:12.5px; font-weight:600; color:#1F2A24; cursor:pointer; margin-bottom:14px; }
+  .card-actions { display:flex; gap:8px; justify-content:flex-end; }
+  .edit-btn, .delete-btn { display:flex; align-items:center; gap:5px; background:#fff; border-radius:8px; padding:7px 11px; font-size:12px; font-weight:600; cursor:pointer; }
+  .edit-btn { border:1px solid #E4DFD3; color:#1F2A24; }
+  .delete-btn { border:1px solid #F3D8D3; color:#B84C3E; }
+  .overlay { position:fixed; inset:0; background:rgba(31,42,36,0.4); display:none; align-items:flex-end; justify-content:center; z-index:50; }
+  .overlay.open { display:flex; }
+  .modal { background:#fff; border-radius:18px 18px 0 0; padding:20px; width:100%; max-width:480px; max-height:88vh; overflow-y:auto; }
+  .modal-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; }
+  .modal-title { font-family:'Fraunces',serif; font-size:17px; font-weight:600; }
+  .close-btn { background:#F5F3EE; border:none; border-radius:8px; width:28px; height:28px; cursor:pointer; color:#1F2A24; font-size:14px; }
+  .form-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  .field { display:flex; flex-direction:column; gap:4px; }
+  .field.full { grid-column:1 / -1; }
+  .field label { font-size:11px; color:#8A8478; font-weight:600; }
+  .field input, .field select { border:1px solid #E4DFD3; border-radius:9px; padding:9px 10px; font-size:13px; font-family:'Inter',sans-serif; color:#1F2A24; outline:none; width:100%; background:#fff; }
+  .modal-actions { display:flex; gap:10px; margin-top:20px; justify-content:flex-end; }
+  .cancel-btn { background:#F5F3EE; border:none; border-radius:9px; padding:9px 16px; font-size:13px; font-weight:600; cursor:pointer; color:#1F2A24; }
+  .save-btn { background:#2F6F4E; border:none; border-radius:9px; padding:9px 16px; font-size:13px; font-weight:600; cursor:pointer; color:#fff; }
+  .save-btn:disabled { opacity:0.5; cursor:not-allowed; }
+  .danger-btn { background:#B84C3E; border:none; border-radius:9px; padding:9px 16px; font-size:13px; font-weight:600; cursor:pointer; color:#fff; }
+  .confirm-box { background:#fff; border-radius:16px; padding:20px; width:88%; max-width:360px; margin:auto; }
+  .confirm-title { font-family:'Fraunces',serif; font-weight:600; font-size:16px; margin-bottom:6px; }
+  .confirm-text { font-size:12.5px; color:#8A8478; line-height:1.5; margin-bottom:16px; }
+  .confirm-actions { display:flex; gap:10px; justify-content:flex-end; }
+</style>
+</head>
+<body>
+<div class="chess-corner"></div>
+
+<header>
+  <div class="header-left">
+    <div class="crown-wrap">♛</div>
+    <div>
+      <h1>Student Ledger</h1>
+      <p class="subtitle">Roster & fee tracking</p>
+    </div>
+  </div>
+  <button class="add-btn" onclick="openAdd()">+ Add student</button>
+</header>
+
+<div class="period-bar">
+  <button class="period-arrow" onclick="shiftPeriod(-1)">‹</button>
+  <span class="period-label" id="periodLabel"></span>
+  <button class="period-arrow" onclick="shiftPeriod(1)">›</button>
+  <button class="today-btn" id="todayBtn" onclick="goToday()" style="display:none;">Today</button>
+</div>
+
+<div class="summary-row" id="summaryRow"></div>
+
+<div class="controls">
+  <div class="search-wrap">
+    🔍<input id="searchInput" placeholder="Search name, city, phone…" oninput="render()" />
+  </div>
+  <select id="filterCoach" onchange="render()"></select>
+  <select id="filterMode" onchange="render()">
+    <option value="All">All modes</option>
+    <option value="Group">Group</option>
+    <option value="1-on-1">1-on-1</option>
+  </select>
+  <select id="filterLevel" onchange="render()">
+    <option value="All">All levels</option>
+    <option value="Beginner">Beginner</option>
+    <option value="Core 1">Core 1</option>
+    <option value="Core 2">Core 2</option>
+    <option value="Core 3">Core 3</option>
+    <option value="Core 4">Core 4</option>
+    <option value="Intermediate 1">Intermediate 1</option>
+    <option value="Intermediate 2">Intermediate 2</option>
+    <option value="Intermediate 3">Intermediate 3</option>
+    <option value="Advance 1">Advance 1</option>
+    <option value="Advance 2">Advance 2</option>
+    <option value="Elite">Elite</option>
+    <option value="Master">Master</option>
+  </select>
+</div>
+
+<div class="list" id="list"></div>
+
+<div class="overlay" id="modalOverlay">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="modalTitle">Add student</div>
+      <button class="close-btn" onclick="closeModal()">✕</button>
+    </div>
+    <div class="form-grid">
+      <div class="field full"><label>Name</label><input id="f_name" placeholder="Student name" /></div>
+      <div class="field"><label>Phone no.</label><input id="f_phone" placeholder="9876543210" /></div>
+      <div class="field"><label>City</label><input id="f_city" placeholder="Jhansi" /></div>
+      <div class="field"><label>Assigned coach</label><input id="f_coach" placeholder="Coach name" /></div>
+      <div class="field"><label>Batch code</label><input id="f_batchCode" placeholder="e.g. B-14" /></div>
+      <div class="field"><label>Level</label>
+        <select id="f_level">
+          <option value="Beginner">Beginner</option>
+          <option value="Core 1">Core 1</option>
+          <option value="Core 2">Core 2</option>
+          <option value="Core 3">Core 3</option>
+          <option value="Core 4">Core 4</option>
+          <option value="Intermediate 1">Intermediate 1</option>
+          <option value="Intermediate 2">Intermediate 2</option>
+          <option value="Intermediate 3">Intermediate 3</option>
+          <option value="Advance 1">Advance 1</option>
+          <option value="Advance 2">Advance 2</option>
+          <option value="Elite">Elite</option>
+          <option value="Master">Master</option>
+        </select>
+      </div>
+      <div class="field"><label>Mode</label>
+        <select id="f_mode"><option value="Group">Group</option><option value="1-on-1">1-on-1</option></select>
+      </div>
+      <div class="field"><label>Payment frequency</label>
+        <select id="f_frequency">
+          <option value="Class-wise">Class-wise</option>
+          <option value="Weekly">Weekly</option>
+          <option value="Monthly">Monthly</option>
+          <option value="Quarterly">Quarterly</option>
+          <option value="Half-yearly">Half-yearly</option>
+          <option value="Yearly">Yearly</option>
+        </select>
+      </div>
+      <div class="field"><label>Classes / month</label><input type="number" id="f_classesPerMonth" placeholder="8" /></div>
+      <div class="field"><label>Starting date</label><input type="date" id="f_startDate" /></div>
+      <div class="field"><label>Fee start date</label><input type="date" id="f_feeStartDate" /></div>
+      <div class="field"><label>Fee amount (₹)</label><input type="number" id="f_feeAmount" placeholder="2000" /></div>
+    </div>
+    <div class="modal-actions">
+      <button class="cancel-btn" onclick="closeModal()">Cancel</button>
+      <button class="save-btn" id="saveBtn" onclick="saveStudent()">Add student</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="confirmOverlay">
+  <div class="confirm-box">
+    <div class="confirm-title" id="confirmTitle">Remove student?</div>
+    <div class="confirm-text">This deletes their record and all fee history. This can't be undone.</div>
+    <div class="confirm-actions">
+      <button class="cancel-btn" onclick="closeConfirm()">Cancel</button>
+      <button class="danger-btn" onclick="confirmDeleteNow()">Delete</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const MONTH_NAMES = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+const monthKey = (d) => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`;
+const monthLabel = (key) => { const [y,m] = key.split("-").map(Number); return `${MONTH_NAMES[m-1]} ${y}`; };
+const shiftMonthKey = (key, delta) => { const [y,m] = key.split("-").map(Number); return monthKey(new Date(y, m-1+delta, 1)); };
+const uid = () => Math.random().toString(36).slice(2,10) + Date.now().toString(36).slice(-4);
+const todayStr = () => new Date().toISOString().slice(0,10);
+const fmtDate = (d) => d ? new Date(d+"T00:00:00").toLocaleDateString("en-IN",{day:"2-digit",month:"short",year:"numeric"}) : "—";
+
+function addMonthsToDate(dateStr, n){
+  const d = new Date((dateStr||todayStr())+"T00:00:00");
+  d.setMonth(d.getMonth()+n);
+  return d.toISOString().slice(0,10);
+}
+function nextDueDateSuggestion(fromDate, frequency){
+  const base = fromDate || todayStr();
+  switch(frequency){
+    case "Weekly": { const d=new Date(base+"T00:00:00"); d.setDate(d.getDate()+7); return d.toISOString().slice(0,10); }
+    case "Quarterly": return addMonthsToDate(base,3);
+    case "Half-yearly": return addMonthsToDate(base,6);
+    case "Yearly": return addMonthsToDate(base,12);
+    case "Class-wise": return base; // no fixed calendar shift — set manually once classes finish
+    case "Monthly":
+    default: return addMonthsToDate(base,1);
+  }
+}
+
+let students = JSON.parse(localStorage.getItem("students") || "[]");
+// one-time cleanup of the old calendar-month fee model, if present
+students = students.map(s => s.cycles ? s : { ...s, cycles: [] });
+let period = monthKey(new Date());
+let expanded = {};
+let editingId = null;
+let deleteTarget = null;
+
+function persistStudents(){ localStorage.setItem("students", JSON.stringify(students)); }
+
+function sortedCycles(s){ return [...(s.cycles||[])].sort((a,b)=> (a.dueDate||"").localeCompare(b.dueDate||"")); }
+function getActiveCycle(s){
+  const cycles = sortedCycles(s);
+  if(cycles.length===0) return null;
+  return cycles.find(c=>c.status==="unpaid") || cycles[cycles.length-1];
+}
+function findStudent(sid){ return students.find(s=>s.id===sid); }
+function findCycle(s, cycleId){ return (s.cycles||[]).find(c=>c.id===cycleId); }
+
+function toggleCycleStatus(sid, cycleId){
+  const s = findStudent(sid); const c = findCycle(s, cycleId);
+  c.status = c.status==="paid" ? "unpaid" : "paid";
+  c.paidDate = c.status==="paid" ? todayStr() : null;
+  persistStudents(); render();
+}
+function updateCycleField(sid, cycleId, field, value){
+  const s = findStudent(sid); const c = findCycle(s, cycleId);
+  c[field] = value;
+  persistStudents(); render();
+}
+function addCycle(sid){
+  const s = findStudent(sid);
+  const cycles = sortedCycles(s);
+  const last = cycles[cycles.length-1];
+  const dueDate = nextDueDateSuggestion(last ? last.dueDate : (s.feeStartDate||s.startDate), s.frequency);
+  s.cycles = [...(s.cycles||[]), {
+    id: uid(), dueDate,
+    classes: s.classesPerMonth || "",
+    amount: s.feeAmount || "",
+    status: "unpaid", paidDate: null
+  }];
+  persistStudents();
+  expanded[sid] = true;
+  render();
+}
+function deleteCycle(sid, cycleId){
+  const s = findStudent(sid);
+  s.cycles = (s.cycles||[]).filter(c=>c.id!==cycleId);
+  persistStudents(); render();
+}
+
+function shiftPeriod(d){ period = shiftMonthKey(period, d); render(); }
+function goToday(){ period = monthKey(new Date()); render(); }
+
+function openAdd(){
+  editingId = null;
+  document.getElementById("modalTitle").textContent = "Add student";
+  document.getElementById("saveBtn").textContent = "Add student";
+  ["name","phone","city","coach","batchCode","startDate","feeStartDate","classesPerMonth","feeAmount"].forEach(k => document.getElementById("f_"+k).value = "");
+  document.getElementById("f_mode").value = "Group";
+  document.getElementById("f_frequency").value = "Monthly";
+  document.getElementById("f_level").value = "Beginner";
+  document.getElementById("f_classesPerMonth").value = "8";
+  document.getElementById("modalOverlay").classList.add("open");
+}
+function openEdit(s){
+  editingId = s.id;
+  document.getElementById("modalTitle").textContent = "Edit student";
+  document.getElementById("saveBtn").textContent = "Save changes";
+  document.getElementById("f_name").value = s.name;
+  document.getElementById("f_phone").value = s.phone||"";
+  document.getElementById("f_city").value = s.city||"";
+  document.getElementById("f_coach").value = s.coach||"";
+  document.getElementById("f_batchCode").value = s.batchCode||"";
+  document.getElementById("f_level").value = s.level||"Beginner";
+  document.getElementById("f_mode").value = s.mode;
+  document.getElementById("f_frequency").value = s.frequency;
+  document.getElementById("f_startDate").value = s.startDate||"";
+  document.getElementById("f_feeStartDate").value = s.feeStartDate||"";
+  document.getElementById("f_classesPerMonth").value = s.classesPerMonth||"";
+  document.getElementById("f_feeAmount").value = s.feeAmount||"";
+  document.getElementById("modalOverlay").classList.add("open");
+}
+function closeModal(){ document.getElementById("modalOverlay").classList.remove("open"); }
+
+function saveStudent(){
+  const name = document.getElementById("f_name").value.trim();
+  if(!name) return;
+  const data = {
+    name,
+    phone: document.getElementById("f_phone").value.trim(),
+    city: document.getElementById("f_city").value.trim(),
+    coach: document.getElementById("f_coach").value.trim(),
+    batchCode: document.getElementById("f_batchCode").value.trim(),
+    level: document.getElementById("f_level").value,
+    mode: document.getElementById("f_mode").value,
+    frequency: document.getElementById("f_frequency").value,
+    startDate: document.getElementById("f_startDate").value,
+    feeStartDate: document.getElementById("f_feeStartDate").value,
+    classesPerMonth: document.getElementById("f_classesPerMonth").value,
+    feeAmount: document.getElementById("f_feeAmount").value,
+  };
+  if(editingId){
+    students = students.map(s => s.id===editingId ? {...s,...data} : s);
+  } else {
+    const firstCycle = {
+      id: uid(),
+      dueDate: data.feeStartDate || data.startDate || todayStr(),
+      classes: data.classesPerMonth || "",
+      amount: data.feeAmount || "",
+      status: "unpaid", paidDate: null
+    };
+    students.push({...data, id: uid(), cycles: [firstCycle]});
+  }
+  persistStudents();
+  closeModal();
+  render();
+}
+
+function askDelete(s){ deleteTarget = s; document.getElementById("confirmTitle").textContent = `Remove ${s.name}?`; document.getElementById("confirmOverlay").classList.add("open"); }
+function closeConfirm(){ document.getElementById("confirmOverlay").classList.remove("open"); deleteTarget=null; }
+function confirmDeleteNow(){
+  students = students.filter(s => s.id !== deleteTarget.id);
+  persistStudents();
+  closeConfirm(); render();
+}
+
+function toggleExpand(id){ expanded[id] = !expanded[id]; render(); }
+
+function render(){
+  document.getElementById("periodLabel").textContent = monthLabel(period);
+  document.getElementById("todayBtn").style.display = period === monthKey(new Date()) ? "none" : "inline";
+
+  const coachSel = document.getElementById("filterCoach");
+  const coaches = ["All", ...new Set(students.map(s=>s.coach).filter(Boolean))];
+  const curCoach = coachSel.value || "All";
+  coachSel.innerHTML = coaches.map(c=>`<option value="${c}">${c==="All"?"All coaches":c}</option>`).join("");
+  coachSel.value = coaches.includes(curCoach) ? curCoach : "All";
+
+  const search = document.getElementById("searchInput").value.toLowerCase();
+  const fCoach = coachSel.value;
+  const fMode = document.getElementById("filterMode").value;
+  const fLevel = document.getElementById("filterLevel").value;
+
+  const filtered = students.filter(s=>{
+    if(fCoach!=="All" && s.coach!==fCoach) return false;
+    if(fMode!=="All" && s.mode!==fMode) return false;
+    if(fLevel!=="All" && s.level!==fLevel) return false;
+    if(search && !`${s.name} ${s.city} ${s.phone} ${s.batchCode||""}`.toLowerCase().includes(search)) return false;
+    return true;
+  }).sort((a,b)=>a.name.localeCompare(b.name));
+
+  let paid=0, unpaid=0, revenue=0;
+  filtered.forEach(s=>{
+    const active = getActiveCycle(s);
+    if(active && active.status==="paid") paid++; else unpaid++;
+    (s.cycles||[]).forEach(c=>{
+      if(c.status==="paid" && c.paidDate && c.paidDate.slice(0,7)===period){
+        revenue += Number(c.amount)||0;
+      }
+    });
+  });
+  document.getElementById("summaryRow").innerHTML = `
+    <div class="summary-card"><div class="summary-value">${filtered.length}</div><div class="summary-label">Students</div></div>
+    <div class="summary-card"><div class="summary-value" style="color:#2F6F4E">${paid}</div><div class="summary-label">Paid</div></div>
+    <div class="summary-card"><div class="summary-value" style="color:#B84C3E">${unpaid}</div><div class="summary-label">Unpaid</div></div>
+    <div class="summary-card"><div class="summary-value" style="color:#B8935A">₹${revenue.toLocaleString("en-IN")}</div><div class="summary-label">Collected</div></div>
+  `;
+
+  const list = document.getElementById("list");
+  if(filtered.length===0){
+    list.innerHTML = `<div class="empty-state">${students.length===0 ? "No students yet. Add your first student to get started." : "No students match this filter."}</div>`;
+    return;
+  }
+
+  list.innerHTML = filtered.map(s=>{
+    const isOpen = !!expanded[s.id];
+    const active = getActiveCycle(s);
+    const status = active ? active.status : "unpaid";
+    const overdue = active && active.status==="unpaid" && active.dueDate && active.dueDate < todayStr();
+
+    const cycles = sortedCycles(s);
+    const cycleRows = cycles.map((c,idx)=>{
+      const isActive = active && c.id===active.id;
+      const cOverdue = c.status==="unpaid" && c.dueDate && c.dueDate < todayStr();
+      return `
+      <div class="cycle-row ${isActive?'cycle-active':''}">
+        <div class="cycle-top">
+          <span class="cycle-index">Cycle ${idx+1}</span>
+          <button class="status-pill ${c.status==='paid'?'status-paid':'status-unpaid'}" onclick="toggleCycleStatus('${s.id}','${c.id}')">${c.status==='paid'?'Paid':'Unpaid'}</button>
+        </div>
+        <div class="cycle-fields">
+          <label class="cycle-field">
+            <span>Due date ${cOverdue?'⚠️':''}</span>
+            <input type="date" value="${c.dueDate||''}" onchange="updateCycleField('${s.id}','${c.id}','dueDate', this.value)" />
+          </label>
+          <label class="cycle-field">
+            <span>Classes</span>
+            <input type="number" value="${c.classes||''}" onchange="updateCycleField('${s.id}','${c.id}','classes', this.value)" />
+          </label>
+          <label class="cycle-field">
+            <span>Amount (₹)</span>
+            <input type="number" value="${c.amount||''}" onchange="updateCycleField('${s.id}','${c.id}','amount', this.value)" />
+          </label>
+        </div>
+        <div class="cycle-bottom">
+          <span class="cycle-paiddate">${c.status==='paid' ? `Paid on ${fmtDate(c.paidDate)}` : (c.dueDate ? `Due ${fmtDate(c.dueDate)}` : 'No due date set')}</span>
+          <button class="cycle-delete" onclick="deleteCycle('${s.id}','${c.id}')">Remove</button>
+        </div>
+      </div>`;
+    }).join("");
+
+    return `
+    <div class="card">
+      <div class="card-main" onclick="toggleExpand('${s.id}')">
+        <div class="card-main-left">
+          <div class="avatar">${(s.name.trim().charAt(0)||"?").toUpperCase()}</div>
+          <div>
+            <div class="card-name">${s.name}</div>
+            <div class="card-meta">${s.batchCode?`Batch ${s.batchCode} • `:""}${s.level?`${s.level} • `:""}${s.coach?`Coach ${s.coach} • `:""}${s.mode}</div>
+          </div>
+        </div>
+        <div class="card-main-right">
+          <button class="status-pill ${status==='paid'?'status-paid':'status-unpaid'}" onclick="event.stopPropagation(); ${active?`toggleCycleStatus('${s.id}','${active.id}')`:`addCycle('${s.id}')`}">${status==='paid'?'Paid':(overdue?'Overdue':'Unpaid')}</button>
+          <span class="chevron ${isOpen?'open':''}">▼</span>
+        </div>
+      </div>
+      <div class="card-detail ${isOpen?'open':''}">
+        <div class="detail-grid">
+          <div><div class="detail-icon-row">📞 Phone</div><div class="detail-value">${s.phone||"—"}</div></div>
+          <div><div class="detail-icon-row">📍 City</div><div class="detail-value">${s.city||"—"}</div></div>
+          <div><div class="detail-icon-row">🔖 Batch code</div><div class="detail-value">${s.batchCode||"—"}</div></div>
+          <div><div class="detail-icon-row">♟ Level</div><div class="detail-value">${s.level||"—"}</div></div>
+          <div><div class="detail-icon-row">👥 Classes / cycle</div><div class="detail-value">${s.classesPerMonth||"—"}</div></div>
+          <div><div class="detail-icon-row">₹ Fee</div><div class="detail-value">${s.feeAmount?`₹${Number(s.feeAmount).toLocaleString("en-IN")}`:"—"}</div></div>
+          <div><div class="detail-icon-row">📅 Start date</div><div class="detail-value">${s.startDate||"—"}</div></div>
+          <div><div class="detail-icon-row">🔁 Frequency</div><div class="detail-value">${s.frequency||"—"}</div></div>
+        </div>
+
+        <div class="history-label">Fee cycles — edit the due date any time a cycle runs long</div>
+        <div class="cycles-list">${cycleRows || '<div class="empty-state" style="padding:14px 0;">No cycles yet.</div>'}</div>
+        <button class="add-cycle-btn" onclick="addCycle('${s.id}')">+ Add next cycle</button>
+
+        <div class="card-actions">
+          <button class="edit-btn" onclick='openEdit(${JSON.stringify(s).replace(/'/g,"&apos;")})'>✎ Edit</button>
+          <button class="delete-btn" onclick='askDelete(${JSON.stringify(s).replace(/'/g,"&apos;")})'>🗑 Delete</button>
+        </div>
+      </div>
+    </div>`;
+  }).join("");
+}
+
+render();
+</script>
+</body>
+</html>

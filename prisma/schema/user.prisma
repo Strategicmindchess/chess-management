@@ -58,6 +58,7 @@ model StudentProfile {
   user                  User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
   stats                 StudentChessStats?
   createdTickets        Ticket[]                @relation("CreatedTickets")
+  feeConfig             StudentFeeConfig?
 
   @@map("student_profiles")
 }

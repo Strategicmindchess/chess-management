@@ -100,3 +100,26 @@ export const TicketCategory = {
 } as const;
 
 export type TicketCategory = (typeof TicketCategory)[keyof typeof TicketCategory];
+
+export const FeeType = {
+  MONTHLY:     'MONTHLY',
+  BATCH_BASED: 'BATCH_BASED',
+} as const;
+export type FeeType = (typeof FeeType)[keyof typeof FeeType];
+
+export const FeeFrequency = {
+  CLASS_WISE:  'CLASS_WISE',
+  WEEKLY:      'WEEKLY',
+  MONTHLY:     'MONTHLY',
+  QUARTERLY:   'QUARTERLY',
+  HALF_YEARLY: 'HALF_YEARLY',
+  YEARLY:      'YEARLY',
+} as const;
+export type FeeFrequency = (typeof FeeFrequency)[keyof typeof FeeFrequency];
+
+export const FeeStatus = {
+  PAID:   'PAID',
+  UNPAID: 'UNPAID',
+  WAIVED: 'WAIVED',
+} as const;
+export type FeeStatus = (typeof FeeStatus)[keyof typeof FeeStatus];
