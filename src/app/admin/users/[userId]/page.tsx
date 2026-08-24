@@ -6,7 +6,9 @@ import { ROLE_LABEL } from "@/lib/constants";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { EditUserButton } from "./edit-user-button";
+import { CoachPayoutSettings } from "@/components/admin/coach-payout-settings";
 import { format } from "date-fns";
+
 
 export default async function UserProfilePage({
   params,
@@ -35,7 +37,16 @@ export default async function UserProfilePage({
         include: {
           batches: true,
           classLogs: {
-            orderBy: { date: "desc" }
+            orderBy: { date: "desc" },
+            take: 10,
+            include: { batch: true },
+          },
+          payoutRates: {
+            orderBy: [{ level: "asc" }, { durationMins: "asc" }]
+          },
+          payoutAdjustments: {
+            orderBy: { createdAt: "desc" },
+            take: 10,
           }
         }
       }
@@ -74,10 +85,18 @@ export default async function UserProfilePage({
   // Compute Coach Stats
   let coachTotalClasses = 0;
   let coachPayoutTotal = 0;
+  let coachPenaltyTotal = 0;
   if (isCoach) {
     coachTotalClasses = user.coachProfile!.classLogs.length;
     coachPayoutTotal = user.coachProfile!.classLogs.reduce((acc, log) => acc + log.payoutAmount, 0);
+    coachPenaltyTotal = user.coachProfile!.classLogs.reduce((acc, log) => {
+      if (!log.penaltyWaived) return acc + (log.penaltyAmount ?? 0);
+      return acc;
+    }, 0);
   }
+
+  const LEVELS = ["BEGINNER","CORE_1","CORE_2","CORE_3","CORE_4","INTERMEDIATE_1","INTERMEDIATE_2","INTERMEDIATE_3","ADVANCE_1","ADVANCE_2","ELITE"];
+  const DURATIONS = [30, 40, 45, 50, 60];
 
   return (
     <div className="space-y-6 max-w-6xl mx-auto pb-12">
@@ -274,18 +293,57 @@ export default async function UserProfilePage({
           </Card>
         )}
 
-        {/* Coming Soon Sections */}
-        <Card className="opacity-75 bg-slate-50/50">
-          <CardHeader>
-            <CardTitle className="text-lg flex items-center justify-between">
-              Fee Information
-              <Badge variant="neutral" className="text-xs font-normal">Coming Soon</Badge>
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="text-sm text-slate-500 flex flex-col items-center justify-center py-8">
-            <p>Module 8 (Fee Tracking System) is scheduled for future implementation.</p>
-          </CardContent>
-        </Card>
+        {/* Payout Settings — Coach only (interactive client component) */}
+        {isCoach && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">Payout Settings</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <CoachPayoutSettings
+                coachId={user.coachProfile!.id}
+                tdsApplicable={user.coachProfile!.tdsApplicable}
+                employmentType={user.coachProfile!.employmentType}
+                payoutRates={user.coachProfile!.payoutRates.map(r => ({
+                  level: r.level as string,
+                  durationMins: r.durationMins,
+                  ratePerSession: r.ratePerSession,
+                }))}
+                payoutAdjustments={user.coachProfile!.payoutAdjustments.map(a => ({
+                  id: a.id,
+                  type: a.type,
+                  amount: a.amount,
+                  reason: a.reason,
+                  month: a.month,
+                }))}
+                classLogs={user.coachProfile!.classLogs.map(l => ({
+                  id: l.id,
+                  date: l.date.toISOString(),
+                  batch: l.batch ? { name: l.batch.name } : null,
+                  penaltyAmount: l.penaltyAmount ?? 0,
+                  penaltyWaived: l.penaltyWaived ?? false,
+                  penaltyNote: l.penaltyNote ?? null,
+                }))}
+                coachPenaltyTotal={coachPenaltyTotal}
+              />
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Fee Information for Student */}
+        {isStudent && (
+          <Card className="opacity-75 bg-slate-50/50">
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center justify-between">
+                Fee Information
+                <Badge variant="neutral" className="text-xs font-normal">See Fee Ledger</Badge>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="text-sm text-slate-500 flex flex-col items-center justify-center py-8">
+              <p>View this student&apos;s fee records in the Fee Ledger section.</p>
+            </CardContent>
+          </Card>
+        )}
 
         <Card className="opacity-75 bg-slate-50/50">
           <CardHeader>

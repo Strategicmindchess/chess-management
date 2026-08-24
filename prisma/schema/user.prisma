@@ -59,6 +59,7 @@ model StudentProfile {
   stats                 StudentChessStats?
   createdTickets        Ticket[]                @relation("CreatedTickets")
   feeConfig             StudentFeeConfig?
+  classFeedbacks        ClassFeedback[]
 
   @@map("student_profiles")
 }
@@ -75,6 +76,10 @@ model CoachProfile {
   chessComRating        Int?
   lichessId             String?
   lichessRating         Int?
+  /// TDS deduction applicable? Admin sets this.
+  tdsApplicable         Boolean             @default(false)
+  /// Employment type — Coach | Employee | Freelancer
+  employmentType        EmploymentType      @default(COACH)
   coachFeedbackGiven    CoachFeedback[]     @relation("CoachGivenFeedback")
   tournamentScoresGiven TournamentScore[]   @relation("CoachTournament")
   batches               Batch[]             @relation("BatchCoach")
@@ -82,8 +87,16 @@ model CoachProfile {
   availabilities        CoachAvailability[] @relation("CoachAvailability")
   user                  User                @relation(fields: [userId], references: [id], onDelete: Cascade)
   assignedStudents      StudentProfile[]    @relation("StudentAssignedCoach")
+  payoutRates           CoachPayoutRate[]
+  payoutAdjustments     PayoutAdjustment[]
 
   @@map("coach_profiles")
+}
+
+enum EmploymentType {
+  COACH
+  EMPLOYEE
+  FREELANCER
 }
 
 enum Role {

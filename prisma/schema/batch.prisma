@@ -85,21 +85,92 @@ model CoachAvailability {
 }
 
 model ClassLog {
-  id             String             @id @default(cuid())
-  batchId        String
-  coachProfileId String
-  date           DateTime
-  topicCovered   String
-  durationMins   Int
-  payoutAmount   Int                @default(0)
-  createdAt      DateTime           @default(now())
-  updatedAt      DateTime           @updatedAt
+  id                   String             @id @default(cuid())
+  batchId              String
+  coachProfileId       String
+  date                 DateTime
+  topicCovered         String
+  durationMins         Int
+  payoutAmount         Int                @default(0)
+  createdAt            DateTime           @default(now())
+  updatedAt            DateTime           @updatedAt
+
+  /// When coach clicked Join — used to calculate late-join penalty
+  coachJoinedAt        DateTime?
+  /// When coach clicked Mark Held — used for attendance delay penalty (24h rule)
+  attendanceMarkedAt   DateTime?
+  /// Total penalty amount deducted from this class's payout
+  penaltyAmount        Int                @default(0)
+  /// If admin waived the penalty for this class
+  penaltyWaived        Boolean            @default(false)
+  /// Admin note when waiving or manually applying penalty
+  penaltyNote          String?
+
   attendance     AttendanceRecord[]
+  classFeedbacks ClassFeedback[]
   classInstance  ClassInstance?
   batch          Batch              @relation(fields: [batchId], references: [id], onDelete: Cascade)
   coach          CoachProfile       @relation(fields: [coachProfileId], references: [id], onDelete: Cascade)
 
   @@map("class_logs")
+}
+
+/// Student submits this immediately after class ends — triggers penalty calculation
+model ClassFeedback {
+  id                      String         @id @default(cuid())
+  classLogId              String
+  studentProfileId        String
+  /// Did coach keep camera OFF for more than 5 min?
+  cameraOffOver5Min       Boolean        @default(false)
+  /// Did coach use phone more than 4 times?
+  phoneUsedOver4Times     Boolean        @default(false)
+  /// Class quality score 1–10
+  classQualityScore       Int?
+  /// Did student understand the concept?
+  conceptUnderstood       Boolean        @default(true)
+  /// Overall coach performance score 1–10
+  overallCoachScore       Int?
+  submittedAt             DateTime       @default(now())
+  classLog                ClassLog       @relation(fields: [classLogId], references: [id], onDelete: Cascade)
+  student                 StudentProfile @relation(fields: [studentProfileId], references: [id], onDelete: Cascade)
+
+  @@unique([classLogId, studentProfileId])
+  @@map("class_feedbacks")
+}
+
+/// Per-coach payout rate: how much per session for each batch level + duration
+model CoachPayoutRate {
+  id             String       @id @default(cuid())
+  coachProfileId String
+  level          BatchLevel
+  durationMins   Int          /// 30 | 40 | 45 | 50 | 60
+  ratePerSession Int          /// ₹ amount
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  coach          CoachProfile @relation(fields: [coachProfileId], references: [id], onDelete: Cascade)
+
+  @@unique([coachProfileId, level, durationMins])
+  @@map("coach_payout_rates")
+}
+
+/// Manual bonus / incentive / deduction added by admin on top of payout
+model PayoutAdjustment {
+  id             String         @id @default(cuid())
+  coachProfileId String
+  month          String         /// "2026-08"
+  type           AdjustmentType
+  amount         Int            /// positive = add, negative = deduct
+  reason         String         /// Short note from admin
+  createdAt      DateTime       @default(now())
+  coach          CoachProfile   @relation(fields: [coachProfileId], references: [id], onDelete: Cascade)
+
+  @@map("payout_adjustments")
+}
+
+enum AdjustmentType {
+  BONUS
+  INCENTIVE
+  DEDUCTION
 }
 
 model AttendanceRecord {
