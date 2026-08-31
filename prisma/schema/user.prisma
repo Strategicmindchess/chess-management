@@ -1,16 +1,16 @@
 /// A platform user. `role` determines which dashboard and permissions apply.
 model User {
-  id                String          @id @default(cuid())
+  id                String           @id @default(cuid())
   name              String
-  email             String          @unique
+  email             String           @unique
   passwordHash      String?
   role              Role
   phone             String?
-  isActive          Boolean         @default(true)
-  createdAt         DateTime        @default(now())
-  updatedAt         DateTime        @updatedAt
-  emailVerified     Boolean         @default(false)
-  googleId          String?         @unique
+  isActive          Boolean          @default(true)
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+  emailVerified     Boolean          @default(false)
+  googleId          String?          @unique
   profilePictureUrl String?
   coachProfile      CoachProfile?
   employeeProfile   EmployeeProfile?
@@ -18,11 +18,10 @@ model User {
   refreshTokens     RefreshToken[]
   studentProfile    StudentProfile?
   ticketReplies     TicketReply[]
-  assignedTickets   Ticket[]        @relation("AssignedTickets")
+  assignedTickets   Ticket[]         @relation("AssignedTickets")
 
   @@map("users")
 }
-
 
 model StudentProfile {
   id                    String                  @id @default(cuid())
@@ -95,7 +94,6 @@ model CoachProfile {
 
   @@map("coach_profiles")
 }
-
 
 enum EmploymentType {
   COACH

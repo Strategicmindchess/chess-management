@@ -1,21 +1,11 @@
 "use client";
 
-import { useState, useEffect, useTransition } from "react";
+import { useState, useTransition } from "react";
 import { MessageSquare, CheckCircle, Send, X, Loader2 } from "lucide-react";
 import { Dialog } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { getAdminTickets, replyToTicket, resolveTicket } from "@/actions/tickets/admin-actions";
-
-type TicketData = {
-  id: string;
-  title: string;
-  description: string;
-  status: string;
-  category: string;
-  createdAt: Date;
-  createdBy: { user: { name: string; email: string } };
-  replies: { id: string; content: string; createdAt: Date; author: { name: string; role: string } }[];
-};
+import { replyToTicket, resolveTicket } from "@/actions/tickets/admin-actions";
+import { useAdminTickets, invalidateAdminTickets } from "@/hooks/use-admin-tickets";
 
 export function AdminTicketsDialog({
   open,
@@ -24,47 +14,32 @@ export function AdminTicketsDialog({
   open: boolean;
   onClose: () => void;
 }) {
-  const [tickets, setTickets] = useState<TicketData[]>([]);
-  const [cursor, setCursor] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const { tickets, isLoading } = useAdminTickets(open);
+  const [localTickets, setLocalTickets] = useState<typeof tickets>([]);
   const [activeTicketId, setActiveTicketId] = useState<string | null>(null);
   const [replyContent, setReplyContent] = useState("");
   const [isPending, startTransition] = useTransition();
 
-  const activeTicket = tickets.find(t => t.id === activeTicketId);
+  // Use either the SWR data or local state (local state used for optimistic removes)
+  const displayTickets = localTickets.length > 0 ? localTickets : tickets;
 
-  const fetchTickets = async (currentCursor?: string) => {
-    setIsLoading(true);
-    try {
-      const { tickets: newTickets, nextCursor } = await getAdminTickets(currentCursor);
-      if (currentCursor) {
-        setTickets(prev => [...prev, ...newTickets as any]);
-      } else {
-        setTickets(newTickets as any);
-      }
-      setCursor(nextCursor);
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  // Sync SWR data into local state when it loads
+  if (tickets.length > 0 && localTickets.length === 0) {
+    setLocalTickets(tickets as any);
+  }
 
-  useEffect(() => {
-    if (open) {
-      fetchTickets();
-    }
-  }, [open]);
+  const activeTicket = displayTickets.find(t => t.id === activeTicketId);
 
   const handleReply = () => {
     if (!activeTicketId || !replyContent.trim()) return;
-    
+
     startTransition(async () => {
       const result = await replyToTicket(activeTicketId, replyContent);
       if (result.success) {
         setReplyContent("");
-        // Optimistically update or refetch
-        fetchTickets(); 
+        // Invalidate SWR cache → fresh data on next open
+        setLocalTickets([]);
+        await invalidateAdminTickets();
       }
     });
   };
@@ -73,11 +48,11 @@ export function AdminTicketsDialog({
     startTransition(async () => {
       const result = await resolveTicket(ticketId);
       if (result.success) {
-        // Remove from list
-        setTickets(prev => prev.filter(t => t.id !== ticketId));
-        if (activeTicketId === ticketId) {
-          setActiveTicketId(null);
-        }
+        // Optimistically remove from local display
+        setLocalTickets(prev => prev.filter(t => t.id !== ticketId));
+        if (activeTicketId === ticketId) setActiveTicketId(null);
+        // Invalidate SWR cache
+        await invalidateAdminTickets();
       }
     });
   };
@@ -85,12 +60,19 @@ export function AdminTicketsDialog({
   return (
     <Dialog open={open} onClose={onClose} title="Support Tickets">
       <div className="flex h-[600px] -mx-6 -mb-6 border-t border-slate-100">
-        
+
         {/* Left Side: Ticket List */}
         <div className="w-1/3 border-r border-slate-100 flex flex-col bg-slate-50 overflow-hidden">
           <div className="flex-1 overflow-y-auto p-4 space-y-3">
-            {tickets.map(ticket => (
-              <div 
+            {isLoading && displayTickets.length === 0 && (
+              <div className="flex items-center justify-center h-full text-slate-400">
+                <Loader2 className="w-5 h-5 animate-spin mr-2" />
+                <span className="text-sm">Loading tickets...</span>
+              </div>
+            )}
+
+            {displayTickets.map(ticket => (
+              <div
                 key={ticket.id}
                 onClick={() => setActiveTicketId(ticket.id)}
                 className={`p-3 rounded-lg border cursor-pointer transition-colors ${activeTicketId === ticket.id ? 'bg-brand-50 border-brand-200' : 'bg-white border-slate-200 hover:border-brand-300'}`}
@@ -104,19 +86,8 @@ export function AdminTicketsDialog({
               </div>
             ))}
 
-            {tickets.length === 0 && !isLoading && (
+            {displayTickets.length === 0 && !isLoading && (
               <div className="text-center text-slate-500 text-sm mt-10">No pending tickets.</div>
-            )}
-
-            {cursor && (
-              <Button 
-                variant="secondary" 
-                className="w-full text-xs" 
-                onClick={() => fetchTickets(cursor)}
-                disabled={isLoading}
-              >
-                {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Load more"}
-              </Button>
             )}
           </div>
         </div>
@@ -130,9 +101,9 @@ export function AdminTicketsDialog({
                   <h3 className="text-lg font-semibold text-slate-900 mb-1">{activeTicket.title}</h3>
                   <p className="text-xs text-slate-500">From: {activeTicket.createdBy.user.name} ({activeTicket.createdBy.user.email})</p>
                 </div>
-                <Button 
-                  variant="secondary" 
-                  size="sm" 
+                <Button
+                  variant="secondary"
+                  size="sm"
                   className="text-green-600 border-green-200 hover:bg-green-50"
                   onClick={() => handleResolve(activeTicket.id)}
                   disabled={isPending}
@@ -141,12 +112,12 @@ export function AdminTicketsDialog({
                   Resolve
                 </Button>
               </div>
-              
+
               <div className="flex-1 overflow-y-auto p-5 space-y-4">
                 <div className="bg-slate-50 p-4 rounded-lg border border-slate-100 text-sm text-slate-700 whitespace-pre-wrap">
                   {activeTicket.description}
                 </div>
-                
+
                 {activeTicket.replies.map(reply => (
                   <div key={reply.id} className={`flex flex-col ${reply.author.role === 'ADMIN' ? 'items-end' : 'items-start'}`}>
                     <div className="flex items-baseline gap-2 mb-1">
@@ -169,8 +140,8 @@ export function AdminTicketsDialog({
                     className="flex-1 resize-none rounded-md border border-slate-300 p-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
                     rows={2}
                   />
-                  <Button 
-                    className="self-end" 
+                  <Button
+                    className="self-end"
                     onClick={handleReply}
                     disabled={isPending || !replyContent.trim()}
                   >

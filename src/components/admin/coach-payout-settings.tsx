@@ -30,6 +30,7 @@ interface Props {
   payoutRates: PayoutRate[];
   payoutAdjustments: Adjustment[];
   classLogs: ClassLog[];
+  penalizedLogs: ClassLog[];
   coachPenaltyTotal: number;
 }
 
@@ -41,7 +42,7 @@ function fmt(d: string | Date | null | undefined) {
 
 export function CoachPayoutSettings({
   coachId, tdsApplicable: initialTds, employmentType: initialEmpType,
-  payoutRates: initialRates, payoutAdjustments: initialAdj, classLogs: initialLogs,
+  payoutRates: initialRates, payoutAdjustments: initialAdj, classLogs: initialLogs, penalizedLogs: initialPenalizedLogs,
   coachPenaltyTotal: initialPenaltyTotal,
 }: Props) {
   const router = useRouter();
@@ -66,8 +67,9 @@ export function CoachPayoutSettings({
 
   // Class logs with penalties
   const [logs, setLogs] = useState<ClassLog[]>(initialLogs);
+  const [penalties, setPenalties] = useState<ClassLog[]>(initialPenalizedLogs);
   const [waivedIds, setWaivedIds] = useState<Set<string>>(
-    new Set(initialLogs.filter(l => l.penaltyWaived).map(l => l.id))
+    new Set(initialPenalizedLogs.filter(l => l.penaltyWaived).map(l => l.id))
   );
   const [penaltyModal, setPenaltyModal] = useState<ClassLog | null>(null);
   const [penaltyForm, setPenaltyForm] = useState({ amount: "", note: "", waived: false });
@@ -160,17 +162,24 @@ export function CoachPayoutSettings({
     if (res.ok) {
       const { classLog } = await res.json();
       setLogs(prev => prev.map(l => l.id === penaltyModal.id ? { ...l, ...classLog } : l));
+      setPenalties(prev => prev.map(l => l.id === penaltyModal.id ? { ...l, ...classLog } : l));
       if (penaltyForm.waived) setWaivedIds(prev => new Set([...prev, penaltyModal.id]));
       else setWaivedIds(prev => { const s = new Set(prev); s.delete(penaltyModal.id); return s; });
       setPenaltyModal(null);
     }
   }
 
-  const penaltyLogs = logs.filter(l => l.penaltyAmount > 0);
-  const netPenalties = logs.reduce((acc, l) => {
+  const netPenalties = penalties.reduce((acc, l) => {
     if (!waivedIds.has(l.id)) return acc + (l.penaltyAmount ?? 0);
     return acc;
   }, 0);
+
+  const groupedPenalties = penalties.reduce((acc, log) => {
+    const month = new Date(log.date).toLocaleString('default', { month: 'long', year: 'numeric' });
+    if (!acc[month]) acc[month] = [];
+    acc[month].push(log);
+    return acc;
+  }, {} as Record<string, ClassLog[]>);
 
   const ADJ_COLORS: Record<string, string> = { BONUS: "text-emerald-600", INCENTIVE: "text-blue-600", DEDUCTION: "text-rose-600" };
 
@@ -210,33 +219,42 @@ export function CoachPayoutSettings({
 
       {/* ── Class Log Penalties ───────────────────────────────────────────── */}
       <div>
-        <h4 className="text-sm font-semibold text-slate-700 mb-3">Class Log Penalties</h4>
-        {penaltyLogs.length === 0 ? (
-          <p className="text-sm text-slate-400">No penalties on recent classes.</p>
+        <h4 className="text-sm font-semibold text-slate-700 mb-3">Class Log Penalties (Month-wise)</h4>
+        {Object.keys(groupedPenalties).length === 0 ? (
+          <p className="text-sm text-slate-400">No penalties recorded yet.</p>
         ) : (
-          <div className="space-y-2">
-            {penaltyLogs.map(log => (
-              <div key={log.id} className="flex justify-between items-center py-2 border-b border-slate-100 text-sm">
-                <div>
-                  <p className="font-medium text-slate-800">{fmt(log.date)} — {log.batch?.name ?? ""}</p>
-                  <p className="text-xs text-slate-500">{log.penaltyNote || "Penalty applied"}</p>
+          <div className="space-y-4">
+            {Object.entries(groupedPenalties).map(([month, monthLogs]) => (
+              <div key={month} className="border border-slate-200 rounded-md bg-white overflow-hidden">
+                <div className="bg-slate-50 px-3 py-2 border-b border-slate-200">
+                  <h5 className="text-xs font-bold text-slate-600 uppercase tracking-wider">{month}</h5>
                 </div>
-                <div className="flex items-center gap-2">
-                  {waivedIds.has(log.id) && <Badge variant="neutral" className="text-xs">Waived</Badge>}
-                  <span className={`font-semibold text-sm ${waivedIds.has(log.id) ? "line-through text-slate-400" : "text-rose-600"}`}>
-                    −₹{log.penaltyAmount}
-                  </span>
-                  <button
-                    onClick={() => openPenaltyModal(log)}
-                    className="text-xs px-2 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-md transition-colors border border-slate-200"
-                  >
-                    Edit
-                  </button>
+                <div className="px-3">
+                  {monthLogs.map(log => (
+                    <div key={log.id} className="flex justify-between items-center py-2 border-b border-slate-100 last:border-0 text-sm">
+                      <div>
+                        <p className="font-medium text-slate-800">{fmt(log.date)} — {log.batch?.name ?? ""}</p>
+                        <p className="text-xs text-slate-500">{log.penaltyNote || "Penalty applied"}</p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {waivedIds.has(log.id) && <Badge variant="neutral" className="text-xs">Waived</Badge>}
+                        <span className={`font-semibold text-sm ${waivedIds.has(log.id) ? "line-through text-slate-400" : "text-rose-600"}`}>
+                          −₹{log.penaltyAmount}
+                        </span>
+                        <button
+                          onClick={() => openPenaltyModal(log)}
+                          className="text-xs px-2 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-md transition-colors border border-slate-200"
+                        >
+                          Edit
+                        </button>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
             ))}
             <div className="flex justify-between text-sm font-semibold pt-1">
-              <span className="text-slate-600">Net penalties deducted</span>
+              <span className="text-slate-600">Net penalties deducted (All-time)</span>
               <span className="text-rose-700">−₹{netPenalties}</span>
             </div>
           </div>

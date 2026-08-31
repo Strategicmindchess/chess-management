@@ -11,14 +11,15 @@ interface DialogProps {
   description?: string;
   children: React.ReactNode;
   className?: string;
+  hideCloseButton?: boolean;
 }
 
-export function Dialog({ open, onClose, title, description, children, className }: DialogProps) {
+export function Dialog({ open, onClose, title, description, children, className, hideCloseButton }: DialogProps) {
   useEffect(() => {
     if (!open) return;
 
     function handleKeyDown(event: KeyboardEvent) {
-      if (event.key === 'Escape') onClose();
+      if (event.key === 'Escape' && !hideCloseButton) onClose();
     }
 
     document.addEventListener('keydown', handleKeyDown);
@@ -54,16 +55,17 @@ export function Dialog({ open, onClose, title, description, children, className 
             </h2>
             {description && <p className="mt-1 text-sm text-slate-500">{description}</p>}
           </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className="rounded-md p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
-            aria-label="Close"
-          >
-            <X className="h-5 w-5" />
-          </button>
+          {!hideCloseButton && (
+            <button
+              type="button"
+              onClick={onClose}
+              className="rounded-md p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
+            >
+              <X className="h-5 w-5" aria-hidden="true" />
+            </button>
+          )}
         </div>
-        <div className="px-6 py-5">{children}</div>
+        <div className="p-6">{children}</div>
       </div>
     </div>
   );

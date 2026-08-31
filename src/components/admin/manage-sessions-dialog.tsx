@@ -1,13 +1,15 @@
 "use client";
 
-import { useState, useEffect, useTransition } from "react";
+import { useState, useTransition } from "react";
 import { Dialog } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { CalendarRange, CalendarSync, Ban, Loader2, Clock, Check, X } from "lucide-react";
-import { getBatchSessions, generateMoreClassInstances, cancelClassInstance, updateClassTimings } from "@/actions/batch-actions";
+import { CalendarRange, CalendarSync, Ban, Loader2, Clock, Check, X, PlusCircle, RefreshCw, Settings2 } from "lucide-react";
+import { generateMoreClassInstances } from "@/actions/batch-actions";
+import { cancelClassInstance, updateClassInstance, rescheduleClassInstance, createClassInstance, bulkUpdateClassTimings } from "@/actions/manage-sessions";
+import { useBatchSessions, invalidateBatchSessions } from "@/hooks/use-batch-sessions";
 
 interface Session {
   id: string;
@@ -26,40 +28,26 @@ interface ManageSessionsDialogProps {
 
 export function ManageSessionsDialog({ batchId, batchName }: ManageSessionsDialogProps) {
   const [open, setOpen] = useState(false);
-  const [sessions, setSessions] = useState<Session[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const { sessions, isLoading, error: sessionsError } = useBatchSessions(open ? batchId : null);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [addCount, setAddCount] = useState<number>(5);
 
   const [updateDialogOpen, setUpdateDialogOpen] = useState(false);
+  const [rescheduleDialogOpen, setRescheduleDialogOpen] = useState(false);
+  const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [bulkUpdateDialogOpen, setBulkUpdateDialogOpen] = useState(false);
+  
   const [selectedSession, setSelectedSession] = useState<Session | null>(null);
+  
+  // Edit & Create States
   const [editDate, setEditDate] = useState<string>("");
   const [editStartTime, setEditStartTime] = useState<string>("");
   const [editEndTime, setEditEndTime] = useState<string>("");
-  const [updateAllFuture, setUpdateAllFuture] = useState<boolean>(false);
+  const [editLectureName, setEditLectureName] = useState<string>("");
+  const [editSessionNumber, setEditSessionNumber] = useState<string>("");
 
   const [isPending, startTransition] = useTransition();
-
-  async function fetchSessions() {
-    setIsLoading(true);
-    setError(null);
-    const result = await getBatchSessions(batchId);
-    setIsLoading(false);
-    if (result.success && result.data) {
-      setSessions(result.data);
-    } else {
-      setError(result.error || "Failed to load sessions.");
-    }
-  }
-
-  useEffect(() => {
-    if (open) {
-      fetchSessions();
-      setSuccessMessage(null);
-      setError(null);
-    }
-  }, [open, batchId]);
 
   function handleAddSessions(e: React.FormEvent) {
     e.preventDefault();
@@ -75,7 +63,7 @@ export function ManageSessionsDialog({ batchId, batchName }: ManageSessionsDialo
       const result = await generateMoreClassInstances(batchId, addCount);
       if (result.success) {
         setSuccessMessage(`Successfully scheduled the next ${addCount} class sessions.`);
-        fetchSessions();
+        invalidateBatchSessions(batchId);
       } else {
         setError(result.error || "Failed to schedule classes.");
       }
@@ -95,7 +83,7 @@ export function ManageSessionsDialog({ batchId, batchName }: ManageSessionsDialo
       if (result.success) {
         setSuccessMessage("Session has been cancelled successfully.");
         setUpdateDialogOpen(false);
-        fetchSessions();
+        invalidateBatchSessions(batchId);
       } else {
         setError(result.error || "Failed to cancel session.");
       }
@@ -107,8 +95,26 @@ export function ManageSessionsDialog({ batchId, batchName }: ManageSessionsDialo
     setEditStartTime(session.startTime);
     setEditEndTime(session.endTime);
     setEditDate(session.date.split("T")[0]);
-    setUpdateAllFuture(false);
+    setEditLectureName(session.lectureName || "");
+    setEditSessionNumber(session.sessionNumber ? session.sessionNumber.toString() : "");
     setUpdateDialogOpen(true);
+  }
+
+  function openRescheduleDialog(session: Session) {
+    setSelectedSession(session);
+    setEditStartTime(session.startTime);
+    setEditEndTime(session.endTime);
+    setEditDate(session.date.split("T")[0]);
+    setRescheduleDialogOpen(true);
+  }
+
+  function openCreateDialog() {
+    setEditStartTime("");
+    setEditEndTime("");
+    setEditDate("");
+    setEditLectureName("");
+    setEditSessionNumber("");
+    setCreateDialogOpen(true);
   }
 
   function handleUpdateTiming(e: React.FormEvent) {
@@ -119,24 +125,104 @@ export function ManageSessionsDialog({ batchId, batchName }: ManageSessionsDialo
     setSuccessMessage(null);
 
     startTransition(async () => {
-      const result = await updateClassTimings({
-        batchId,
+      const result = await updateClassInstance({
         instanceId: selectedSession.id,
+        newDate: editDate,
         newStartTime: editStartTime,
         newEndTime: editEndTime,
-        newDate: editDate,
-        updateAllFuture
+        lectureName: editLectureName || null,
+        sessionNumber: editSessionNumber ? parseInt(editSessionNumber, 10) : null
       });
       if (result.success) {
         setSuccessMessage("Session updated successfully.");
         setUpdateDialogOpen(false);
-        fetchSessions();
+        invalidateBatchSessions(batchId);
       } else {
         setError(result.error || "Failed to update session.");
       }
     });
   }
 
+  function handleReschedule(e: React.FormEvent) {
+    e.preventDefault();
+    if (!selectedSession) return;
+
+    setError(null);
+    setSuccessMessage(null);
+
+    startTransition(async () => {
+      const result = await rescheduleClassInstance({
+        instanceId: selectedSession.id,
+        newDate: editDate,
+        newStartTime: editStartTime,
+        newEndTime: editEndTime,
+      });
+      if (result.success) {
+        setSuccessMessage("Session rescheduled successfully.");
+        setRescheduleDialogOpen(false);
+        invalidateBatchSessions(batchId);
+      } else {
+        setError(result.error || "Failed to reschedule session.");
+      }
+    });
+  }
+
+  function handleCreate(e: React.FormEvent) {
+    e.preventDefault();
+
+    setError(null);
+    setSuccessMessage(null);
+
+    startTransition(async () => {
+      const result = await createClassInstance({
+        batchId,
+        date: editDate,
+        startTime: editStartTime,
+        endTime: editEndTime,
+        lectureName: editLectureName || null,
+        sessionNumber: editSessionNumber ? parseInt(editSessionNumber, 10) : null
+      });
+      if (result.success) {
+        setSuccessMessage("Session created successfully.");
+        setCreateDialogOpen(false);
+        invalidateBatchSessions(batchId);
+      } else {
+        setError(result.error || "Failed to create session.");
+      }
+    });
+  }
+
+  function handleBulkUpdate(e: React.FormEvent) {
+    e.preventDefault();
+
+    if (!window.confirm("This will update the start and end times of ALL future SCHEDULED classes for this batch. Are you sure?")) {
+      return;
+    }
+
+    setError(null);
+    setSuccessMessage(null);
+
+    startTransition(async () => {
+      const result = await bulkUpdateClassTimings({
+        batchId,
+        newStartTime: editStartTime,
+        newEndTime: editEndTime,
+      });
+      if (result.success) {
+        setSuccessMessage("Bulk update completed successfully.");
+        setBulkUpdateDialogOpen(false);
+        invalidateBatchSessions(batchId);
+      } else {
+        setError(result.error || "Failed to bulk update timings.");
+      }
+    });
+  }
+
+  function openBulkUpdateDialog() {
+    setEditStartTime("");
+    setEditEndTime("");
+    setBulkUpdateDialogOpen(true);
+  }
 
   // Calculate status counts
   const totalCount = sessions.length;
@@ -195,16 +281,30 @@ export function ManageSessionsDialog({ batchId, batchName }: ManageSessionsDialo
             </div>
           )}
 
-          {/* Add more instances form */}
-          <form onSubmit={handleAddSessions} className="p-4 border border-slate-200 rounded-lg space-y-3 bg-white">
-            <h4 className="text-sm font-semibold text-slate-900 flex items-center gap-1.5">
-              <CalendarSync className="h-4 w-4 text-brand-600" />
-              Schedule More Classes
-            </h4>
-            <p className="text-xs text-slate-500">
-              Generate more sessions chronologically starting from the day after the last scheduled class based on the batch schedule.
-            </p>
-            <div className="flex items-end gap-3 pt-1">
+          {/* Add more instances form & Create Manual */}
+          <div className="flex flex-col gap-4 p-4 border border-slate-200 rounded-lg bg-white">
+            <div className="flex items-center justify-between">
+              <div>
+                <h4 className="text-sm font-semibold text-slate-900 flex items-center gap-1.5">
+                  <CalendarSync className="h-4 w-4 text-brand-600" />
+                  Auto-Schedule More Classes
+                </h4>
+                <p className="text-xs text-slate-500">
+                  Generate future sessions based on the batch schedule.
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                <Button type="button" variant="secondary" size="sm" onClick={openBulkUpdateDialog} className="text-xs">
+                  <Settings2 className="h-3.5 w-3.5 mr-1.5" />
+                  Bulk Update Timings
+                </Button>
+                <Button type="button" variant="secondary" size="sm" onClick={openCreateDialog} className="text-xs">
+                  <PlusCircle className="h-3.5 w-3.5 mr-1.5" />
+                  Add Session Manually
+                </Button>
+              </div>
+            </div>
+            <form onSubmit={handleAddSessions} className="flex items-end gap-3 pt-2 border-t border-slate-100">
               <div className="flex-1 max-w-[200px]">
                 <Label htmlFor="addCount" className="text-xs">Number of classes to add</Label>
                 <Input
@@ -220,8 +320,8 @@ export function ManageSessionsDialog({ batchId, batchName }: ManageSessionsDialo
               <Button type="submit" disabled={isPending || isLoading} className="h-10">
                 {isPending ? "Generating..." : "Generate Classes"}
               </Button>
-            </div>
-          </form>
+            </form>
+          </div>
 
           {/* Sessions List */}
           <div className="space-y-3">
@@ -255,6 +355,8 @@ export function ManageSessionsDialog({ batchId, batchName }: ManageSessionsDialo
                           <p className="text-sm font-semibold text-slate-900 flex items-center gap-2">
                             {session.sessionNumber && session.lectureName ? (
                               <span>Lecture {session.sessionNumber}: {session.lectureName}</span>
+                            ) : session.sessionNumber ? (
+                              <span>Lecture {session.sessionNumber}</span>
                             ) : (
                               <span>Class Session</span>
                             )}
@@ -285,6 +387,18 @@ export function ManageSessionsDialog({ batchId, batchName }: ManageSessionsDialo
                               Update
                             </Button>
                           )}
+                          {isCancelled && (
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => openRescheduleDialog(session)}
+                              className="text-slate-600 hover:text-slate-900 hover:bg-slate-100 h-8 px-3 flex items-center gap-1.5 text-xs font-medium"
+                              disabled={isPending}
+                            >
+                              Reschedule
+                            </Button>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -311,67 +425,32 @@ export function ManageSessionsDialog({ batchId, batchName }: ManageSessionsDialo
       >
         {selectedSession && (
           <form onSubmit={handleUpdateTiming} className="space-y-5">
-            <div className="space-y-1 pb-3 border-b border-slate-100">
-              <h4 className="text-sm font-semibold text-slate-900">
-                {selectedSession.sessionNumber && selectedSession.lectureName
-                  ? `Lecture ${selectedSession.sessionNumber}: ${selectedSession.lectureName}`
-                  : "Class Session"}
-              </h4>
-              <p className="text-xs text-slate-500">
-                Reschedule this session's date and time, or cancel it entirely.
-              </p>
-            </div>
-
             <div className="space-y-4">
-              <div className="space-y-1.5">
-                <Label htmlFor={`edit-date-${selectedSession.id}`} className="text-xs font-medium">Date</Label>
-                <Input
-                  id={`edit-date-${selectedSession.id}`}
-                  type="date"
-                  value={editDate}
-                  onChange={(e) => setEditDate(e.target.value)}
-                  className="text-sm"
-                  required
-                />
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <Label htmlFor="update-date" className="text-xs font-medium">Date</Label>
+                  <Input id="update-date" type="date" value={editDate} onChange={(e) => setEditDate(e.target.value)} required />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="update-session-number" className="text-xs font-medium">Session Number</Label>
+                  <Input id="update-session-number" type="number" min="1" value={editSessionNumber} onChange={(e) => setEditSessionNumber(e.target.value)} placeholder="e.g. 4" />
+                </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                  <Label htmlFor={`edit-start-${selectedSession.id}`} className="text-xs font-medium">Start Time</Label>
-                  <Input
-                    id={`edit-start-${selectedSession.id}`}
-                    type="time"
-                    value={editStartTime}
-                    onChange={(e) => setEditStartTime(e.target.value)}
-                    className="text-sm"
-                    required
-                  />
+                  <Label htmlFor="update-start" className="text-xs font-medium">Start Time</Label>
+                  <Input id="update-start" type="time" value={editStartTime} onChange={(e) => setEditStartTime(e.target.value)} required />
                 </div>
                 <div className="space-y-1.5">
-                  <Label htmlFor={`edit-end-${selectedSession.id}`} className="text-xs font-medium">End Time</Label>
-                  <Input
-                    id={`edit-end-${selectedSession.id}`}
-                    type="time"
-                    value={editEndTime}
-                    onChange={(e) => setEditEndTime(e.target.value)}
-                    className="text-sm"
-                    required
-                  />
+                  <Label htmlFor="update-end" className="text-xs font-medium">End Time</Label>
+                  <Input id="update-end" type="time" value={editEndTime} onChange={(e) => setEditEndTime(e.target.value)} required />
                 </div>
               </div>
 
-              <div className="flex items-center gap-2 pt-2">
-                <input
-                  type="checkbox"
-                  id={`updateAll-${selectedSession.id}`}
-                  checked={updateAllFuture}
-                  onChange={(e) => setUpdateAllFuture(e.target.checked)}
-                  className="h-4 w-4 rounded border-slate-300 text-brand-600 focus:ring-brand-600 cursor-pointer"
-                />
-                <Label htmlFor={`updateAll-${selectedSession.id}`} className="text-xs font-normal text-slate-700 cursor-pointer">
-                  Update time for all future sessions of this batch
-                  <span className="block text-[10px] text-slate-500 mt-0.5">(Date changes only apply to this specific session)</span>
-                </Label>
+              <div className="space-y-1.5">
+                <Label htmlFor="update-lecture-name" className="text-xs font-medium">Lecture Name / Topic</Label>
+                <Input id="update-lecture-name" type="text" value={editLectureName} onChange={(e) => setEditLectureName(e.target.value)} placeholder="e.g. Fundamentals of Chess" />
               </div>
             </div>
 
@@ -389,22 +468,10 @@ export function ManageSessionsDialog({ batchId, batchName }: ManageSessionsDialo
               </Button>
               
               <div className="flex items-center gap-2">
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  className="h-9 text-xs"
-                  onClick={() => setUpdateDialogOpen(false)}
-                  disabled={isPending}
-                >
+                <Button type="button" variant="ghost" size="sm" className="h-9 text-xs" onClick={() => setUpdateDialogOpen(false)} disabled={isPending}>
                   Close
                 </Button>
-                <Button
-                  type="submit"
-                  size="sm"
-                  className="h-9 px-4 text-xs"
-                  disabled={isPending}
-                >
+                <Button type="submit" size="sm" className="h-9 px-4 text-xs" disabled={isPending}>
                   <Check className="h-3.5 w-3.5 mr-1.5" />
                   Save Changes
                 </Button>
@@ -412,6 +479,150 @@ export function ManageSessionsDialog({ batchId, batchName }: ManageSessionsDialo
             </div>
           </form>
         )}
+      </Dialog>
+
+      {/* Reschedule Session Popup */}
+      <Dialog
+        open={rescheduleDialogOpen}
+        onClose={() => setRescheduleDialogOpen(false)}
+        title="Reschedule Class Session"
+        className="max-w-md"
+      >
+        {selectedSession && (
+          <form onSubmit={handleReschedule} className="space-y-5">
+            <div className="space-y-1 pb-3 border-b border-slate-100">
+              <h4 className="text-sm font-semibold text-slate-900">
+                {selectedSession.sessionNumber && selectedSession.lectureName
+                  ? `Lecture ${selectedSession.sessionNumber}: ${selectedSession.lectureName}`
+                  : "Cancelled Session"}
+              </h4>
+              <p className="text-xs text-slate-500">
+                Change the date and time to restore this cancelled session to SCHEDULED status.
+              </p>
+            </div>
+
+            <div className="space-y-4">
+              <div className="space-y-1.5">
+                <Label htmlFor="res-date" className="text-xs font-medium">New Date</Label>
+                <Input id="res-date" type="date" value={editDate} onChange={(e) => setEditDate(e.target.value)} required />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <Label htmlFor="res-start" className="text-xs font-medium">New Start Time</Label>
+                  <Input id="res-start" type="time" value={editStartTime} onChange={(e) => setEditStartTime(e.target.value)} required />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="res-end" className="text-xs font-medium">New End Time</Label>
+                  <Input id="res-end" type="time" value={editEndTime} onChange={(e) => setEditEndTime(e.target.value)} required />
+                </div>
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-2 pt-4 border-t border-slate-100">
+              <Button type="button" variant="ghost" size="sm" onClick={() => setRescheduleDialogOpen(false)} disabled={isPending}>
+                Cancel
+              </Button>
+              <Button type="submit" size="sm" disabled={isPending}>
+                <RefreshCw className="h-3.5 w-3.5 mr-1.5" />
+                Reschedule
+              </Button>
+            </div>
+          </form>
+        )}
+      </Dialog>
+
+      {/* Create Manual Session Popup */}
+      <Dialog
+        open={createDialogOpen}
+        onClose={() => setCreateDialogOpen(false)}
+        title="Create Session Manually"
+        className="max-w-md"
+      >
+        <form onSubmit={handleCreate} className="space-y-5">
+          <div className="space-y-1 pb-3 border-b border-slate-100">
+            <p className="text-xs text-slate-500">
+              Manually add a session at any specific date and time. It will be checked for scheduling conflicts.
+            </p>
+          </div>
+
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <Label htmlFor="create-date" className="text-xs font-medium">Date</Label>
+                <Input id="create-date" type="date" value={editDate} onChange={(e) => setEditDate(e.target.value)} required />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="create-session-number" className="text-xs font-medium">Session Number</Label>
+                <Input id="create-session-number" type="number" min="1" value={editSessionNumber} onChange={(e) => setEditSessionNumber(e.target.value)} placeholder="e.g. 4" />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <Label htmlFor="create-start" className="text-xs font-medium">Start Time</Label>
+                <Input id="create-start" type="time" value={editStartTime} onChange={(e) => setEditStartTime(e.target.value)} required />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="create-end" className="text-xs font-medium">End Time</Label>
+                <Input id="create-end" type="time" value={editEndTime} onChange={(e) => setEditEndTime(e.target.value)} required />
+              </div>
+            </div>
+
+            <div className="space-y-1.5">
+              <Label htmlFor="create-lecture-name" className="text-xs font-medium">Lecture Name / Topic</Label>
+              <Input id="create-lecture-name" type="text" value={editLectureName} onChange={(e) => setEditLectureName(e.target.value)} placeholder="e.g. Fundamentals of Chess" />
+            </div>
+          </div>
+
+          <div className="flex justify-end gap-2 pt-4 border-t border-slate-100">
+            <Button type="button" variant="ghost" size="sm" onClick={() => setCreateDialogOpen(false)} disabled={isPending}>
+              Cancel
+            </Button>
+            <Button type="submit" size="sm" disabled={isPending}>
+              <PlusCircle className="h-3.5 w-3.5 mr-1.5" />
+              Create Session
+            </Button>
+          </div>
+        </form>
+      </Dialog>
+      {/* Bulk Update Dialog */}
+      <Dialog
+        open={bulkUpdateDialogOpen}
+        onClose={() => setBulkUpdateDialogOpen(false)}
+        title="Bulk Update Timings"
+        className="max-w-md"
+      >
+        <form onSubmit={handleBulkUpdate} className="space-y-5">
+          <div className="space-y-1 pb-3 border-b border-slate-100">
+            <p className="text-xs text-slate-500">
+              Update the start and end times for <b>ALL future SCHEDULED</b> sessions of this batch, starting from today.
+            </p>
+          </div>
+
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <Label htmlFor="bulk-start" className="text-xs font-medium">New Start Time</Label>
+                <Input id="bulk-start" type="time" value={editStartTime} onChange={(e) => setEditStartTime(e.target.value)} required />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="bulk-end" className="text-xs font-medium">New End Time</Label>
+                <Input id="bulk-end" type="time" value={editEndTime} onChange={(e) => setEditEndTime(e.target.value)} required />
+              </div>
+            </div>
+          </div>
+
+          <div className="flex justify-end gap-2 pt-4 border-t border-slate-100">
+            <Button type="button" variant="ghost" size="sm" onClick={() => setBulkUpdateDialogOpen(false)} disabled={isPending}>
+              Cancel
+            </Button>
+            <Button type="submit" size="sm" disabled={isPending}>
+              <Settings2 className="h-3.5 w-3.5 mr-1.5" />
+              Update All
+            </Button>
+          </div>
+        </form>
       </Dialog>
     </>
   );

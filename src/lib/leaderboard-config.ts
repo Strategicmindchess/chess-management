@@ -97,6 +97,7 @@ export const QUEUE_NAMES = {
   LOG_CLEANUP: `log-cleanup${envSuffix}`,
   ATTENDANCE_SUMMARY: `attendance-summary${envSuffix}`,
   ASSIGNMENT_SUMMARY: `assignment-summary${envSuffix}`,
+  PENALTY: `penalty${envSuffix}`,
 } as const;
 
 // ── Job names ────────────────────────────────────────────────────────────────
@@ -107,4 +108,5 @@ export const JOB_NAMES = {
   PURGE_OLD_LOGS: 'purge-old-logs',     // Delete fetch logs > 30 days
   CALC_ATTENDANCE: 'calc-attendance',   // Calculate attendance % for period
   CALC_ASSIGNMENT: 'calc-assignment',   // Calculate assignment completion for period
+  PROCESS_PENALTIES: 'process-pending-penalties', // Daily penalty finalization
 } as const;

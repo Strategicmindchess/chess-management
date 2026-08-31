@@ -21,7 +21,6 @@ export async function POST(req: NextRequest) {
 
   const {
     classLogId,
-    studentProfileId,
     cameraOffOver5Min,
     phoneUsedOver4Times,
     classQualityScore,
@@ -29,7 +28,6 @@ export async function POST(req: NextRequest) {
     overallCoachScore,
   } = body as {
     classLogId: string;
-    studentProfileId: string;
     cameraOffOver5Min?: boolean;
     phoneUsedOver4Times?: boolean;
     classQualityScore?: number;
@@ -37,9 +35,21 @@ export async function POST(req: NextRequest) {
     overallCoachScore?: number;
   };
 
-  if (!classLogId || !studentProfileId) {
-    return NextResponse.json({ error: "classLogId and studentProfileId are required" }, { status: 400 });
+  if (!classLogId) {
+    return NextResponse.json({ error: "classLogId is required" }, { status: 400 });
   }
+
+  // Securely get the student profile for the authenticated user
+  const user = await requireRole([Role.STUDENT]);
+  const studentProfile = await prisma.studentProfile.findUnique({
+    where: { userId: user.id },
+  });
+
+  if (!studentProfile) {
+    return NextResponse.json({ error: "Student profile not found" }, { status: 404 });
+  }
+
+  const studentProfileId = studentProfile.id;
 
   try {
     const feedback = await prisma.classFeedback.create({
@@ -54,12 +64,8 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    // Trigger penalty recalculation for this class log
-    await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || ""}/api/class-logs/${classLogId}/penalty`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-    });
-
+    // No immediate penalty calculation here.
+    // The BullMQ penalty worker processes eligible ClassLogs in a daily scheduled run.
     return NextResponse.json({ feedback });
   } catch (err: any) {
     if (err?.code === "P2002") {

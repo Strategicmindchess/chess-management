@@ -25,30 +25,37 @@ export async function processBatchSync(job: Job) {
     });
     console.log(`[BatchProcessor] Deleted | Count: ${deleted.count} old SCHEDULED instances.`);
 
-    // 3. Calculate how many new instances to generate.
-    //    startSession is 1-based (e.g. 4 = "start from Lecture 4").
-    //    instancesToGenerate = total lectures - startSession + 1
-    //      e.g. 24 lectures, startSession=4 → 24-4+1 = 21 instances (Lectures 4..24)
-    const startSession: number = batch.startSession ?? 1;
-    let instancesToGenerate = 10; // Fallback for batches without a syllabus
+    // 3. Find the highest sessionNumber among the KEEP (COMPLETED/CANCELLED) instances
+    const keptInstances = await prisma.classInstance.findMany({
+      where: { batchId, status: { in: ['COMPLETED', 'CANCELLED'] }, sessionNumber: { not: null } },
+      orderBy: { sessionNumber: 'desc' },
+      take: 1
+    });
 
+    let currentSession = batch.startSession ?? 1;
+    if (keptInstances.length > 0 && keptInstances[0].sessionNumber) {
+      currentSession = keptInstances[0].sessionNumber + 1;
+    }
+
+    // 4. Calculate how many new instances to generate.
+    let instancesToGenerate = 10; // Fallback for batches without a syllabus
     if (batch.level) {
       const syllabusInfo = SYLLABUS_MAP[batch.level as BatchLevel];
       if (syllabusInfo) {
-        instancesToGenerate = syllabusInfo.lectures - startSession + 1;
+        instancesToGenerate = syllabusInfo.lectures - currentSession + 1;
         if (instancesToGenerate < 0) {
-          instancesToGenerate = 0; // startSession is past the end of the syllabus
+          instancesToGenerate = 0; // currentSession is past the end of the syllabus
         }
       }
     }
 
     if (instancesToGenerate > 0) {
-      // Pass startSession directly as the override so generateInstancesInternal
-      // uses it without adding any past-instance count on top.
-      await generateInstancesInternal(batchId, instancesToGenerate, undefined, startSession);
-      console.log(`[BatchProcessor] Generated | ${instancesToGenerate} new instances for batch ${batchId} starting from session ${startSession}.`);
+      // Pass currentSession directly as the override so generateInstancesInternal
+      // uses it without any confusion.
+      await generateInstancesInternal(batchId, instancesToGenerate, undefined, currentSession);
+      console.log(`[BatchProcessor] Generated | ${instancesToGenerate} new instances for batch ${batchId} starting from session ${currentSession}.`);
     } else {
-      console.log(`[BatchProcessor] Skipped | No instances to generate (startSession ${startSession} is past the end of the syllabus).`);
+      console.log(`[BatchProcessor] Skipped | No instances to generate (session ${currentSession} is past the end of the syllabus).`);
     }
 
     console.log(`[BatchProcessor] Completed | JobID: ${job.id}`);

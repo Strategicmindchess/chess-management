@@ -3,32 +3,32 @@
 ///   MONTHLY     → student pays on a recurring time schedule
 ///   BATCH_BASED → student pays once per completed batch (admin fills details manually)
 model StudentFeeConfig {
-  id               String       @id @default(cuid())
-  studentProfileId String       @unique
+  id               String @id @default(cuid())
+  studentProfileId String @unique
 
   /// MONTHLY or BATCH_BASED — chosen by admin once, drives both UI and cycle creation
-  feeType          FeeType      @default(MONTHLY)
+  feeType FeeType @default(MONTHLY)
 
   /// Default fee amount per cycle (₹). Admin can override per-cycle in FeeCycle.amount.
-  feeAmount        Int          @default(0)
+  feeAmount Int @default(0)
 
   /// For MONTHLY students: how many classes are included per cycle
-  classesPerCycle  Int          @default(8)
+  classesPerCycle Int @default(8)
 
   /// For MONTHLY students: the recurring billing interval
-  frequency        FeeFrequency @default(MONTHLY)
+  frequency FeeFrequency @default(MONTHLY)
 
   /// Date the student started attending classes
-  startDate        DateTime?
+  startDate DateTime?
 
   /// Date from which the first fee cycle is due (MONTHLY students)
-  feeStartDate     DateTime?
+  feeStartDate DateTime?
 
-  notes            String?
-  createdAt        DateTime     @default(now())
-  updatedAt        DateTime     @updatedAt
+  notes     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  student StudentProfile   @relation(fields: [studentProfileId], references: [id], onDelete: Cascade)
+  student StudentProfile @relation(fields: [studentProfileId], references: [id], onDelete: Cascade)
   cycles  FeeCycle[]
 
   @@map("student_fee_configs")
@@ -40,30 +40,30 @@ model StudentFeeConfig {
 /// BATCH_BASED students: batchCode + batchName + amount
 ///   (batchId FK to Batch is Phase 2 — left null for now)
 model FeeCycle {
-  id          String    @id @default(cuid())
+  id          String @id @default(cuid())
   feeConfigId String
 
   // ── BATCH_BASED fields ──────────────────────────────────────────────────────
   /// Batch code filled manually by admin e.g. "B-14"  (null for MONTHLY cycles)
-  batchCode   String?
+  batchCode String?
   /// Batch name filled manually by admin e.g. "Core 2 Group A" (null for MONTHLY)
-  batchName   String?
+  batchName String?
 
   // ── MONTHLY fields ───────────────────────────────────────────────────────────
   /// Calendar due date for time-based cycles (null for BATCH_BASED cycles)
-  dueDate     DateTime?
+  dueDate DateTime?
   /// Number of classes in this cycle (null for BATCH_BASED)
-  classes     Int?
+  classes Int?
 
   // ── Common fields ────────────────────────────────────────────────────────────
   /// Actual amount for this cycle (₹) — admin can differ from the config default
-  amount      Int       @default(0)
-  status      FeeStatus @default(UNPAID)
-  paidDate    DateTime?
-  notes       String?
-  isHidden    Boolean   @default(false)
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  amount    Int       @default(0)
+  status    FeeStatus @default(UNPAID)
+  paidDate  DateTime?
+  notes     String?
+  isHidden  Boolean   @default(false)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
 
   feeConfig StudentFeeConfig @relation(fields: [feeConfigId], references: [id], onDelete: Cascade)
 
@@ -75,7 +75,7 @@ model FeeCycle {
 
 /// Controls the billing model for a student
 enum FeeType {
-  MONTHLY     /// Time-based billing (weekly / monthly / quarterly etc.)
+  MONTHLY /// Time-based billing (weekly / monthly / quarterly etc.)
   BATCH_BASED /// Pay once per completed batch — admin fills details manually
 }
 

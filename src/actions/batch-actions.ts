@@ -17,12 +17,16 @@ import {
   enrollStudentsSchema,
   unenrollStudentSchema,
   updateBatchSchema,
-  updateClassTimingsSchema,
   type CreateBatchInput,
 } from '@/lib/validation/batch';
 import type { ActionResult } from '@/lib/types';
 import { SYLLABUS_MAP, type BatchLevel as SyllabusLevelType } from '@/lib/syllabus';
 
+/**
+ * Helper function to auto-generate a unique batch code.
+ * Example: If prefix is "IND-AC1", it finds the highest existing number like "IND-AC1-05" 
+ * and returns the next one "IND-AC1-06".
+ */
 async function generateBatchCode(prefix: string): Promise<string> {
   const existing = await prisma.batch.findMany({
     where: { code: { startsWith: `${prefix}-` } },
@@ -39,6 +43,17 @@ async function generateBatchCode(prefix: string): Promise<string> {
   return `${prefix}-${next.toString().padStart(2, '0')}`;
 }
 
+/**
+ * Creates a brand new batch.
+ * 
+ * Major steps:
+ * 1. Verifies the user is an ADMIN.
+ * 2. Validates input data.
+ * 3. Auto-generates a batch code if a syllabus level is selected.
+ * 4. Ensures the batch code is unique to avoid conflicts.
+ * 5. Creates the batch and its initial weekly schedules in the database.
+ * 6. Generates the actual class instances for the next few weeks based on the syllabus.
+ */
 export async function createBatch(input: CreateBatchInput): Promise<ActionResult> {
   await requireRole(['ADMIN']);
 
@@ -108,7 +123,11 @@ export async function createBatch(input: CreateBatchInput): Promise<ActionResult
   return { success: true };
 }
 
-// reassign or update the batch teacher
+/**
+ * Assigns or updates the primary coach for a specific batch.
+ * Replaces the existing coach with the newly selected one.
+ * Restricted to ADMIN role only.
+ */
 export async function assignCoach(input: { batchId: string; coachId?: string }): Promise<ActionResult> {
   await requireRole(['ADMIN']);
 
@@ -140,6 +159,13 @@ export async function assignCoach(input: { batchId: string; coachId?: string }):
   return { success: true };
 }
 
+/**
+ * Enrolls multiple students into a batch at once.
+ * 
+ * Safety checks:
+ * - Only verified students can be added.
+ * - Uses `skipDuplicates: true` so if a student is already in the batch, it won't crash.
+ */
 export async function enrollStudents(input: {
   batchId: string;
   studentIds: string[];
@@ -177,6 +203,10 @@ export async function enrollStudents(input: {
 }
 
 
+/**
+ * Removes a single student from a batch.
+ * This does not delete the student, it only removes their connection to this specific batch.
+ */
 export async function unenrollStudent(input: {
   batchId: string;
   studentId: string;
@@ -196,6 +226,10 @@ export async function unenrollStudent(input: {
   return { success: true };
 }
 
+/**
+ * Toggles a batch between active and inactive state.
+ * Inactive batches might be hidden from certain dashboards.
+ */
 export async function setBatchActiveState(batchId: string, isActive: boolean): Promise<ActionResult> {
   await requireRole(['ADMIN']);
 
@@ -205,15 +239,24 @@ export async function setBatchActiveState(batchId: string, isActive: boolean): P
   return { success: true };
 }
 
+/**
+ * Core function for updating an existing batch's details.
+ * 
+ * Major Operations:
+ * 1. Calculates exactly what fields changed to optimize DB updates.
+ * 2. Compares the old student list with the new student list to figure out who to add/remove.
+ * 3. Wraps all database changes in a `$transaction` to ensure data consistency (if one fails, all fail).
+ * 4. If the syllabus `level` or `startSession` changed, it schedules a background job to rebuild the future class calendar.
+ */
 export async function updateBatch(input: z.infer<typeof updateBatchSchema>): Promise<ActionResult> {
   // Let this action be called, but we will explicitly check roles for sensitive operations
   const user = await getCurrentUser();
-  if (user.role !== 'ADMIN' && user.role !== 'TEACHER') {
+  if (user.role !== 'ADMIN') {
     return { success: false, error: 'Unauthorized' };
   }
 
   const parsed = updateBatchSchema.safeParse(input);
-  if (!parsed.success) {
+  if (!parsed.success) { 
     return { success: false, error: parsed.error.issues[0]?.message ?? 'Invalid input.' };
   }
 
@@ -244,15 +287,7 @@ export async function updateBatch(input: z.infer<typeof updateBatchSchema>): Pro
     parsedStartDate = new Date(startDate);
   }
 
-  // Security check: Payouts can never be decreased. Only Admins can increase them.
-  if (payoutRate !== undefined) {
-    if (payoutRate < existingBatch.payoutRate) {
-      return { success: false, error: 'Payout rate cannot be decreased.' };
-    }
-    if (payoutRate > existingBatch.payoutRate && user.role !== 'ADMIN') {
-      return { success: false, error: 'Only an admin can increase the payout rate.' };
-    }
-  }
+
 
   const batchUpdateData: any = {};
   if (name !== undefined && name !== existingBatch.name) batchUpdateData.name = name;
@@ -261,10 +296,27 @@ export async function updateBatch(input: z.infer<typeof updateBatchSchema>): Pro
   if (type !== undefined && type !== existingBatch.type) batchUpdateData.type = type as any;
   if (parsedStartDate !== null && existingBatch.startDate?.getTime() !== parsedStartDate.getTime()) batchUpdateData.startDate = parsedStartDate;
   
-  const targetCoachId = coachId || null;
-  if (targetCoachId !== existingBatch.coachProfileId) batchUpdateData.coachProfileId = targetCoachId;
-  
-  if (payoutRate !== undefined && payoutRate !== existingBatch.payoutRate) batchUpdateData.payoutRate = payoutRate;
+const targetCoachId = coachId !== undefined ? coachId : existingBatch.coachProfileId;
+
+const coachChanged = targetCoachId !== existingBatch.coachProfileId;
+
+if (coachChanged) {
+  batchUpdateData.coachProfileId = targetCoachId;
+}
+
+// Payout rules:
+// 1. Increase → always allowed
+// 2. Decrease → only when coach changes
+if (payoutRate !== undefined && payoutRate !== existingBatch.payoutRate) {
+  if (payoutRate < existingBatch.payoutRate && !coachChanged) {
+    return {
+      success: false,
+      error: 'Payout rate cannot be decreased unless the coach is changed.',
+    };
+  }
+
+  batchUpdateData.payoutRate = payoutRate;
+}
   
   const newStartSession = startSession || 1;
   if (level !== undefined && level !== existingBatch.level) batchUpdateData.level = level as any;
@@ -283,8 +335,10 @@ export async function updateBatch(input: z.infer<typeof updateBatchSchema>): Pro
     if (!newStudentIds.has(id)) studentsToRemove.push(id);
   }
 
-  // Trigger if user explicitly sent level or startSession — they want a resync
-  const syllabusChanged = level !== undefined || startSession !== undefined;
+  // Trigger if user explicitly changed level or startSession — they want a resync
+  const syllabusChanged = 
+    (level !== undefined && level !== existingBatch.level) || 
+    (startSession !== undefined && startSession !== existingBatch.startSession);
 
   await prisma.$transaction(async (tx) => {
     // 1. Update batch details if anything changed
@@ -345,6 +399,11 @@ export async function updateBatch(input: z.infer<typeof updateBatchSchema>): Pro
   return { success: true };
 }
 
+/**
+ * Manually generates more class instances for a batch.
+ * For example, if a batch runs out of scheduled classes, an admin can click 
+ * "Generate 10 more classes" and this function will create them sequentially.
+ */
 export async function generateMoreClassInstances(batchId: string, count: number): Promise<ActionResult> {
   await requireRole(['ADMIN']);
 
@@ -365,66 +424,12 @@ export async function generateMoreClassInstances(batchId: string, count: number)
   }
 }
 
-export async function cancelClassInstance(instanceId: string): Promise<ActionResult> {
-  await requireRole(['ADMIN']);
 
-  try {
-    const instance = await prisma.classInstance.findUnique({
-      where: { id: instanceId },
-    });
 
-    if (!instance) {
-      return { success: false, error: 'Class instance not found.' };
-    }
-
-    if (instance.classLogId) {
-      await prisma.classLog.delete({ where: { id: instance.classLogId } });
-    }
-
-    await prisma.classInstance.update({
-      where: { id: instanceId },
-      data: { 
-        status: 'CANCELLED',
-        classLogId: null,
-        completedAt: null 
-      },
-    });
-
-    revalidatePath('/admin/batches');
-    return { success: true };
-  } catch (err: any) {
-    console.error('Error cancelling class instance:', err);
-    return { success: false, error: err.message || 'Failed to cancel class instance.' };
-  }
-}
-
-export async function getBatchSessions(batchId: string) {
-  await requireRole(['ADMIN']);
-
-  try {
-    const instances = await prisma.classInstance.findMany({
-      where: { batchId },
-      orderBy: { date: 'asc' },
-    });
-
-    return {
-      success: true,
-      data: instances.map(inst => ({
-        id: inst.id,
-        date: inst.date.toISOString(),
-        startTime: inst.startTime,
-        endTime: inst.endTime,
-        status: inst.status,
-        lectureName: inst.lectureName,
-        sessionNumber: inst.sessionNumber,
-      })),
-    };
-  } catch (err: any) {
-    console.error('Error fetching batch sessions:', err);
-    return { success: false, error: err.message || 'Failed to fetch sessions.' };
-  }
-}
-
+/**
+ * Permanently deletes a batch from the database.
+ * Warning: Because of foreign keys in Prisma, this may also cascade and delete related instances/associations.
+ */
 export async function deleteBatch(batchId: string) {
   try {
     await requireRole(['ADMIN']);
@@ -441,61 +446,4 @@ export async function deleteBatch(batchId: string) {
   }
 }
 
-export async function updateClassTimings(input: z.infer<typeof updateClassTimingsSchema>): Promise<ActionResult> {
-  await requireRole(['ADMIN']);
-
-  const parsed = updateClassTimingsSchema.safeParse(input);
-  if (!parsed.success) {
-    return { success: false, error: parsed.error.issues[0]?.message ?? 'Invalid input.' };
-  }
-
-  const { batchId, instanceId, newStartTime, newEndTime, newDate, updateAllFuture } = parsed.data;
-
-  try {
-    if (updateAllFuture) {
-      const { today } = getISTDayBounds();
-      await prisma.classInstance.updateMany({
-        where: {
-          batchId,
-          status: 'SCHEDULED',
-          date: { gte: today },
-        },
-        data: {
-          startTime: newStartTime,
-          endTime: newEndTime,
-        },
-      });
-    } else {
-      if (!instanceId) {
-        return { success: false, error: 'Instance ID is required when updating a specific session.' };
-      }
-
-      const instance = await prisma.classInstance.findUnique({
-        where: { id: instanceId },
-      });
-
-      if (!instance || instance.batchId !== batchId) {
-        return { success: false, error: 'Class instance not found.' };
-      }
-      if (instance.status !== 'SCHEDULED') {
-        return { success: false, error: 'Can only update scheduled sessions.' };
-      }
-
-      await prisma.classInstance.update({
-        where: { id: instanceId },
-        data: {
-          ...(newDate ? { date: fromZonedTime(startOfDay(toZonedTime(new Date(newDate), TIME_ZONE)), TIME_ZONE) } : {}),
-          startTime: newStartTime,
-          endTime: newEndTime,
-        },
-      });
-    }
-
-    revalidatePath('/admin/batches');
-    return { success: true };
-  } catch (err: any) {
-    console.error('Error updating class timings:', err);
-    return { success: false, error: err.message || 'Failed to update timings.' };
-  }
-}
 

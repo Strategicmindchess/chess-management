@@ -52,21 +52,41 @@ Promise.all([
   import('./src/workers/assignment-summary.worker').then(() => {
     logger.info('assignment-summary worker started');
   }),
+
+  // Penalty worker — finalises coach penalty amounts after 48h/96h feedback windows
+  import('./src/workers/penalty.worker').then(() => {
+    logger.info('penalty worker started');
+  }),
 ])
   .then(async () => {
     logger.info('All BullMQ workers running — listening for jobs', {
-      queues: ['batch-queue', 'chess-fetch-queue', 'leaderboard-calc-queue', 'log-cleanup-queue', 'attendance-summary-queue', 'assignment-summary-queue'],
+      queues: ['batch-queue', 'chess-fetch-queue', 'leaderboard-calc-queue', 'log-cleanup-queue', 'attendance-summary-queue', 'assignment-summary-queue', 'penalty-queue'],
     });
+
+    // Register daily repeatable job for penalty processing (runs every 24 hours at 02:00 UTC)
+    try {
+      const { penaltyQueue } = await import('./src/workers/leaderboard.queues');
+      const { JOB_NAMES } = await import('./src/lib/leaderboard-config');
+      await penaltyQueue.add(
+        JOB_NAMES.PROCESS_PENALTIES,
+        {},
+        { repeat: { pattern: '0 2 * * *' }, jobId: 'daily-penalty-job' }
+      );
+      logger.info('Penalty repeatable job registered (daily at 02:00 UTC)');
+    } catch (err) {
+      logger.warn('Failed to register penalty repeatable job', { error: String(err) });
+    }
 
     // Log queue depths every 5 minutes
     setInterval(async () => {
       try {
-        const { chessFetchQueue, leaderboardCalcQueue } = await import('./src/workers/leaderboard.queues');
-        const [fetchCounts, calcCounts] = await Promise.all([
+        const { chessFetchQueue, leaderboardCalcQueue, penaltyQueue } = await import('./src/workers/leaderboard.queues');
+        const [fetchCounts, calcCounts, penaltyCounts] = await Promise.all([
           chessFetchQueue.getJobCounts(),
           leaderboardCalcQueue.getJobCounts(),
+          penaltyQueue.getJobCounts(),
         ]);
-        logger.info('Queue health', { chessFetch: fetchCounts, leaderboardCalc: calcCounts });
+        logger.info('Queue health', { chessFetch: fetchCounts, leaderboardCalc: calcCounts, penalty: penaltyCounts });
       } catch (err) {
         logger.warn('Health check failed', { error: String(err) });
       }
@@ -82,13 +102,14 @@ Promise.all([
 async function shutdown(signal: string) {
   logger.info(`Received ${signal} — shutting down gracefully...`);
   try {
-    const [{ chessFetchWorker }, { leaderboardCalcWorker }, { logCleanupWorker }, { attendanceSummaryWorker }, { assignmentSummaryWorker }, { batchWorker }] = await Promise.all([
+    const [{ chessFetchWorker }, { leaderboardCalcWorker }, { logCleanupWorker }, { attendanceSummaryWorker }, { assignmentSummaryWorker }, { batchWorker }, { penaltyWorker }] = await Promise.all([
       import('./src/workers/chess-fetch.worker'),
       import('./src/workers/leaderboard-calc.worker'),
       import('./src/workers/log-cleanup.worker'),
       import('./src/workers/attendance-summary.worker'),
       import('./src/workers/assignment-summary.worker'),
       import('./src/workers/batch.worker'),
+      import('./src/workers/penalty.worker'),
     ]);
     await Promise.all([
       chessFetchWorker.close(),
@@ -97,6 +118,7 @@ async function shutdown(signal: string) {
       attendanceSummaryWorker.close(),
       assignmentSummaryWorker.close(),
       batchWorker?.close?.(),
+      penaltyWorker?.close?.(),
     ]);
     logger.info('All workers closed cleanly.');
     process.exit(0);

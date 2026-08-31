@@ -20,6 +20,13 @@ type ClassLogData = {
   topicCovered: string;
   coach: { user: { name: string } };
   attendance: AttendanceRecordData[];
+  classFeedbacks?: {
+    id: string;
+    student: { user: { name: string } };
+    cameraOffOver5Min: boolean;
+    phoneUsedOver4Times: boolean;
+    classQualityScore: number | null;
+  }[];
 };
 
 export function ClassLogExpandableRow({ log }: { log: ClassLogData }) {
@@ -76,6 +83,42 @@ export function ClassLogExpandableRow({ log }: { log: ClassLogData }) {
                       <Badge variant={record.status === "PRESENT" ? "success" : "danger"} className="text-[10px]">
                         {record.status === "PRESENT" ? "Present" : "Absent"}
                       </Badge>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+            
+            <div className="px-10 py-4 shadow-inner bg-slate-100/50">
+              <h4 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">Student Feedbacks</h4>
+              {!log.classFeedbacks || log.classFeedbacks.length === 0 ? (
+                <p className="text-sm text-slate-500">No feedback submitted for this class.</p>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                  {log.classFeedbacks.map(fb => (
+                    <div key={fb.id} className="flex flex-col bg-white p-3 rounded-md border border-slate-200 shadow-sm space-y-2">
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm font-medium text-slate-700">
+                          {fb.student.user.name}
+                        </span>
+                        <Badge variant="neutral" className="text-[10px]">
+                          Score: {fb.classQualityScore ?? 'N/A'}/10
+                        </Badge>
+                      </div>
+                      {(fb.cameraOffOver5Min || fb.phoneUsedOver4Times) && (
+                        <div className="flex gap-1 flex-wrap mt-1">
+                          {fb.cameraOffOver5Min && (
+                            <span className="text-[10px] font-medium text-rose-600 bg-rose-50 px-1.5 py-0.5 rounded">
+                              Camera OFF
+                            </span>
+                          )}
+                          {fb.phoneUsedOver4Times && (
+                            <span className="text-[10px] font-medium text-rose-600 bg-rose-50 px-1.5 py-0.5 rounded">
+                              Phone Used
+                            </span>
+                          )}
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>

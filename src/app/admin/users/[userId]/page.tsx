@@ -38,7 +38,7 @@ export default async function UserProfilePage({
           batches: true,
           classLogs: {
             orderBy: { date: "desc" },
-            take: 10,
+            take: 50,
             include: { batch: true },
           },
           payoutRates: {
@@ -97,6 +97,19 @@ export default async function UserProfilePage({
 
   const LEVELS = ["BEGINNER","CORE_1","CORE_2","CORE_3","CORE_4","INTERMEDIATE_1","INTERMEDIATE_2","INTERMEDIATE_3","ADVANCE_1","ADVANCE_2","ELITE"];
   const DURATIONS = [30, 40, 45, 50, 60];
+
+  // Fetch all penalized logs separately so it's not limited by the take: 50
+  let penalizedClassLogs: any[] = [];
+  if (isCoach) {
+    penalizedClassLogs = await prisma.classLog.findMany({
+      where: { 
+        coachProfileId: user.coachProfile!.id,
+        penaltyAmount: { gt: 0 } 
+      },
+      orderBy: { date: 'desc' },
+      include: { batch: true }
+    });
+  }
 
   return (
     <div className="space-y-6 max-w-6xl mx-auto pb-12">
@@ -259,7 +272,7 @@ export default async function UserProfilePage({
             <CardHeader>
               <CardTitle className="text-lg">Coach Summary</CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="max-h-[650px] overflow-y-auto pr-4 mr-1 custom-scrollbar">
               <div className="flex gap-4 mb-6">
                 <div className="bg-slate-50 p-3 rounded-md flex-1 text-center border border-slate-100">
                   <p className="text-xs text-slate-500 uppercase tracking-wider mb-1">Classes Held</p>
@@ -299,7 +312,7 @@ export default async function UserProfilePage({
             <CardHeader>
               <CardTitle className="text-lg">Payout Settings</CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="max-h-[650px] overflow-y-auto pr-4 mr-1 custom-scrollbar">
               <CoachPayoutSettings
                 coachId={user.coachProfile!.id}
                 tdsApplicable={user.coachProfile!.tdsApplicable}
@@ -317,6 +330,14 @@ export default async function UserProfilePage({
                   month: a.month,
                 }))}
                 classLogs={user.coachProfile!.classLogs.map(l => ({
+                  id: l.id,
+                  date: l.date.toISOString(),
+                  batch: l.batch ? { name: l.batch.name } : null,
+                  penaltyAmount: l.penaltyAmount ?? 0,
+                  penaltyWaived: l.penaltyWaived ?? false,
+                  penaltyNote: l.penaltyNote ?? null,
+                }))}
+                penalizedLogs={penalizedClassLogs.map(l => ({
                   id: l.id,
                   date: l.date.toISOString(),
                   batch: l.batch ? { name: l.batch.name } : null,

@@ -37,25 +37,33 @@ export async function generateInstancesInternal(
     return;
   }
 
-  // ── Starting date ──────────────────────────────────────────────────────────
+  // ── 1. Starting Date Calculation ───────────────────────────────────────────
+  // We need to know from which date to start checking for scheduled days.
   let startDate: Date;
   if (customStartDate) {
+    // A. Explicit Override: If a specific start date is provided (e.g. for fixing schedules), use it.
     startDate = fromZonedTime(startOfDay(toZonedTime(customStartDate, TIME_ZONE)), TIME_ZONE);
   } else {
+    // B. Auto-Detect: Find the very last class that was ever created for this batch.
     const lastInstance = await prisma.classInstance.findFirst({
       where: { batchId },
       orderBy: { date: 'desc' },
     });
+    
     if (lastInstance) {
+      // If a previous class exists, start generating from the NEXT day after that class.
       startDate = fromZonedTime(startOfDay(toZonedTime(new Date(lastInstance.date), TIME_ZONE)), TIME_ZONE);
-      startDate.setDate(startDate.getDate() + 1); // Next day after latest
+      startDate.setDate(startDate.getDate() + 1);
     } else {
+      // C. Fresh Batch: If no classes exist yet, start from the batch's official startDate (or today).
       const baseDate = batch.startDate ? new Date(batch.startDate) : new Date();
       startDate = fromZonedTime(startOfDay(toZonedTime(baseDate, TIME_ZONE)), TIME_ZONE);
     }
   }
 
-  // ── Existing date+time keys (for de-duplication) ──────────────────────────
+  // ── 2. De-duplication Cache (Existing Keys) ────────────────────────────────
+  // To avoid accidentally scheduling two classes on the exact same date and time, 
+  // we fetch all existing classes and store them in a Set as "YYYY-MM-DD|HH:MM".
   const existing = await prisma.classInstance.findMany({
     where: { batchId },
     select: { date: true, startTime: true },
@@ -81,26 +89,40 @@ export async function generateInstancesInternal(
     SATURDAY: 6,
   };
 
-  // ── Determine starting session number (1-based) ────────────────────────────
-  // overrideStartSession: set by the worker for a user-triggered resync.
-  //   The user said "start from session N" — honour it directly.
-  // Normal flow: batch.startSession + how many instances already exist,
-  //   so new classes continue the syllabus from where they left off.
+  // ── 3. Determine the Current Session Number ────────────────────────────────
+  // We need to know what "Lecture Number" this new batch of classes should start from.
   let currentSession: number;
+  
   if (overrideStartSession !== undefined) {
+    // A. Explicit Override: Used by background workers when a syllabus changes or we force a start point.
     currentSession = overrideStartSession;
   } else {
-    const batchStartSession: number = batch.startSession ?? 1;
-    const existingCount = await prisma.classInstance.count({ where: { batchId } });
-    currentSession = batchStartSession + existingCount;
+    // B. Smart Resume: Find the highest session number assigned to ANY existing class (Completed or Scheduled).
+    const lastSessionInst = await prisma.classInstance.findFirst({
+      where: { batchId, sessionNumber: { not: null } },
+      orderBy: { sessionNumber: 'desc' },
+      select: { sessionNumber: true }
+    });
+    
+    if (lastSessionInst?.sessionNumber) {
+      // If we found a previous session, simply increment it by 1 to pick up exactly where we left off.
+      currentSession = lastSessionInst.sessionNumber + 1;
+    } else {
+      // C. Fallback: If no previous sessions exist with a number, start from the batch's initial start point plus raw count.
+      const batchStartSession: number = batch.startSession ?? 1;
+      const existingCount = await prisma.classInstance.count({ where: { batchId } });
+      currentSession = batchStartSession + existingCount;
+    }
   }
-
+ 
   const syllabusLevel = batch.level as SyllabusLevelType | null;
   const topicsMap = syllabusLevel && SYLLABUS_MAP[syllabusLevel]
     ? SYLLABUS_MAP[syllabusLevel].topics
     : null;
 
-  // ── Build new instances ────────────────────────────────────────────────────
+  // ── 4. Generate the Future Classes Loop ────────────────────────────────────
+  // We iterate day-by-day starting from `startDate`. If the current day matches the batch's 
+  // weekly schedule (e.g., MONDAY), we generate a class for it, until we hit the requested `count`.
   const newInstances: {
     batchId: string;
     date: Date;
@@ -114,21 +136,26 @@ export async function generateInstancesInternal(
   let currentDate = new Date(startDate);
   let daysInspected = 0;
 
+  // Safeguard: Stop searching after 730 days (2 years) to prevent infinite loops 
+  // if a batch somehow has no valid schedules configured.
   while (newInstances.length < count && daysInspected < 730) {
     const zonedCurrent = toZonedTime(currentDate, TIME_ZONE);
     const dayOfWeek = zonedCurrent.getDay();
+    
+    // Find all schedules configured for this specific day of the week (e.g., all Monday schedules)
     const matchingSchedules = batch.schedules
       .filter((s) => WEEKDAY_MAP[s.day as Weekday] === dayOfWeek)
       .sort((a, b) => a.startTime.localeCompare(b.startTime));
 
     for (const schedule of matchingSchedules) {
-      if (newInstances.length >= count) break;
+      if (newInstances.length >= count) break; // We have enough classes, stop generating!
 
       const dateStr = currentDate.toISOString().split('T')[0];
       const key = `${dateStr}|${schedule.startTime}`;
 
+      // Only schedule the class if it doesn't already exist on this date/time (Deduplication)
       if (!existingKeys.has(key)) {
-        // topics[currentSession] is 1-based — no subtraction needed
+        // Look up the actual topic name from the syllabus based on the current session number (1-based)
         const lectureName = topicsMap ? (topicsMap[currentSession] ?? null) : null;
 
         newInstances.push({
@@ -138,18 +165,20 @@ export async function generateInstancesInternal(
           endTime: schedule.endTime,
           status: 'SCHEDULED',
           lectureName,
-          sessionNumber: currentSession, // stored directly — 1-based
+          sessionNumber: currentSession, // 1-based exact index
         });
 
-        currentSession++;
-        existingKeys.add(key);
+        currentSession++;       // Move to the next lecture for the next generated class
+        existingKeys.add(key);  // Mark this slot as used
       }
     }
 
+    // Move to the next day and repeat
     currentDate = addDays(currentDate, 1);
     daysInspected++;
   }
 
+  // ── 5. Save to Database ────────────────────────────────────────────────────
   if (newInstances.length > 0) {
     await prisma.classInstance.createMany({ data: newInstances });
   }

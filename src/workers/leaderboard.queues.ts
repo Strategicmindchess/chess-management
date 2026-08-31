@@ -85,3 +85,15 @@ export const assignmentSummaryQueue = new Queue<AssignmentSummaryJobData>(QUEUE_
     removeOnFail: 100,
   },
 });
+
+// ─── Penalty Queue ────────────────────────────────────────────────────────────
+// Scheduled daily to finalize pending ClassLog penalties after the 48h/96h window.
+export const penaltyQueue = new Queue<{}>(QUEUE_NAMES.PENALTY, {
+  connection,
+  defaultJobOptions: {
+    attempts: 3,
+    backoff: { type: 'exponential', delay: 30_000 },
+    removeOnComplete: { count: 10 },
+    removeOnFail: { count: 50 },
+  },
+});

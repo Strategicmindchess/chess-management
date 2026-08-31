@@ -35,9 +35,14 @@ export default async function BatchAttendanceDetailsPage({
           date: { gte: startDate, lte: endDate }
         },
         orderBy: { date: "desc" },
-        include: {
+          include: {
           coach: { include: { user: true } },
           attendance: {
+            include: {
+              student: { include: { user: true } },
+            },
+          },
+          classFeedbacks: {
             include: {
               student: { include: { user: true } },
             },

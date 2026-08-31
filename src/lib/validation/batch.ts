@@ -77,13 +77,44 @@ export const updateBatchSchema = z.object({
   studentIds: z.array(z.string()),
 });
 
-export const updateClassTimingsSchema = z.object({
+export const createClassInstanceSchema = z.object({
   batchId: z.string().min(1),
-  instanceId: z.string().optional(),
+  date: z.string().min(1),
+  startTime: z.string().regex(TIME_REGEX, "Use 24h format, e.g. 16:00."),
+  endTime: z.string().regex(TIME_REGEX, "Use 24h format, e.g. 17:00."),
+  lectureName: z.string().optional().nullable(),
+  sessionNumber: z.coerce.number().int().min(1).optional().nullable(),
+}).refine(data => data.endTime > data.startTime, {
+  message: "End time must be after start time.",
+  path: ["endTime"],
+});
+
+export const updateClassInstanceSchema = z.object({
+  instanceId: z.string().min(1),
+  newDate: z.string().min(1),
   newStartTime: z.string().regex(TIME_REGEX, "Use 24h format, e.g. 16:00."),
   newEndTime: z.string().regex(TIME_REGEX, "Use 24h format, e.g. 17:00."),
-  newDate: z.string().optional(),
-  updateAllFuture: z.boolean().default(false),
+  lectureName: z.string().optional().nullable(),
+  sessionNumber: z.coerce.number().int().min(1).optional().nullable(),
+}).refine(data => data.newEndTime > data.newStartTime, {
+  message: "End time must be after start time.",
+  path: ["newEndTime"],
+});
+
+export const rescheduleClassInstanceSchema = z.object({
+  instanceId: z.string().min(1),
+  newDate: z.string().min(1),
+  newStartTime: z.string().regex(TIME_REGEX, "Use 24h format, e.g. 16:00."),
+  newEndTime: z.string().regex(TIME_REGEX, "Use 24h format, e.g. 17:00."),
+}).refine(data => data.newEndTime > data.newStartTime, {
+  message: "End time must be after start time.",
+  path: ["newEndTime"],
+});
+
+export const bulkUpdateClassTimingsSchema = z.object({
+  batchId: z.string().min(1),
+  newStartTime: z.string().regex(TIME_REGEX, "Use 24h format, e.g. 16:00."),
+  newEndTime: z.string().regex(TIME_REGEX, "Use 24h format, e.g. 17:00."),
 }).refine(data => data.newEndTime > data.newStartTime, {
   message: "End time must be after start time.",
   path: ["newEndTime"],
