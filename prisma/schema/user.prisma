@@ -13,6 +13,7 @@ model User {
   googleId          String?         @unique
   profilePictureUrl String?
   coachProfile      CoachProfile?
+  employeeProfile   EmployeeProfile?
   otpCodes          OtpCode[]
   refreshTokens     RefreshToken[]
   studentProfile    StudentProfile?
@@ -21,6 +22,7 @@ model User {
 
   @@map("users")
 }
+
 
 model StudentProfile {
   id                    String                  @id @default(cuid())
@@ -89,9 +91,11 @@ model CoachProfile {
   assignedStudents      StudentProfile[]    @relation("StudentAssignedCoach")
   payoutRates           CoachPayoutRate[]
   payoutAdjustments     PayoutAdjustment[]
+  tickets               Ticket[]            @relation("CoachCreatedTickets")
 
   @@map("coach_profiles")
 }
+
 
 enum EmploymentType {
   COACH

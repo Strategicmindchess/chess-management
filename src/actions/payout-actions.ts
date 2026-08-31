@@ -191,6 +191,77 @@ export async function getCoachPayoutSummary(monthString: string): Promise<CoachP
     summary.netPayout = beforeTds - summary.tdsAmount;
   }
 
+
   return Array.from(coachMap.values()).sort((a, b) => b.grossPayout - a.grossPayout);
 }
 
+// ─── Employee / Freelancer Payout Summary ─────────────────────────────────────
+export type EmployeePayoutSummary = {
+  employeeId: string;
+  name: string;
+  jobRole: string;
+  employmentMode: string;
+  employeeType: string;
+  tdsApplicable: boolean;
+  fixedSalary: number;
+  projectRate: number;
+  presentDays: number;
+  absentDays: number;
+  halfDays: number;
+  overtimeBonus: number;
+  totalIncentives: number;
+  incentives: { id: string; type: string; amount: number; reason: string }[];
+  grossPayout: number;
+  tdsAmount: number;
+  netPayout: number;
+};
+
+export async function getEmployeePayoutSummary(monthString: string): Promise<EmployeePayoutSummary[]> {
+  await requireRole([Role.ADMIN]);
+
+  const date = parseISO(monthString);
+  const startDate = startOfMonth(date);
+  const endDate = endOfMonth(date);
+
+  const employees = await prisma.employeeProfile.findMany({
+    where: { isActive: true },
+    include: {
+      attendance: { where: { date: { gte: startDate, lte: endDate } } },
+      incentives: { where: { month: monthString } },
+    },
+    orderBy: { name: "asc" },
+  });
+
+  return employees.map(emp => {
+    const present = emp.attendance.filter(a => a.status === "PRESENT").length;
+    const absent = emp.attendance.filter(a => a.status === "ABSENT").length;
+    const halfDay = emp.attendance.filter(a => a.status === "HALF_DAY").length;
+    const overtimeBonus = emp.attendance.reduce((acc, a) => acc + a.overtimeBonus, 0);
+    const totalIncentives = emp.incentives.reduce((acc, i) => acc + i.amount, 0);
+    const grossPayout = emp.fixedSalary + overtimeBonus + totalIncentives;
+    const tdsAmount = emp.tdsApplicable ? Math.round(grossPayout * 0.1) : 0;
+    const netPayout = grossPayout - tdsAmount;
+
+    return {
+      employeeId: emp.id,
+      name: emp.name,
+      jobRole: emp.jobRole,
+      employmentMode: emp.employmentMode,
+      employeeType: emp.employeeType,
+      tdsApplicable: emp.tdsApplicable,
+      fixedSalary: emp.fixedSalary,
+      projectRate: emp.projectRate,
+      presentDays: present,
+      absentDays: absent,
+      halfDays: halfDay,
+      overtimeBonus,
+      totalIncentives,
+      incentives: emp.incentives.map(i => ({
+        id: i.id, type: i.type, amount: i.amount, reason: i.reason,
+      })),
+      grossPayout,
+      tdsAmount,
+      netPayout,
+    };
+  });
+}

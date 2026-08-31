@@ -188,7 +188,11 @@ model AttendanceRecord {
 enum AttendanceStatus {
   PRESENT
   ABSENT
+  HALF_DAY
+  LEAVE
+  HOLIDAY
 }
+
 
 enum Weekday {
   MONDAY

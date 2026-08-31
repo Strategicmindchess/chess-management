@@ -1,16 +1,20 @@
 model Ticket {
-  id           String         @id @default(cuid())
-  title        String
-  description  String
-  status       TicketStatus   @default(PENDING)
-  category     TicketCategory
-  createdById  String
-  assignedToId String?
-  createdAt    DateTime       @default(now())
-  updatedAt    DateTime       @updatedAt
-  replies      TicketReply[]
-  assignedTo   User?          @relation("AssignedTickets", fields: [assignedToId], references: [id])
-  createdBy    StudentProfile @relation("CreatedTickets", fields: [createdById], references: [id])
+  id                String         @id @default(cuid())
+  title             String
+  description       String
+  status            TicketStatus   @default(PENDING)
+  category          TicketCategory
+  /// Student who created this ticket (null if created by a coach)
+  createdById       String?
+  /// Coach who created this ticket (null if created by a student)
+  coachCreatedById  String?
+  assignedToId      String?
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+  replies           TicketReply[]
+  assignedTo        User?          @relation("AssignedTickets", fields: [assignedToId], references: [id])
+  createdBy         StudentProfile? @relation("CreatedTickets", fields: [createdById], references: [id])
+  coachCreatedBy    CoachProfile?  @relation("CoachCreatedTickets", fields: [coachCreatedById], references: [id])
 
   @@map("tickets")
 }
@@ -31,6 +35,7 @@ enum TicketStatus {
   PENDING
   RESOLVED
 }
+
 
 enum TicketCategory {
   TECHNICAL_ISSUE

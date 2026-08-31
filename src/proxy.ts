@@ -86,6 +86,16 @@ export async function proxy(request: NextRequest) {
 
 export const config = {
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:png|jpg|jpeg|svg|webp)$).*)",
+    /*
+     * Match all request paths EXCEPT:
+     * - _next/static (static files)
+     * - _next/image (image optimization)
+     * - favicon.ico
+     * - sw.js (service worker — must be served as plain file)
+     * - workbox-*.js (PWA runtime)
+     * - Static assets (images, fonts, etc.)
+     */
+    "/((?!_next/static|_next/image|favicon.ico|sw\\.js|workbox-.*\\.js|.*\\.(?:png|jpg|jpeg|svg|webp|ico|woff2?|ttf|otf)$).*)",
   ],
 };
+
