@@ -217,7 +217,7 @@ export function UpdateBatchDialog({
                   id="payoutRate"
                   name="payoutRate"
                   type="number"
-                  min={batch.payoutRate || 0}
+                  min="0"
                   // @ts-ignore
                   defaultValue={batch.payoutRate || 0}
                 />

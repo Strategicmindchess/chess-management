@@ -3,7 +3,19 @@
 import { prisma } from "@/lib/prisma";
 import { requireRole } from "@/lib/dal";
 import { Role } from "@/lib/enums";
-import { startOfMonth, endOfMonth, parseISO } from "date-fns";
+import { fromZonedTime } from "date-fns-tz";
+
+function getAsiaKolkataMonthBoundaries(monthString: string) {
+  const [yearStr, monthStrPart] = monthString.split("-");
+  const year = parseInt(yearStr, 10);
+  const month = parseInt(monthStrPart, 10) - 1;
+  const lastDay = new Date(year, month + 1, 0).getDate();
+
+  const startDate = fromZonedTime(`${yearStr}-${monthStrPart}-01 00:00:00`, "Asia/Kolkata");
+  const endDate = fromZonedTime(`${yearStr}-${monthStrPart}-${lastDay} 23:59:59.999`, "Asia/Kolkata");
+
+  return { startDate, endDate };
+}
 
 export type BatchPayoutSummary = {
   batchId: string;
@@ -16,9 +28,7 @@ export type BatchPayoutSummary = {
 export async function getAdminPayoutSummary(monthString: string): Promise<BatchPayoutSummary[]> {
   await requireRole([Role.ADMIN]);
 
-  const date = parseISO(monthString);
-  const startDate = startOfMonth(date);
-  const endDate = endOfMonth(date);
+  const { startDate, endDate } = getAsiaKolkataMonthBoundaries(monthString);
 
   const logs = await prisma.classLog.findMany({
     where: {
@@ -61,9 +71,7 @@ export async function getAdminPayoutSummary(monthString: string): Promise<BatchP
 export async function getBatchClassLogs(batchId: string, monthString: string) {
   await requireRole([Role.ADMIN]);
 
-  const date = parseISO(monthString);
-  const startDate = startOfMonth(date);
-  const endDate = endOfMonth(date);
+  const { startDate, endDate } = getAsiaKolkataMonthBoundaries(monthString);
 
   return await prisma.classLog.findMany({
     where: {
@@ -111,9 +119,7 @@ export type CoachPayoutSummary = {
 export async function getCoachPayoutSummary(monthString: string): Promise<CoachPayoutSummary[]> {
   await requireRole([Role.ADMIN]);
 
-  const date = parseISO(monthString);
-  const startDate = startOfMonth(date);
-  const endDate = endOfMonth(date);
+  const { startDate, endDate } = getAsiaKolkataMonthBoundaries(monthString);
 
   const logs = await prisma.classLog.findMany({
     where: { date: { gte: startDate, lte: endDate } },
@@ -219,9 +225,7 @@ export type EmployeePayoutSummary = {
 export async function getEmployeePayoutSummary(monthString: string): Promise<EmployeePayoutSummary[]> {
   await requireRole([Role.ADMIN]);
 
-  const date = parseISO(monthString);
-  const startDate = startOfMonth(date);
-  const endDate = endOfMonth(date);
+  const { startDate, endDate } = getAsiaKolkataMonthBoundaries(monthString);
 
   const employees = await prisma.employeeProfile.findMany({
     where: { isActive: true },

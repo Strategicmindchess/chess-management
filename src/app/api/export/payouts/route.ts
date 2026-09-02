@@ -3,7 +3,20 @@ import { requireRole } from "@/lib/dal";
 import { prisma } from "@/lib/prisma";
 import { Role } from "@/lib/enums";
 import * as XLSX from "xlsx";
-import { startOfMonth, endOfMonth, parseISO, format } from "date-fns";
+import { parseISO, format } from "date-fns";
+import { fromZonedTime } from "date-fns-tz";
+
+function getAsiaKolkataMonthBoundaries(monthString: string) {
+  const [yearStr, monthStrPart] = monthString.split("-");
+  const year = parseInt(yearStr, 10);
+  const month = parseInt(monthStrPart, 10) - 1;
+  const lastDay = new Date(year, month + 1, 0).getDate();
+
+  const startDate = fromZonedTime(`${yearStr}-${monthStrPart}-01 00:00:00`, "Asia/Kolkata");
+  const endDate = fromZonedTime(`${yearStr}-${monthStrPart}-${lastDay} 23:59:59.999`, "Asia/Kolkata");
+
+  return { startDate, endDate };
+}
 
 // ─── GET /api/export/payouts?month=2026-08 ────────────────────────────────────
 // Admin only — exports Coach + Staff payout summary as Excel (multi-sheet)
@@ -18,9 +31,7 @@ export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const monthStr = searchParams.get("month") || format(new Date(), "yyyy-MM");
 
-  const date = parseISO(monthStr);
-  const startDate = startOfMonth(date);
-  const endDate = endOfMonth(date);
+  const { startDate, endDate } = getAsiaKolkataMonthBoundaries(monthStr);
 
   // ── Fetch all class logs for month ──────────────────────────────────────
   const logs = await prisma.classLog.findMany({

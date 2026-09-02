@@ -6,8 +6,9 @@ import { Role } from "@/lib/enums";
 // ─── GET /api/class-feedback/pending ─────────────────────────────────────────
 // Student gets their pending class feedbacks
 export async function GET(req: NextRequest) {
+  const user = await requireRole([Role.STUDENT]);
+
   try {
-    const user = await requireRole([Role.STUDENT]);
     const studentProfile = await prisma.studentProfile.findUnique({
       where: { userId: user.id },
     });
@@ -20,6 +21,10 @@ export async function GET(req: NextRequest) {
     // where they have NOT yet submitted feedback.
     const pendingClassLogs = await prisma.classLog.findMany({
       where: {
+        // Ignore backlog before today (feature launch date)
+        date: {
+          gte: new Date("2026-08-31T00:00:00.000Z")
+        },
         // The class instance must be completed
         classInstance: {
           status: "COMPLETED",

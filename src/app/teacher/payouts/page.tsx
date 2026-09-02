@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Badge } from "@/components/ui/badge";
 import { MonthPicker } from "@/components/ui/month-picker";
+import { toZonedTime } from "date-fns-tz";
 
 export default async function TeacherPayoutsPage({
   searchParams,
@@ -37,7 +38,7 @@ export default async function TeacherPayoutsPage({
   });
 
   const filteredLogs = classLogs.filter(log => {
-    const logDate = new Date(log.date);
+    const logDate = toZonedTime(log.date, 'Asia/Kolkata');
     return logDate.getFullYear() === selectedYear && logDate.getMonth() === selectedMonth;
   });
 

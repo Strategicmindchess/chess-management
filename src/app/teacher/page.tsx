@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { GraduationCap, ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { CoachPolicyCard } from "./coach-policy-card";
 
 export const dynamic = "force-dynamic";
 
@@ -30,9 +31,9 @@ export default async function TeacherDashboardPage() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <Card className="col-span-full md:col-span-2 lg:col-span-1">
-          <CardHeader className="bg-slate-50/50 pb-4 border-b border-slate-100">
+          <CardHeader className="bg-pink-50/80 pb-4 border-b border-pink-100">
             <CardTitle className="text-lg font-bold text-slate-900 flex items-center gap-2">
-              <GraduationCap className="h-5 w-5 text-brand-600" />
+              <GraduationCap className="h-5 w-5 text-pink-600" />
               Assignment Report
             </CardTitle>
           </CardHeader>
@@ -53,13 +54,14 @@ export default async function TeacherDashboardPage() {
             </div>
             
             <Link href="/teacher/assignment-report" className="block w-full">
-              <Button variant="secondary" className="w-full flex items-center justify-between">
+              <Button className="w-full flex items-center justify-between bg-pink-100 hover:bg-pink-200 text-pink-800 shadow-sm">
                 <span>View Detail Report</span>
-                <ArrowRight className="h-4 w-4 text-slate-400" />
+                <ArrowRight className="h-4 w-4 text-pink-600" />
               </Button>
             </Link>
           </CardContent>
         </Card>
+        <CoachPolicyCard />
       </div>
     </div>
   );
