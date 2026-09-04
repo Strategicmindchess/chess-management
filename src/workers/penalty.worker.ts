@@ -131,6 +131,7 @@ export async function processPendingPenalties(job: Job): Promise<void> {
         coachJoinedAt: log.coachJoinedAt,
         classScheduledStart,
         attendanceMarkedAt: log.attendanceMarkedAt,
+        attendanceMarkedAt: log.attendanceMarkedAt ?? log.createdAt,
         classCompletedAt: completionTime,
         totalFeedbacksSubmitted,
         cameraOffReports,
