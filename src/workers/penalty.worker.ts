@@ -130,7 +130,7 @@ export async function processPendingPenalties(job: Job): Promise<void> {
       const engineInput: PenaltyEngineInput = {
         coachJoinedAt: log.coachJoinedAt,
         classScheduledStart,
-        attendanceMarkedAt: log.attendanceMarkedAt,
+        
         attendanceMarkedAt: log.attendanceMarkedAt ?? log.createdAt,
         classCompletedAt: completionTime,
         totalFeedbacksSubmitted,
