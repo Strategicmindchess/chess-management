@@ -193,9 +193,12 @@ export async function getAllStudentsWithChessStatus() {
   }
 
   const students = await prisma.studentProfile.findMany({
-    include: {
-      user: { select: { name: true, email: true, profilePictureUrl: true } },
+    select: {
+      id: true,
+      chessComId: true,
+      lichessId: true,
       chessAccount: true,
+      user: { select: { name: true, email: true, profilePictureUrl: true } },
     },
     orderBy: { user: { name: 'asc' } },
   });
@@ -315,3 +318,4 @@ export async function migrateAllChessAccountsFromProfiles() {
     message: `Linked ${linked} student(s).${failed > 0 ? ` ${failed} failed.` : ''}`,
   };
 }
+

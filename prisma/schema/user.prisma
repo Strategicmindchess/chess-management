@@ -14,11 +14,14 @@ model User {
   profilePictureUrl String?
   coachProfile      CoachProfile?
   employeeProfile   EmployeeProfile?
-  otpCodes          OtpCode[]
-  refreshTokens     RefreshToken[]
-  studentProfile    StudentProfile?
-  ticketReplies     TicketReply[]
-  assignedTickets   Ticket[]         @relation("AssignedTickets")
+  otpCodes                  OtpCode[]
+  refreshTokens             RefreshToken[]
+  studentProfile            StudentProfile?
+  ticketReplies             TicketReply[]
+  assignedTickets           Ticket[]               @relation("AssignedTickets")
+  notifications             Notification[]         @relation("UserNotifications")
+  coachLeaderboardAwards    CoachLeaderboardEntry[] @relation("AdminLeaderboardAwards")
+  adminRescheduleReviews    CoachRescheduleRequest[] @relation("AdminRescheduleReviews")
 
   @@map("users")
 }
@@ -55,12 +58,14 @@ model StudentProfile {
   leaderboardAttendance LeaderboardAttendance[]
   assignments           StudentAssignment[]
   syncRuns              StudentSyncRun[]
-  assignedCoach         CoachProfile?           @relation("StudentAssignedCoach", fields: [assignedCoachId], references: [id])
-  user                  User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  stats                 StudentChessStats?
-  createdTickets        Ticket[]                @relation("CreatedTickets")
-  feeConfig             StudentFeeConfig?
-  classFeedbacks        ClassFeedback[]
+  assignedCoach              CoachProfile?           @relation("StudentAssignedCoach", fields: [assignedCoachId], references: [id])
+  user                       User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  stats                      StudentChessStats?
+  createdTickets             Ticket[]                @relation("CreatedTickets")
+  feeConfig                  StudentFeeConfig?
+  classFeedbacks             ClassFeedback[]
+  chocolateQuestions         ChocolateQuestionRecord[] @relation("StudentChocolateQuestions")
+  chocolateEligibility       ChocolateEligibility[]  @relation("StudentChocolateEligibility")
 
   @@map("student_profiles")
 }
@@ -86,11 +91,15 @@ model CoachProfile {
   batches               Batch[]             @relation("BatchCoach")
   classLogs             ClassLog[]
   availabilities        CoachAvailability[] @relation("CoachAvailability")
-  user                  User                @relation(fields: [userId], references: [id], onDelete: Cascade)
-  assignedStudents      StudentProfile[]    @relation("StudentAssignedCoach")
+  user                  User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  assignedStudents      StudentProfile[]         @relation("StudentAssignedCoach")
   payoutRates           CoachPayoutRate[]
   payoutAdjustments     PayoutAdjustment[]
-  tickets               Ticket[]            @relation("CoachCreatedTickets")
+  tickets               Ticket[]                 @relation("CoachCreatedTickets")
+  leaderboardEntries    CoachLeaderboardEntry[]  @relation("CoachLeaderboard")
+  chocolateQuestions    ChocolateQuestionRecord[] @relation("CoachChocolateQuestions")
+  rescheduleRequests    CoachRescheduleRequest[] @relation("CoachRescheduleRequests")
+  replacementRequests   CoachRescheduleRequest[] @relation("ReplacementCoachRequests")
 
   @@map("coach_profiles")
 }

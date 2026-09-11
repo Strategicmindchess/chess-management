@@ -92,3 +92,4 @@ export async function canResendOtp(userId: string, purpose: OtpPurpose): Promise
     return false;
   }
 }
+

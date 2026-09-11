@@ -183,3 +183,4 @@ export async function generateInstancesInternal(
     await prisma.classInstance.createMany({ data: newInstances });
   }
 }
+

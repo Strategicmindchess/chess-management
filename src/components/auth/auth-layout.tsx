@@ -37,3 +37,4 @@ import Image from "next/image";export function AuthLayout({
     </div>
   );
 }
+

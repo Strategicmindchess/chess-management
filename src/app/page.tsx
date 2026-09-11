@@ -6,3 +6,4 @@ export default async function HomePage() {
   const session = await verifySession();
   redirect(ROLE_HOME_PATH[session.role]);
 }
+

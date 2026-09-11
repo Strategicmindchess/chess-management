@@ -4,6 +4,8 @@ import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/dal";
 import { TicketCategory, Role } from "@/generated/prisma/client";
 import { revalidatePath } from "next/cache";
+import { notifyAllAdmins } from "@/lib/notifications";
+import { NotificationType, NotifPriority } from "@/generated/prisma/client";
 
 export async function getUserTickets() {
   const user = await getCurrentUser();
@@ -41,13 +43,24 @@ export async function createTicket(title: string, description: string, category:
   if (!student) return { error: "Profile not found" };
 
   try {
-    await prisma.ticket.create({
+    const ticket = await prisma.ticket.create({
       data: {
         title,
         description,
         category,
         createdById: student.id,
       },
+    });
+
+    // Notify all admins about the new ticket (idempotent — safe to call once)
+    const user = await getCurrentUser();
+    await notifyAllAdmins({
+      type: NotificationType.TICKET_RAISED,
+      title: "🎫 New Support Ticket",
+      message: `Student ticket raised: "${title}" [${category}]`,
+      baseEventKey: `TICKET_RAISED:${ticket.id}`,
+      priority: NotifPriority.NORMAL,
+      href: `/admin/tickets`,
     });
 
     revalidatePath("/student/tickets");
@@ -80,3 +93,4 @@ export async function replyToOwnTicket(ticketId: string, content: string) {
     return { error: "Failed to send reply" };
   }
 }
+

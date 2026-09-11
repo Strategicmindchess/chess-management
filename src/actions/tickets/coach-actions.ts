@@ -4,6 +4,8 @@ import { prisma } from "@/lib/prisma";
 import { requireRole } from "@/lib/dal";
 import { Role, TicketCategory } from "@/generated/prisma/client";
 import { revalidatePath } from "next/cache";
+import { notifyAllAdmins } from "@/lib/notifications";
+import { NotificationType, NotifPriority } from "@/generated/prisma/client";
 
 // ─── Get coach's own tickets ──────────────────────────────────────────────────
 export async function getCoachTickets() {
@@ -46,13 +48,23 @@ export async function createCoachTicket(
   if (!coachProfile) return { error: "Coach profile not found" };
 
   try {
-    await prisma.ticket.create({
+    const ticket = await prisma.ticket.create({
       data: {
         title: title.trim(),
         description: description.trim(),
         category,
         coachCreatedById: coachProfile.id,
       },
+    });
+
+    // Notify all admins about the new coach ticket (idempotent)
+    await notifyAllAdmins({
+      type: NotificationType.TICKET_RAISED,
+      title: "🎫 New Coach Support Ticket",
+      message: `Coach ticket raised: "${title.trim()}" [${category}]`,
+      baseEventKey: `TICKET_RAISED:${ticket.id}`,
+      priority: NotifPriority.NORMAL,
+      href: `/admin/tickets`,
     });
 
     revalidatePath("/teacher/tickets");
@@ -91,3 +103,4 @@ export async function replyToCoachTicket(ticketId: string, content: string) {
     return { error: "Failed to send reply" };
   }
 }
+

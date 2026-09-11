@@ -417,3 +417,4 @@ export const SYLLABUS_MAP = SYLLABUS.reduce((acc, syllabus) => {
   acc[syllabus.level] = syllabus;
   return acc;
 }, {} as Record<BatchLevel, SyllabusLevel>);
+

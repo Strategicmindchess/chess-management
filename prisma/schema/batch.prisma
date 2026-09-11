@@ -41,6 +41,7 @@ model ClassInstance {
   completedAt   DateTime?
   batch         Batch       @relation(fields: [batchId], references: [id], onDelete: Cascade)
   classLog      ClassLog?   @relation(fields: [classLogId], references: [id])
+  rescheduleRequests CoachRescheduleRequest[]
 
   @@index([batchId, date])
   @@map("class_instances")
@@ -241,4 +242,52 @@ enum BatchLevel {
   ADVANCE_1
   ADVANCE_2
   ELITE
+}
+
+// ── Coach Rescheduling Request ─────────────────────────────────────────
+
+/// Coach submits to request a class reschedule.
+/// First 2 approved per coach per month: no penalty.
+/// 3rd+ approved: admin may store a penalty amount (shown in management dashboard, stored in DB).
+model CoachRescheduleRequest {
+  id              String                  @id @default(cuid())
+  classInstanceId String
+  coachProfileId  String
+  reason          String
+  proposedDate    DateTime
+  proposedStartTime String
+  proposedEndTime   String
+  status          RescheduleRequestStatus @default(PENDING)
+
+  /// Admin who reviewed this request
+  reviewedById   String?
+  reviewedAt     DateTime?
+  rejectionReason String?
+
+  /// Penalty amount stored in DB (shown in management session, not auto-deducted)
+  penaltyAmount  Int     @default(0)
+  penaltyReason  String?
+
+  /// If admin assigns a different coach instead of rescheduling
+  replacementCoachId String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  classInstance    ClassInstance  @relation(fields: [classInstanceId], references: [id], onDelete: Cascade)
+  coach            CoachProfile   @relation("CoachRescheduleRequests", fields: [coachProfileId], references: [id], onDelete: Cascade)
+  reviewedBy       User?          @relation("AdminRescheduleReviews", fields: [reviewedById], references: [id])
+  replacementCoach CoachProfile?  @relation("ReplacementCoachRequests", fields: [replacementCoachId], references: [id])
+
+  @@index([coachProfileId, status])
+  @@index([classInstanceId])
+  @@index([status, createdAt])
+  @@map("coach_reschedule_requests")
+}
+
+enum RescheduleRequestStatus {
+  PENDING
+  APPROVED
+  APPROVED_WITH_PENALTY
+  REJECTED
 }

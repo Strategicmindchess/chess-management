@@ -355,47 +355,47 @@ export function EmployeesClient({ initialEmployees }: { initialEmployees: Employ
 
   function EmployeeCard({ emp }: { emp: Employee }) {
     return (
-      <div className={`bg-white rounded-xl border shadow-sm p-5 flex flex-col gap-3 ${!emp.isActive ? "opacity-60" : ""}`}>
+      <div className={`bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm p-5 flex flex-col gap-3 ${!emp.isActive ? "opacity-60" : ""}`}>
         <div className="flex items-start justify-between">
           <div>
             <div className="flex items-center gap-2 mb-1">
-              <div className="w-9 h-9 rounded-full bg-slate-100 flex items-center justify-center text-slate-700 font-bold text-sm">
+              <div className="w-9 h-9 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-700 dark:text-slate-300 font-bold text-sm">
                 {emp.name.charAt(0).toUpperCase()}
               </div>
               <div>
-                <p className="font-semibold text-slate-900 text-sm">{emp.name}</p>
-                <p className="text-xs text-slate-500">{emp.jobRole}</p>
+                <p className="font-semibold text-slate-900 dark:text-white text-sm">{emp.name}</p>
+                <p className="text-xs text-slate-500 dark:text-slate-400">{emp.jobRole}</p>
               </div>
             </div>
           </div>
           <div className="flex flex-col items-end gap-1">
             <span className={`text-xs px-2 py-0.5 rounded-full font-semibold border ${
-              emp.employmentMode === "EMPLOYEE" ? "bg-blue-50 text-blue-700 border-blue-200" :
-              emp.employmentMode === "FREELANCER" ? "bg-purple-50 text-purple-700 border-purple-200" :
-              "bg-amber-50 text-amber-700 border-amber-200"
+              emp.employmentMode === "EMPLOYEE" ? "bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 border-blue-200 dark:border-blue-800/30" :
+              emp.employmentMode === "FREELANCER" ? "bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-400 border-purple-200 dark:border-purple-800/30" :
+              "bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-800/30"
             }`}>{emp.employmentMode}</span>
-            {emp.tdsApplicable && <span className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full border border-amber-200">TDS</span>}
+            {emp.tdsApplicable && <span className="text-xs bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 px-2 py-0.5 rounded-full border border-amber-200 dark:border-amber-800/50">TDS</span>}
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-2 text-xs text-slate-600">
+        <div className="grid grid-cols-2 gap-2 text-xs text-slate-600 dark:text-slate-400">
           <div>
-            <span className="text-slate-400">Type: </span>
-            {emp.employeeType === "FULL_TIME" ? "Full Time" : "Part Time"}
+            <span className="text-slate-400 dark:text-slate-500">Type: </span>
+            <span className="dark:text-slate-300">{emp.employeeType === "FULL_TIME" ? "Full Time" : "Part Time"}</span>
           </div>
           {emp.fixedSalary > 0 && (
-            <div><span className="text-slate-400">Salary: </span>₹{emp.fixedSalary.toLocaleString()}/mo</div>
+            <div><span className="text-slate-400 dark:text-slate-500">Salary: </span><span className="dark:text-slate-300">₹{emp.fixedSalary.toLocaleString()}/mo</span></div>
           )}
           {emp.projectRate > 0 && (
-            <div><span className="text-slate-400">Rate: </span>₹{emp.projectRate.toLocaleString()}/project</div>
+            <div><span className="text-slate-400 dark:text-slate-500">Rate: </span><span className="dark:text-slate-300">₹{emp.projectRate.toLocaleString()}/project</span></div>
           )}
-          {emp.phone && <div><span className="text-slate-400">Phone: </span>{emp.phone}</div>}
+          {emp.phone && <div><span className="text-slate-400 dark:text-slate-500">Phone: </span><span className="dark:text-slate-300">{emp.phone}</span></div>}
         </div>
 
         <div className="flex gap-2 pt-1">
           <button
             onClick={() => setAttendanceFor(emp)}
-            className="flex-1 text-xs px-3 py-2 bg-slate-900 hover:bg-slate-700 text-white rounded-lg font-semibold transition-colors"
+            className="flex-1 text-xs px-3 py-2 bg-slate-900 hover:bg-slate-700 dark:bg-slate-800 dark:hover:bg-slate-700 text-white rounded-lg font-semibold transition-colors"
           >
             📋 Attendance
           </button>
@@ -403,8 +403,8 @@ export function EmployeesClient({ initialEmployees }: { initialEmployees: Employ
             onClick={() => toggleActive(emp)}
             className={`text-xs px-3 py-2 rounded-lg font-semibold transition-colors border ${
               emp.isActive
-                ? "bg-rose-50 hover:bg-rose-100 text-rose-700 border-rose-200"
-                : "bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border-emerald-200"
+                ? "bg-rose-50 dark:bg-rose-900/20 hover:bg-rose-100 dark:hover:bg-rose-900/40 text-rose-700 dark:text-rose-400 border-rose-200 dark:border-rose-800/30"
+                : "bg-emerald-50 dark:bg-emerald-900/20 hover:bg-emerald-100 dark:hover:bg-emerald-900/40 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800/30"
             }`}
           >
             {emp.isActive ? "Deactivate" : "Activate"}
@@ -419,20 +419,20 @@ export function EmployeesClient({ initialEmployees }: { initialEmployees: Employ
       {/* Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-xl font-bold text-slate-900">Employees & Freelancers</h1>
-          <p className="text-sm text-slate-500">{active.length} active · {inactive.length} inactive</p>
+          <h1 className="text-xl font-bold text-slate-900 dark:text-white">Employees & Freelancers</h1>
+          <p className="text-sm text-slate-500 dark:text-slate-400">{active.length} active · {inactive.length} inactive</p>
         </div>
         <div className="flex gap-2">
           <a
             href={`/api/export/attendance?month=${currentMonth()}`}
             target="_blank"
-            className="text-sm px-3 py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 rounded-lg font-semibold transition-colors"
+            className="text-sm px-3 py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 dark:bg-blue-900/30 dark:hover:bg-blue-900/50 dark:text-blue-400 dark:border-blue-800 rounded-lg font-semibold transition-colors"
           >
             Export Attendance
           </a>
           <button
             onClick={() => setShowAdd(true)}
-            className="text-sm px-4 py-2 bg-slate-900 hover:bg-slate-700 text-white rounded-lg font-semibold transition-colors"
+            className="text-sm px-4 py-2 bg-slate-900 hover:bg-slate-700 text-white dark:bg-slate-700 dark:hover:bg-slate-600 rounded-lg font-semibold transition-colors"
           >
             + Add Employee
           </button>
@@ -444,7 +444,7 @@ export function EmployeesClient({ initialEmployees }: { initialEmployees: Employ
         {(["ALL", "EMPLOYEE", "FREELANCER", "EMPLOYER"] as const).map(f => (
           <button key={f} onClick={() => setFilter(f)}
             className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors ${
-              filter === f ? "bg-slate-900 text-white border-slate-900" : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
+              filter === f ? "bg-slate-900 text-white border-slate-900 dark:bg-slate-700 dark:border-slate-600" : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700 dark:hover:bg-slate-700"
             }`}>
             {f === "ALL" ? "All" : MODE_LABELS[f as EmploymentMode]}
           </button>
@@ -453,9 +453,9 @@ export function EmployeesClient({ initialEmployees }: { initialEmployees: Employ
 
       {/* Grid */}
       {active.length === 0 && inactive.length === 0 ? (
-        <div className="flex flex-col items-center justify-center p-16 text-slate-500 bg-white rounded-xl border border-dashed border-slate-200">
-          <p className="text-lg font-semibold text-slate-800 mb-2">No employees yet</p>
-          <p className="text-sm">Click "+ Add Employee" to get started.</p>
+        <div className="flex flex-col items-center justify-center p-16 text-slate-500 bg-white dark:bg-slate-800/50 rounded-xl border border-dashed border-slate-200 dark:border-slate-700">
+          <p className="text-lg font-semibold text-slate-800 dark:text-slate-200 mb-2">No employees yet</p>
+          <p className="text-sm dark:text-slate-400">Click "+ Add Employee" to get started.</p>
         </div>
       ) : (
         <>
@@ -488,3 +488,4 @@ export function EmployeesClient({ initialEmployees }: { initialEmployees: Employ
     </div>
   );
 }
+

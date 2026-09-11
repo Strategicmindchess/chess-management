@@ -11,7 +11,7 @@ export const LEADERBOARD_CONFIG = {
   MAX_FETCH_CONCURRENCY: parseInt(process.env.MAX_FETCH_CONCURRENCY ?? '3', 10),
 
   /** Redis cache TTL for leaderboard data (seconds) */
-  CACHE_TTL_SECONDS: parseInt(process.env.LEADERBOARD_CACHE_TTL ?? '600', 10),
+  CACHE_TTL_SECONDS: parseInt(process.env.LEADERBOARD_CACHE_TTL ?? '86400', 10),
 
   /** Secret for the webhook/cron refresh endpoint */
   REFRESH_SECRET: process.env.LEADERBOARD_REFRESH_SECRET ?? 'change-me-in-env',
@@ -110,3 +110,4 @@ export const JOB_NAMES = {
   CALC_ASSIGNMENT: 'calc-assignment',   // Calculate assignment completion for period
   PROCESS_PENALTIES: 'process-pending-penalties', // Daily penalty finalization
 } as const;
+

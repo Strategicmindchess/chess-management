@@ -4,10 +4,10 @@ const VARIANT_CLASSES = {
   primary:
     "bg-brand-600 text-white hover:bg-brand-700 focus-visible:outline-brand-600",
   secondary:
-    "bg-white text-slate-700 border border-slate-300 hover:bg-slate-50 focus-visible:outline-slate-400",
+    "bg-white text-slate-700 border border-slate-300 hover:bg-slate-50 focus-visible:outline-slate-400 dark:bg-[#1a1f2e] dark:text-slate-300 dark:border-[#2a3040] dark:hover:bg-[#242938]",
   danger:
     "bg-rose-600 text-white hover:bg-rose-700 focus-visible:outline-rose-600",
-  ghost: "text-slate-600 hover:bg-slate-100 focus-visible:outline-slate-400",
+  ghost: "text-slate-600 hover:bg-slate-100 focus-visible:outline-slate-400 dark:text-slate-400 dark:hover:bg-[#1a1f2e] dark:hover:text-slate-200",
   gradient:
     "rounded-full bg-linear-to-r from-indigo-500 to-violet-600 text-white shadow-md hover:from-indigo-600 hover:to-violet-700 focus-visible:outline-indigo-500",
 } as const;
@@ -46,3 +46,4 @@ export function Button({
     />
   );
 }
+

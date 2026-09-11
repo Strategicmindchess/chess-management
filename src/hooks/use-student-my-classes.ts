@@ -21,3 +21,4 @@ export function useStudentMyClasses() {
 export function invalidateStudentMyClasses() {
   return mutate(STUDENT_MY_CLASSES_KEY);
 }
+

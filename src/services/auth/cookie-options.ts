@@ -21,3 +21,4 @@ export function refreshTokenCookieOptions() {
     maxAge: Math.floor(REFRESH_TOKEN_TTL_MS / 1000),
   };
 }
+

@@ -187,28 +187,28 @@ export function CoachPayoutSettings({
     <div className="space-y-6">
 
       {/* ── Settings Bar ─────────────────────────────────────────────────── */}
-      <div className="flex flex-wrap items-center gap-4 p-4 bg-slate-50 rounded-lg border border-slate-200">
+      <div className="flex flex-wrap items-center gap-4 p-4 bg-slate-50 dark:bg-slate-800/50 rounded-lg border border-slate-200 dark:border-slate-700">
         {/* TDS Toggle */}
         <div className="flex items-center gap-3">
-          <span className="text-sm font-medium text-slate-700">TDS (10%)</span>
+          <span className="text-sm font-medium text-slate-700 dark:text-slate-300">TDS (10%)</span>
           <button
             onClick={async () => { const next = !tds; setTds(next); await saveSettings(next); }}
             disabled={settingsLoading}
-            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${tds ? "bg-amber-500" : "bg-slate-300"}`}
+            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${tds ? "bg-amber-500" : "bg-slate-300 dark:bg-slate-600"}`}
           >
             <span className={`inline-block h-4 w-4 rounded-full bg-white shadow transition-transform ${tds ? "translate-x-6" : "translate-x-1"}`} />
           </button>
-          <span className="text-xs text-slate-500">{tds ? "10% deducted" : "Not applicable"}</span>
+          <span className="text-xs text-slate-500 dark:text-slate-400">{tds ? "10% deducted" : "Not applicable"}</span>
         </div>
 
         {/* Employment Type */}
         <div className="flex items-center gap-2">
-          <span className="text-sm font-medium text-slate-700">Type:</span>
+          <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Type:</span>
           <select
             value={empType}
             onChange={async (e) => { setEmpType(e.target.value); await saveSettings(undefined, e.target.value); }}
             disabled={settingsLoading}
-            className="text-sm border border-slate-200 rounded-md px-2 py-1 bg-white text-slate-700 focus:ring-2 focus:ring-blue-500 outline-none"
+            className="text-sm border border-slate-200 dark:border-slate-600 rounded-md px-2 py-1 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 focus:ring-2 focus:ring-blue-500 outline-none"
           >
             <option value="COACH">Coach</option>
             <option value="EMPLOYEE">Employee</option>
@@ -219,22 +219,22 @@ export function CoachPayoutSettings({
 
       {/* ── Class Log Penalties ───────────────────────────────────────────── */}
       <div>
-        <h4 className="text-sm font-semibold text-slate-700 mb-3">Class Log Penalties (Month-wise)</h4>
+        <h4 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-3">Class Log Penalties (Month-wise)</h4>
         {Object.keys(groupedPenalties).length === 0 ? (
-          <p className="text-sm text-slate-400">No penalties recorded yet.</p>
+          <p className="text-sm text-slate-400 dark:text-slate-500">No penalties recorded yet.</p>
         ) : (
           <div className="space-y-4">
             {Object.entries(groupedPenalties).map(([month, monthLogs]) => (
-              <div key={month} className="border border-slate-200 rounded-md bg-white overflow-hidden">
-                <div className="bg-slate-50 px-3 py-2 border-b border-slate-200">
-                  <h5 className="text-xs font-bold text-slate-600 uppercase tracking-wider">{month}</h5>
+              <div key={month} className="border border-slate-200 dark:border-slate-700 rounded-md bg-white dark:bg-slate-900 overflow-hidden">
+                <div className="bg-slate-50 dark:bg-slate-800/50 px-3 py-2 border-b border-slate-200 dark:border-slate-700">
+                  <h5 className="text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">{month}</h5>
                 </div>
                 <div className="px-3">
                   {monthLogs.map(log => (
-                    <div key={log.id} className="flex justify-between items-center py-2 border-b border-slate-100 last:border-0 text-sm">
+                    <div key={log.id} className="flex justify-between items-center py-2 border-b border-slate-100 dark:border-slate-800 last:border-0 text-sm">
                       <div>
-                        <p className="font-medium text-slate-800">{fmt(log.date)} — {log.batch?.name ?? ""}</p>
-                        <p className="text-xs text-slate-500">{log.penaltyNote || "Penalty applied"}</p>
+                        <p className="font-medium text-slate-800 dark:text-slate-200">{fmt(log.date)} — {log.batch?.name ?? ""}</p>
+                        <p className="text-xs text-slate-500 dark:text-slate-400">{log.penaltyNote || "Penalty applied"}</p>
                       </div>
                       <div className="flex items-center gap-2">
                         {waivedIds.has(log.id) && <Badge variant="neutral" className="text-xs">Waived</Badge>}
@@ -243,7 +243,7 @@ export function CoachPayoutSettings({
                         </span>
                         <button
                           onClick={() => openPenaltyModal(log)}
-                          className="text-xs px-2 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-md transition-colors border border-slate-200"
+                          className="text-xs px-2 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-slate-300 dark:border-slate-600 rounded-md transition-colors border border-slate-200"
                         >
                           Edit
                         </button>
@@ -437,3 +437,4 @@ export function CoachPayoutSettings({
     </div>
   );
 }
+

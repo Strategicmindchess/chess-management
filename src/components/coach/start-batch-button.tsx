@@ -24,3 +24,4 @@ export function StartBatchButton({ meetLink, batchName }: { meetLink: string; ba
     </Button>
   );
 }
+

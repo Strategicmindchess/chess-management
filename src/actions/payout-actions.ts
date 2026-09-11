@@ -4,6 +4,8 @@ import { prisma } from "@/lib/prisma";
 import { requireRole } from "@/lib/dal";
 import { Role } from "@/lib/enums";
 import { fromZonedTime } from "date-fns-tz";
+import { createNotification } from "@/lib/notifications";
+import { NotificationType, NotifPriority } from "@/generated/prisma/client";
 
 function getAsiaKolkataMonthBoundaries(monthString: string) {
   const [yearStr, monthStrPart] = monthString.split("-");
@@ -269,3 +271,36 @@ export async function getEmployeePayoutSummary(monthString: string): Promise<Emp
     };
   });
 }
+
+// ─── Mark Payouts as Processed ────────────────────────────────────────────────
+export async function markPayoutsProcessed(monthString: string) {
+  await requireRole([Role.ADMIN]);
+
+  const coachPayouts = await getCoachPayoutSummary(monthString);
+  const activeCoaches = coachPayouts.filter(c => c.netPayout > 0);
+
+  let notifiedCount = 0;
+
+  for (const coach of activeCoaches) {
+    const cp = await prisma.coachProfile.findUnique({
+      where: { id: coach.coachId },
+      select: { userId: true },
+    });
+
+    if (cp?.userId) {
+      await createNotification({
+        recipientId: cp.userId,
+        type: NotificationType.PAYOUT_PROCESSED,
+        title: "💰 Payout Processed",
+        message: `Your payout of ₹${coach.netPayout.toLocaleString()} for ${monthString} has been processed.`,
+        eventKey: `PAYOUT_PROCESSED:${coach.coachId}:${monthString}`,
+        priority: NotifPriority.HIGH,
+        href: `/teacher/dashboard`, 
+      });
+      notifiedCount++;
+    }
+  }
+
+  return { success: true, notifiedCount };
+}
+

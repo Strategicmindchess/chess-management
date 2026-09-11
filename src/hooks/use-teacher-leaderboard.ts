@@ -26,3 +26,4 @@ export function useTeacherLeaderboard(period: "MONTHLY" | "WEEKLY") {
 export function invalidateTeacherLeaderboard(period: "MONTHLY" | "WEEKLY") {
   return mutate(getTeacherLeaderboardKey(period));
 }
+

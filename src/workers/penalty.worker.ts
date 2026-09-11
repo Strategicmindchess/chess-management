@@ -186,3 +186,4 @@ penaltyWorker.on('completed', (job) => {
 penaltyWorker.on('failed', (job, err) => {
   logger.error(`[PenaltyWorker] Job ${job?.id} (${job?.name}) failed: ${err.message}`);
 });
+

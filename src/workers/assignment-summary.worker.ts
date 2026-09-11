@@ -136,3 +136,4 @@ assignmentSummaryWorker.on('completed', (job, result) => {
 assignmentSummaryWorker.on('failed', (job, err) => {
   logger.job.fail('assignment-summary', { jobId: job?.id, error: err.message });
 });
+

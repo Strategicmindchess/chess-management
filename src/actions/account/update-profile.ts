@@ -109,3 +109,4 @@ export async function updateProfile(formData: FormData) {
     return { error: "Failed to update profile. Please try again later." };
   }
 }
+

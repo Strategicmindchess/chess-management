@@ -25,22 +25,23 @@ export function StudentMyClassesClient() {
   const { todayInstances, upcomingInstances, assignments } = data;
 
   return (
-    <div className="space-y-10 max-w-7xl">
+    <div className="space-y-10 max-w-7xl relative pb-10">
+
       <div>
-        <h1 className="text-2xl font-bold tracking-tight text-slate-900">
+        <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
           My Classroom
         </h1>
-        <p className="text-slate-500 mt-1">
+        <p className="text-slate-500 dark:text-slate-400 mt-1">
           Your enrolled batches, upcoming schedule, and assignments.
         </p>
       </div>
 
       <Tabs defaultValue="sessions" className="space-y-8">
-        <TabsList className="bg-white border shadow-sm">
-          <TabsTrigger value="sessions" className="data-[state=active]:bg-slate-100">Sessions</TabsTrigger>
-          <TabsTrigger value="assignments" className="data-[state=active]:bg-slate-100">
+        <TabsList className="bg-white dark:bg-[#11141c]/90 dark:backdrop-blur-xl border border-slate-200 dark:border-slate-800 shadow-sm rounded-xl p-1">
+          <TabsTrigger value="sessions" className="data-[state=active]:bg-slate-100 dark:data-[state=active]:bg-slate-800 dark:data-[state=active]:text-white dark:text-slate-400 rounded-lg">Sessions</TabsTrigger>
+          <TabsTrigger value="assignments" className="data-[state=active]:bg-slate-100 dark:data-[state=active]:bg-slate-800 dark:data-[state=active]:text-white dark:text-slate-400 rounded-lg">
             Assignments {assignments.filter(a => a.status === 'PENDING').length > 0 && (
-              <span className="ml-2 bg-brand-500 text-white text-xs px-2 py-0.5 rounded-full">
+              <span className="ml-2 bg-brand-500 text-brand-950 text-xs px-2 py-0.5 rounded-full font-bold">
                 {assignments.filter(a => a.status === 'PENDING').length}
               </span>
             )}
@@ -50,7 +51,7 @@ export function StudentMyClassesClient() {
         <TabsContent value="sessions" className="space-y-10 focus:outline-none">
           {/* Today's Classes */}
           <section>
-            <h2 className="text-lg font-semibold text-slate-900 mb-4">Today's Sessions</h2>
+            <h2 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">Today's Sessions</h2>
             {todayInstances.length === 0 ? (
               <EmptyState
                 title="No classes today"
@@ -72,7 +73,7 @@ export function StudentMyClassesClient() {
 
           {/* Upcoming Classes */}
           <section>
-            <h2 className="text-lg font-semibold text-slate-900 mb-4">Upcoming Next 3 Days</h2>
+            <h2 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">Upcoming Next 3 Days</h2>
             {upcomingInstances.length === 0 ? (
               <EmptyState
                 title="No upcoming classes"
@@ -95,7 +96,7 @@ export function StudentMyClassesClient() {
 
         <TabsContent value="assignments" className="focus:outline-none">
           <section>
-            <h2 className="text-lg font-semibold text-slate-900 mb-4">Your Assignments</h2>
+            <h2 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">Your Assignments</h2>
             {assignments.length === 0 ? (
               <EmptyState
                 title="No assignments yet"
@@ -114,3 +115,4 @@ export function StudentMyClassesClient() {
     </div>
   );
 }
+

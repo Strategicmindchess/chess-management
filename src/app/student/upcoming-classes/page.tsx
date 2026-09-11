@@ -19,10 +19,10 @@ export default async function StudentUpcomingClassesPage() {
   return (
     <div className="space-y-10 max-w-7xl">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight text-slate-900">
+        <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
           Upcoming Classes
         </h1>
-        <p className="text-slate-500 mt-1">
+        <p className="text-slate-500 dark:text-slate-400 mt-1">
           Your scheduled classes for the next 3 days.
         </p>
       </div>
@@ -49,3 +49,4 @@ export default async function StudentUpcomingClassesPage() {
     </div>
   );
 }
+

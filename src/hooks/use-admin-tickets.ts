@@ -37,3 +37,4 @@ export function useAdminTickets(enabled: boolean) {
 export function invalidateAdminTickets() {
   return mutate(ADMIN_TICKETS_KEY);
 }
+

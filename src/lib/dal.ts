@@ -73,3 +73,4 @@ export async function requireRole<T extends Role>(allowedRoles: readonly T[]) {
 
   return user;
 }
+

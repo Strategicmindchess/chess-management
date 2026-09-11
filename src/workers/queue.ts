@@ -57,3 +57,4 @@ connection.on('error', (err) => {
 });
 
 export const batchQueue = new Queue('batch-queue', { connection });
+

@@ -64,11 +64,11 @@ export function StudentTicketsClient({ initialTickets }: { initialTickets: Ticke
   };
 
   return (
-    <div className="flex h-[600px] border border-slate-200 rounded-xl overflow-hidden bg-white shadow-sm">
+    <div className="flex h-[600px] border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden bg-white dark:bg-[#11141c]/90 dark:backdrop-blur-xl shadow-sm">
       
       {/* Left List */}
-      <div className="w-1/3 border-r border-slate-100 flex flex-col bg-slate-50">
-        <div className="p-4 border-b border-slate-100">
+      <div className="w-1/3 border-r border-slate-100 dark:border-slate-800 flex flex-col bg-slate-50 dark:bg-[#11141c]/50">
+        <div className="p-4 border-b border-slate-100 dark:border-slate-800">
           <Button onClick={() => setIsNewTicketOpen(true)} className="w-full">
             <Plus className="w-4 h-4 mr-2" />
             Raise Ticket
@@ -83,7 +83,7 @@ export function StudentTicketsClient({ initialTickets }: { initialTickets: Ticke
               <div 
                 key={ticket.id}
                 onClick={() => setActiveTicketId(ticket.id)}
-                className={`p-3 rounded-lg border cursor-pointer transition-colors ${activeTicketId === ticket.id ? 'bg-brand-50 border-brand-200' : 'bg-white border-slate-200 hover:border-brand-300'}`}
+                className={`p-3 rounded-lg border cursor-pointer transition-colors ${activeTicketId === ticket.id ? 'bg-brand-50 border-brand-200 dark:bg-brand-900/20 dark:border-brand-500/50' : 'bg-white border-slate-200 hover:border-brand-300 dark:bg-[#11141c] dark:border-slate-700 dark:hover:border-brand-500/50'}`}
               >
                 <div className="flex justify-between items-start mb-1">
                   <span className="text-xs font-medium text-brand-600 bg-brand-50 px-1.5 py-0.5 rounded">
@@ -93,7 +93,7 @@ export function StudentTicketsClient({ initialTickets }: { initialTickets: Ticke
                     {ticket.status}
                   </span>
                 </div>
-                <h4 className="font-semibold text-sm text-slate-900 line-clamp-1">{ticket.title}</h4>
+                <h4 className="font-semibold text-sm text-slate-900 dark:text-white line-clamp-1">{ticket.title}</h4>
                 <p className="text-xs text-slate-400 mt-1">{new Date(ticket.createdAt).toLocaleDateString()}</p>
               </div>
             ))
@@ -105,23 +105,23 @@ export function StudentTicketsClient({ initialTickets }: { initialTickets: Ticke
       <div className="w-2/3 flex flex-col">
         {activeTicket ? (
           <>
-            <div className="p-5 border-b border-slate-100">
-              <h3 className="text-lg font-semibold text-slate-900 mb-1">{activeTicket.title}</h3>
+            <div className="p-5 border-b border-slate-100 dark:border-slate-800">
+              <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-1">{activeTicket.title}</h3>
               <p className="text-xs text-slate-500">Raised on {new Date(activeTicket.createdAt).toLocaleString()}</p>
             </div>
             
             <div className="flex-1 overflow-y-auto p-5 space-y-4">
-              <div className="bg-slate-50 p-4 rounded-lg border border-slate-100 text-sm text-slate-700 whitespace-pre-wrap">
+              <div className="bg-slate-50 dark:bg-slate-900/50 p-4 rounded-lg border border-slate-100 dark:border-slate-800 text-sm text-slate-700 dark:text-slate-300 whitespace-pre-wrap">
                 {activeTicket.description}
               </div>
               
               {activeTicket.replies.map(reply => (
                 <div key={reply.id} className={`flex flex-col ${reply.author.role === 'STUDENT' ? 'items-end' : 'items-start'}`}>
                   <div className="flex items-baseline gap-2 mb-1">
-                    <span className="text-xs font-medium text-slate-700">{reply.author.name}</span>
+                    <span className="text-xs font-medium text-slate-700 dark:text-slate-300">{reply.author.name}</span>
                     <span className="text-[10px] text-slate-400">{new Date(reply.createdAt).toLocaleTimeString()}</span>
                   </div>
-                  <div className={`p-3 rounded-lg text-sm max-w-[85%] ${reply.author.role === 'STUDENT' ? 'bg-brand-600 text-white rounded-tr-none' : 'bg-slate-100 text-slate-800 rounded-tl-none'}`}>
+                  <div className={`p-3 rounded-lg text-sm max-w-[85%] ${reply.author.role === 'STUDENT' ? 'bg-brand-600 text-white rounded-tr-none' : 'bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-200 rounded-tl-none'}`}>
                     {reply.content}
                   </div>
                 </div>
@@ -129,13 +129,13 @@ export function StudentTicketsClient({ initialTickets }: { initialTickets: Ticke
             </div>
 
             {activeTicket.status === 'PENDING' ? (
-              <div className="p-4 border-t border-slate-100 bg-slate-50">
+              <div className="p-4 border-t border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-[#11141c]/50">
                 <div className="flex gap-2">
                   <textarea
                     value={replyContent}
                     onChange={(e) => setReplyContent(e.target.value)}
                     placeholder="Type your reply..."
-                    className="flex-1 resize-none rounded-md border border-slate-300 p-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+                    className="flex-1 resize-none rounded-md border border-slate-300 dark:border-slate-700 p-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 dark:bg-slate-900 dark:text-white"
                     rows={2}
                   />
                   <Button 
@@ -148,13 +148,13 @@ export function StudentTicketsClient({ initialTickets }: { initialTickets: Ticke
                 </div>
               </div>
             ) : (
-              <div className="p-4 border-t border-slate-100 bg-slate-50 text-center text-sm text-slate-500">
+              <div className="p-4 border-t border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-[#11141c]/50 text-center text-sm text-slate-500 dark:text-slate-400">
                 This ticket has been resolved and is closed to new replies.
               </div>
             )}
           </>
         ) : (
-          <div className="flex-1 flex flex-col items-center justify-center text-slate-400 bg-slate-50/50">
+          <div className="flex-1 flex flex-col items-center justify-center text-slate-400 bg-slate-50/50 dark:bg-slate-900/20">
             <MessageSquare className="w-12 h-12 mb-2 opacity-20" />
             <p className="text-sm">Select a ticket to view details</p>
           </div>
@@ -188,7 +188,7 @@ export function StudentTicketsClient({ initialTickets }: { initialTickets: Ticke
               name="description"
               required
               rows={5}
-              className="flex w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
+              className="flex w-full rounded-md border border-slate-300 dark:border-slate-800 bg-white dark:bg-[#11141c]/90 px-3 py-2 text-sm placeholder:text-slate-400 dark:placeholder:text-slate-500 text-slate-900 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-brand-500 dark:focus:ring-brand-900/30"
               placeholder="Please provide as much detail as possible..."
             />
           </div>
@@ -204,3 +204,4 @@ export function StudentTicketsClient({ initialTickets }: { initialTickets: Ticke
     </div>
   );
 }
+

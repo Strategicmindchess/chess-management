@@ -18,32 +18,32 @@ export function EmployeePayoutCard({ emp }: { emp: EmployeePayoutSummary }) {
   const [expanded, setExpanded] = useState(false);
 
   return (
-    <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+    <div className="bg-white dark:bg-[#11141c]/90 dark:backdrop-blur-xl rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm dark:shadow-[0_4px_20px_rgba(0,0,0,0.3)] overflow-hidden">
       {/* Header row */}
       <button
         onClick={() => setExpanded(p => !p)}
-        className="w-full flex items-start justify-between p-5 hover:bg-slate-50 transition-colors text-left"
+        className="w-full flex items-start justify-between p-5 hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors text-left"
       >
         <div className="flex items-start gap-3">
-          <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-700 font-bold text-sm flex-shrink-0">
+          <div className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-700 dark:text-slate-300 font-bold text-sm flex-shrink-0">
             {emp.name.charAt(0).toUpperCase()}
           </div>
           <div>
             <div className="flex items-center gap-2 flex-wrap">
-              <p className="font-semibold text-slate-900">{emp.name}</p>
-              <span className={`text-xs px-2 py-0.5 rounded-full font-semibold border ${MODE_COLORS[emp.employmentMode] ?? "bg-slate-100 text-slate-600 border-slate-200"}`}>
+              <p className="font-semibold text-slate-900 dark:text-slate-100">{emp.name}</p>
+              <span className={`text-xs px-2 py-0.5 rounded-full font-semibold border ${MODE_COLORS[emp.employmentMode] ?? "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700"}`}>
                 {emp.employmentMode}
               </span>
               {emp.tdsApplicable && (
                 <span className="text-xs px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 border border-amber-200 font-semibold">TDS</span>
               )}
             </div>
-            <p className="text-sm text-slate-500 mt-0.5">{emp.jobRole} · {emp.employeeType.replace("_", " ")}</p>
+            <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">{emp.jobRole} · {emp.employeeType.replace("_", " ")}</p>
           </div>
         </div>
         <div className="text-right flex-shrink-0">
-          <p className="text-lg font-bold text-emerald-700">₹{emp.netPayout.toLocaleString()}</p>
-          <p className="text-xs text-slate-500">Net payout</p>
+          <p className="text-lg font-bold text-emerald-700 dark:text-emerald-500">₹{emp.netPayout.toLocaleString()}</p>
+          <p className="text-xs text-slate-500 dark:text-slate-400">Net payout</p>
           <span className="text-xs text-slate-400 mt-1 block">{expanded ? "▲ Hide" : "▼ Details"}</span>
         </div>
       </button>
@@ -134,3 +134,4 @@ export function EmployeePayoutCard({ emp }: { emp: EmployeePayoutSummary }) {
     </div>
   );
 }
+

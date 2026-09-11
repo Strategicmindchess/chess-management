@@ -16,8 +16,8 @@ export default async function StudentTicketsPage() {
     <div className="p-6 max-w-5xl mx-auto space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">Support Tickets</h1>
-          <p className="text-sm text-slate-500 mt-1">Manage your support requests and issues</p>
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Support Tickets</h1>
+          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Manage your support requests and issues</p>
         </div>
       </div>
       
@@ -25,3 +25,4 @@ export default async function StudentTicketsPage() {
     </div>
   );
 }
+

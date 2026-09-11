@@ -121,3 +121,4 @@ export function AttendanceViewerDialog({ batchId, batchName }: AttendanceViewerP
     </>
   );
 }
+

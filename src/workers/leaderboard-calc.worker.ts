@@ -418,3 +418,4 @@ leaderboardCalcWorker.on('completed', (job, result) => {
 leaderboardCalcWorker.on('failed', (job, err) => {
   logger.job.fail('leaderboard-calc', { jobId: job?.id, error: err.message });
 });
+

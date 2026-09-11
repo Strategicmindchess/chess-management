@@ -2,8 +2,9 @@
 
 import { prisma } from "@/lib/prisma";
 import { requireRole } from "@/lib/dal";
-import { Role, TicketStatus } from "@/generated/prisma/client";
+import { Role, TicketStatus, NotificationType, NotifPriority } from "@/generated/prisma/client";
 import { revalidatePath } from "next/cache";
+import { createNotification } from "@/lib/notifications";
 
 export async function getAdminTickets(cursor?: string, creatorType: "student" | "coach" | "all" = "all") {
   await requireRole([Role.ADMIN]);
@@ -52,6 +53,26 @@ export async function replyToTicket(ticketId: string, content: string) {
       },
     });
 
+    const ticket = await prisma.ticket.findUnique({
+      where: { id: ticketId },
+      include: { createdBy: true, coachCreatedBy: true },
+    });
+
+    if (ticket) {
+      const recipientUserId = ticket.createdBy?.userId || ticket.coachCreatedBy?.userId;
+      if (recipientUserId) {
+        await createNotification({
+          recipientId: recipientUserId,
+          type: NotificationType.TICKET_UPDATED,
+          title: "🎫 Ticket Reply",
+          message: `Admin replied to your ticket: "${ticket.title}"`,
+          eventKey: `TICKET_REPLY:${ticketId}:${Date.now()}`, // unique per reply
+          priority: NotifPriority.NORMAL,
+          href: ticket.createdBy ? `/student/tickets` : `/teacher/tickets`,
+        });
+      }
+    }
+
     revalidatePath("/", "layout");
     return { success: true };
   } catch (error) {
@@ -69,6 +90,26 @@ export async function resolveTicket(ticketId: string) {
       data: { status: "RESOLVED" },
     });
 
+    const ticket = await prisma.ticket.findUnique({
+      where: { id: ticketId },
+      include: { createdBy: true, coachCreatedBy: true },
+    });
+
+    if (ticket) {
+      const recipientUserId = ticket.createdBy?.userId || ticket.coachCreatedBy?.userId;
+      if (recipientUserId) {
+        await createNotification({
+          recipientId: recipientUserId,
+          type: NotificationType.TICKET_UPDATED,
+          title: "✅ Ticket Resolved",
+          message: `Your ticket has been marked as resolved: "${ticket.title}"`,
+          eventKey: `TICKET_RESOLVED:${ticketId}`,
+          priority: NotifPriority.NORMAL,
+          href: ticket.createdBy ? `/student/tickets` : `/teacher/tickets`,
+        });
+      }
+    }
+
     revalidatePath("/", "layout");
     return { success: true };
   } catch (error) {
@@ -76,3 +117,4 @@ export async function resolveTicket(ticketId: string) {
     return { error: "Failed to resolve ticket." };
   }
 }
+

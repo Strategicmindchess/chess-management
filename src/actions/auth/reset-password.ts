@@ -45,3 +45,4 @@ export async function resetPassword(
   await invalidateOtherSessionsAndRestart(user.id, user.role);
   redirect(ROLE_HOME_PATH[user.role]);
 }
+

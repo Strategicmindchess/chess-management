@@ -164,3 +164,4 @@ export function calculatePenalty(input: PenaltyEngineInput): PenaltyEngineOutput
 
   return { totalPenalty, breakdown, hasPhonePenalty };
 }
+

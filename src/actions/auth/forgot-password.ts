@@ -23,3 +23,4 @@ export async function forgotPassword(input: ForgotPasswordInput): Promise<Action
 
   return { success: true };
 }
+

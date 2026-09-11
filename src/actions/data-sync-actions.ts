@@ -87,3 +87,4 @@ export async function triggerManualSync(studentProfileId: string) {
 
   return { success: true, message: 'Sync job triggered successfully. Data will refresh shortly.' };
 }
+

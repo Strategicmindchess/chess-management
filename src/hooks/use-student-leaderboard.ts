@@ -26,3 +26,4 @@ export function useStudentLeaderboard() {
 export function invalidateStudentLeaderboard() {
   return mutate(STUDENT_LEADERBOARD_KEY);
 }
+

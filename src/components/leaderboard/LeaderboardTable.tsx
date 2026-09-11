@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import React, { useState } from 'react';
 import type { LeaderboardRow } from '@/actions/leaderboard/leaderboard-actions';
 import { Trophy, Medal, Star, ChevronDown, ChevronUp, Shield, ExternalLink, Crown } from 'lucide-react';
 
@@ -15,22 +15,22 @@ interface LeaderboardTableProps {
 
 const RANK_STYLES: Record<number, { bg: string; text: string; icon: React.ReactNode; border: string }> = {
   1: {
-    bg: 'bg-gradient-to-r from-yellow-50 to-amber-50',
-    text: 'text-amber-700',
+    bg: 'bg-gradient-to-r from-yellow-50 to-amber-50 dark:from-yellow-500/10 dark:to-amber-500/10',
+    text: 'text-amber-700 dark:text-amber-400',
     icon: <Crown className="w-5 h-5 text-yellow-500" />,
-    border: 'border-yellow-300',
+    border: 'border-yellow-300 dark:border-yellow-500/30',
   },
   2: {
-    bg: 'bg-gradient-to-r from-slate-50 to-gray-100',
-    text: 'text-slate-700',
+    bg: 'bg-gradient-to-r from-slate-50 to-gray-100 dark:from-slate-400/10 dark:to-gray-400/10',
+    text: 'text-slate-700 dark:text-slate-300',
     icon: <Medal className="w-5 h-5 text-slate-400" />,
-    border: 'border-slate-300',
+    border: 'border-slate-300 dark:border-slate-500/30',
   },
   3: {
-    bg: 'bg-gradient-to-r from-orange-50 to-amber-50',
-    text: 'text-orange-700',
+    bg: 'bg-gradient-to-r from-orange-50 to-amber-50 dark:from-orange-500/10 dark:to-amber-500/10',
+    text: 'text-orange-700 dark:text-orange-400',
     icon: <Medal className="w-5 h-5 text-orange-400" />,
-    border: 'border-orange-300',
+    border: 'border-orange-300 dark:border-orange-500/30',
   },
 };
 
@@ -38,7 +38,7 @@ function ScoreBar({ value, max, color }: { value: number; max: number; color: st
   const pct = max > 0 ? Math.min((value / max) * 100, 100) : 0;
   return (
     <div className="flex items-center gap-2 text-xs">
-      <div className="flex-1 bg-slate-100 rounded-full h-1.5 overflow-hidden">
+      <div className="flex-1 bg-slate-100 dark:bg-slate-800 rounded-full h-1.5 overflow-hidden">
         <div className={`h-full rounded-full ${color}`} style={{ width: `${pct}%` }} />
       </div>
     </div>
@@ -64,19 +64,19 @@ function BreakdownPanel({ row }: { row: LeaderboardRow }) {
   ];
 
   return (
-    <div className="bg-slate-50 rounded-xl p-4 mt-2 border border-slate-200">
-      <p className="text-xs font-semibold text-slate-600 mb-3 uppercase tracking-wide">Score Breakdown</p>
+    <div className="bg-slate-50 dark:bg-slate-900/50 rounded-xl p-4 mt-2 border border-slate-200 dark:border-slate-800">
+      <p className="text-xs font-semibold text-slate-600 dark:text-slate-400 mb-3 uppercase tracking-wide">Score Breakdown</p>
       <div className="space-y-2">
         {items.map((item) => (
           <div key={item.label}>
             <div className="flex justify-between items-center mb-0.5">
-              <span className="text-xs text-slate-600 flex items-center gap-1.5 flex-wrap">
+              <span className="text-xs text-slate-600 dark:text-slate-300 flex items-center gap-1.5 flex-wrap">
                 {item.label}
-                <span className="text-[10px] text-slate-400 px-1 border border-slate-200 rounded">{item.subtext}</span>
-                {item.value < 0 && <span className="text-[9px] bg-red-100 text-red-600 px-1 py-0.5 rounded uppercase font-bold">Penalty</span>}
-                {item.value === 0 && <span className="text-[9px] bg-slate-100 text-slate-500 px-1 py-0.5 rounded uppercase font-bold">No Score</span>}
+                <span className="text-[10px] text-slate-400 dark:text-slate-500 px-1 border border-slate-200 dark:border-slate-700 rounded">{item.subtext}</span>
+                {item.value < 0 && <span className="text-[9px] bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 px-1 py-0.5 rounded uppercase font-bold">Penalty</span>}
+                {item.value === 0 && <span className="text-[9px] bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 px-1 py-0.5 rounded uppercase font-bold">No Score</span>}
               </span>
-              <span className={`text-xs font-bold ${item.value < 0 ? 'text-red-500' : 'text-slate-700'}`}>
+              <span className={`text-xs font-bold ${item.value < 0 ? 'text-red-500' : 'text-slate-700 dark:text-slate-300'}`}>
                 {item.value > 0 ? '+' : ''}{item.value}
               </span>
             </div>
@@ -101,6 +101,7 @@ function BreakdownPanel({ row }: { row: LeaderboardRow }) {
 
 export function LeaderboardTable({ entries, currentStudentId, highlightStudentIds, showBreakdown = true, hideOtherUsernames = false, showAdminFlags = false }: LeaderboardTableProps) {
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [displayCount, setDisplayCount] = useState(10);
 
   if (entries.length === 0) {
     return (
@@ -112,122 +113,171 @@ export function LeaderboardTable({ entries, currentStudentId, highlightStudentId
     );
   }
 
+  const visibleEntries = entries.slice(0, displayCount);
+  const hasMore = displayCount < entries.length;
+  
+  const currentUserEntry = currentStudentId 
+    ? entries.find((e) => e.studentProfileId === currentStudentId)
+    : undefined;
+    
+  const isCurrentUserVisible = currentUserEntry 
+    ? visibleEntries.some(e => e.studentProfileId === currentStudentId)
+    : true; 
+
+  const entriesToRender = [...visibleEntries];
+  let showDividerBeforeUser = false;
+
+  if (!isCurrentUserVisible && currentUserEntry) {
+    entriesToRender.push(currentUserEntry);
+    showDividerBeforeUser = true;
+  }
+
   return (
     <div className="space-y-2">
-      {entries.map((row) => {
+      {entriesToRender.map((row, index) => {
+        const isAppendedUser = showDividerBeforeUser && index === entriesToRender.length - 1;
         const isMe = row.studentProfileId === currentStudentId;
         const isMyStudent = highlightStudentIds?.has(row.studentProfileId);
         
         const rankStyle = RANK_STYLES[row.rank] ?? {
-          bg: isMe || isMyStudent ? 'bg-brand-50' : 'bg-white',
-          text: 'text-slate-600',
-          icon: <span className="w-5 h-5 flex items-center justify-center text-xs font-bold text-slate-400">{row.rank}</span>,
-          border: isMe || isMyStudent ? 'border-brand-300' : 'border-slate-200',
+          bg: isMe || isMyStudent ? 'bg-brand-50 dark:bg-brand-900/20' : 'bg-white dark:bg-slate-900',
+          text: 'text-slate-600 dark:text-slate-300',
+          icon: <span className="w-5 h-5 flex items-center justify-center text-xs font-bold text-slate-400 dark:text-slate-500">{row.rank}</span>,
+          border: isMe || isMyStudent ? 'border-brand-300 dark:border-brand-500/30' : 'border-slate-200 dark:border-slate-800',
         };
 
         const isExpanded = expandedId === row.studentProfileId;
 
         return (
-          <div
-            key={row.studentProfileId}
-            className={`rounded-xl border ${rankStyle.border} ${rankStyle.bg} overflow-hidden transition-all`}
-          >
-            {/* Main row */}
-            <div
-              className="flex items-center gap-3 p-3 cursor-pointer"
-              onClick={() => showBreakdown && setExpandedId(isExpanded ? null : row.studentProfileId)}
-            >
-              {/* Rank */}
-              <div className="w-8 flex justify-center flex-shrink-0">
-                {row.isDisqualified ? (
-                  <div title="Disqualified">
-                    <Shield className="w-5 h-5 text-red-400" />
-                  </div>
-                ) : (
-                  rankStyle.icon
-                )}
-              </div>
-
-              {/* Avatar */}
-              <div className="w-9 h-9 rounded-full bg-brand-100 flex items-center justify-center flex-shrink-0 overflow-hidden">
-                {row.profilePictureUrl ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={row.profilePictureUrl} alt={row.studentName} className="w-full h-full object-cover" />
-                ) : (
-                  <span className="text-brand-700 font-bold text-sm">{row.studentName[0]?.toUpperCase()}</span>
-                )}
-              </div>
-
-              {/* Name + usernames */}
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-1.5 flex-wrap">
-                  <p className={`text-sm font-bold truncate ${rankStyle.text}`}>
-                    {row.studentName}
-                    {isMe && <span className="ml-1.5 text-[10px] font-semibold bg-brand-600 text-white px-1.5 py-0.5 rounded-full">You</span>}
-                    {isMyStudent && !isMe && <span className="ml-1.5 text-[10px] font-semibold bg-brand-100 text-brand-700 border border-brand-200 px-1.5 py-0.5 rounded-full">My Student</span>}
-                  </p>
-                  {/* Admin-only data quality flags */}
-                  {showAdminFlags && row.isDataStale && !row.ccFetchFailed && !row.liFetchFailed && (
-                    <span title="Snapshot data is 2+ days old" className="text-[9px] font-bold bg-yellow-100 text-yellow-700 border border-yellow-300 px-1.5 py-0.5 rounded-full">⚠ STALE</span>
-                  )}
-                  {showAdminFlags && row.ccFetchFailed && (
-                    <span title="Chess.com data fetch failed (429 or API error)" className="text-[9px] font-bold bg-red-100 text-red-600 border border-red-300 px-1.5 py-0.5 rounded-full">✕ CC FAIL</span>
-                  )}
-                  {showAdminFlags && row.liFetchFailed && (
-                    <span title="Lichess data fetch failed (429 or API error)" className="text-[9px] font-bold bg-red-100 text-red-600 border border-red-300 px-1.5 py-0.5 rounded-full">✕ LI FAIL</span>
-                  )}
-                </div>
-                <div className="flex items-center gap-2 mt-0.5">
-                  {(!hideOtherUsernames || isMe) && row.chessComUsername && (
-                    <a
-                      href={`https://www.chess.com/member/${row.chessComUsername}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      onClick={(e) => e.stopPropagation()}
-                      className="text-[10px] text-slate-400 hover:text-brand-600 flex items-center gap-0.5"
-                    >
-                      ♟ {row.chessComUsername} <ExternalLink className="w-2.5 h-2.5" />
-                    </a>
-                  )}
-                  {(!hideOtherUsernames || isMe) && row.lichessUsername && (
-                    <a
-                      href={`https://lichess.org/@/${row.lichessUsername}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      onClick={(e) => e.stopPropagation()}
-                      className="text-[10px] text-slate-400 hover:text-brand-600 flex items-center gap-0.5"
-                    >
-                      ♞ {row.lichessUsername} <ExternalLink className="w-2.5 h-2.5" />
-                    </a>
-                  )}
-                </div>
-              </div>
-
-              {/* Score */}
-              <div className="flex items-center gap-2 flex-shrink-0">
-                <div className="text-right">
-                  <p className={`text-xl font-black ${row.isDisqualified ? 'text-red-400 line-through' : rankStyle.text}`}>
-                    {row.totalScore}
-                  </p>
-                  <p className="text-[10px] text-slate-400">/ 1000 pts</p>
-                </div>
-                {showBreakdown && (
-                  <div className="text-slate-400">
-                    {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Expanded breakdown */}
-            {showBreakdown && isExpanded && (
-              <div className="px-3 pb-3">
-                <BreakdownPanel row={row} />
+          <React.Fragment key={`frag-${row.studentProfileId}`}>
+            {isAppendedUser && (
+              <div className="flex items-center gap-4 py-3">
+                <div className="flex-1 h-px bg-slate-200 dark:bg-slate-700"></div>
+                <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">Your Rank</span>
+                <div className="flex-1 h-px bg-slate-200 dark:bg-slate-700"></div>
               </div>
             )}
-          </div>
+            <div
+              key={row.studentProfileId}
+              className={`rounded-xl border ${rankStyle.border} ${rankStyle.bg} overflow-hidden transition-all shadow-sm`}
+            >
+              {/* Main row */}
+              <div
+                className="flex items-center gap-3 p-3 cursor-pointer"
+                onClick={() => showBreakdown && setExpandedId(isExpanded ? null : row.studentProfileId)}
+              >
+                {/* Rank */}
+                <div className="w-8 flex justify-center flex-shrink-0">
+                  {row.isDisqualified ? (
+                    <div title="Disqualified">
+                      <Shield className="w-5 h-5 text-red-400" />
+                    </div>
+                  ) : (
+                    rankStyle.icon
+                  )}
+                </div>
+
+                {/* Avatar */}
+                <div className="w-9 h-9 rounded-full bg-brand-100 flex items-center justify-center flex-shrink-0 overflow-hidden">
+                  {row.profilePictureUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={row.profilePictureUrl} alt={row.studentName} className="w-full h-full object-cover" />
+                  ) : (
+                    <span className="text-brand-700 font-bold text-sm">{row.studentName[0]?.toUpperCase()}</span>
+                  )}
+                </div>
+
+                {/* Name + usernames */}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <p className={`text-sm font-bold truncate ${rankStyle.text}`}>
+                      {row.studentName}
+                      {isMe && <span className="ml-1.5 text-[10px] font-semibold bg-brand-600 text-white px-1.5 py-0.5 rounded-full">You</span>}
+                      {isMyStudent && !isMe && <span className="ml-1.5 text-[10px] font-semibold bg-brand-100 text-brand-700 border border-brand-200 px-1.5 py-0.5 rounded-full">My Student</span>}
+                    </p>
+                    {/* Admin-only data quality flags */}
+                    {showAdminFlags && row.isDataStale && !row.ccFetchFailed && !row.liFetchFailed && (
+                      <span title="Snapshot data is 2+ days old" className="text-[9px] font-bold bg-yellow-100 text-yellow-700 border border-yellow-300 px-1.5 py-0.5 rounded-full">⚠ STALE</span>
+                    )}
+                    {showAdminFlags && row.ccFetchFailed && (
+                      <span title="Chess.com data fetch failed (429 or API error)" className="text-[9px] font-bold bg-red-100 text-red-600 border border-red-300 px-1.5 py-0.5 rounded-full">✕ CC FAIL</span>
+                    )}
+                    {showAdminFlags && row.liFetchFailed && (
+                      <span title="Lichess data fetch failed (429 or API error)" className="text-[9px] font-bold bg-red-100 text-red-600 border border-red-300 px-1.5 py-0.5 rounded-full">✕ LI FAIL</span>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2 mt-0.5">
+                    {(!hideOtherUsernames || isMe) && row.chessComUsername && (
+                      <a
+                        href={`https://www.chess.com/member/${row.chessComUsername}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={(e) => e.stopPropagation()}
+                        className="text-[10px] text-slate-400 hover:text-brand-600 flex items-center gap-0.5"
+                      >
+                        ♟ {row.chessComUsername} <ExternalLink className="w-2.5 h-2.5" />
+                      </a>
+                    )}
+                    {(!hideOtherUsernames || isMe) && row.lichessUsername && (
+                      <a
+                        href={`https://lichess.org/@/${row.lichessUsername}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={(e) => e.stopPropagation()}
+                        className="text-[10px] text-slate-400 hover:text-brand-600 flex items-center gap-0.5"
+                      >
+                        ♞ {row.lichessUsername} <ExternalLink className="w-2.5 h-2.5" />
+                      </a>
+                    )}
+                  </div>
+                </div>
+
+                {/* Score */}
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  <div className="text-right">
+                    <p className={`text-xl font-black ${row.isDisqualified ? 'text-red-400 line-through' : rankStyle.text}`}>
+                      {row.totalScore}
+                    </p>
+                    <p className="text-[10px] text-slate-400">/ 1000 pts</p>
+                    
+                    {row.chocolatePoints > 0 && (
+                      <div className="mt-1 flex items-center justify-end gap-1">
+                        <span className="text-[10px] font-bold text-amber-700 bg-amber-100 px-1.5 py-0.5 rounded flex items-center gap-0.5">
+                          🍫 {row.chocolatePoints}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                  {showBreakdown && (
+                    <div className="text-slate-400">
+                      {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Expanded breakdown */}
+              {showBreakdown && isExpanded && (
+                <div className="px-3 pb-3">
+                  <BreakdownPanel row={row} />
+                </div>
+              )}
+            </div>
+          </React.Fragment>
         );
       })}
+
+      {hasMore && (
+        <div className="pt-4 flex justify-center">
+          <button
+            onClick={() => setDisplayCount(prev => prev + 5)}
+            className="px-6 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700/50 text-brand-600 dark:text-brand-400 text-sm font-semibold rounded-full shadow-sm transition-all"
+          >
+            Load 5 More
+          </button>
+        </div>
+      )}
     </div>
   );
 }
+

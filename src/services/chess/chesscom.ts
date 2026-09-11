@@ -77,3 +77,4 @@ export async function verifyChessComUser(username: string): Promise<boolean> {
   );
   return result.ok;
 }
+

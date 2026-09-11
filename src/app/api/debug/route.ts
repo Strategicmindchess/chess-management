@@ -14,3 +14,4 @@ export async function GET() {
     contents: response.Contents?.map(c => c.Key),
   });
 }
+

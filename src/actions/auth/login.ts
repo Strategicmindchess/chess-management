@@ -77,3 +77,4 @@ export async function login(
   }
   redirect(ROLE_HOME_PATH[user.role]);
 }
+

@@ -112,3 +112,4 @@ export function AssignmentReportTable({ detailed }: { detailed: StudentReport[] 
     </div>
   );
 }
+

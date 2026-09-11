@@ -45,3 +45,4 @@ export async function verifySignupOtp(input: VerifyOtpInput): Promise<{ error: s
 
   redirect(ROLE_HOME_PATH[user.role]);
 }
+

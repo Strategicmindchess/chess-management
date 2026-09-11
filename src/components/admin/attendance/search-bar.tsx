@@ -50,3 +50,4 @@ export function AttendanceSearchBar({ placeholder = "Search..." }: { placeholder
     </div>
   );
 }
+

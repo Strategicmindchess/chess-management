@@ -141,22 +141,22 @@ export function BatchList({
                 router.push(`/admin/batches?${params.toString()}`);
               }}
             />
-            <label htmlFor="showInactive" className="cursor-pointer">Show Inactive</label>
+            <label htmlFor="showInactive" className="cursor-pointer text-slate-700 dark:text-slate-300">Show Inactive</label>
           </div>
         </div>
       </div>
-      <div className="overflow-y-auto divide-y divide-slate-100 pr-2 pb-4 flex-1">
+      <div className="overflow-y-auto divide-y divide-slate-100 dark:divide-slate-800 pr-2 pb-4 flex-1">
         {error && <p className="px-5 py-3 text-sm text-rose-600">{error}</p>}
         {batches.map((batch) => (
           <div key={batch.id} className="space-y-3 px-5 py-4">
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
                 <div className="flex flex-wrap items-center gap-2">
-                  <h3 className="text-sm font-semibold text-slate-900">
+                  <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
                     {batch.name}
                   </h3>
                   <Badge variant="neutral">{batch.code}</Badge>
-                  <Badge variant="neutral" className="capitalize font-normal text-xs bg-slate-100 text-slate-700">
+                  <Badge variant="neutral" className="capitalize font-normal text-xs bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300">
                     {(batch.type || "GROUP_SESSION").replace(/_/g, ' ').toLowerCase()}
                   </Badge>
                   <Badge variant={batch.isActive ? "success" : "neutral"}>
@@ -196,10 +196,10 @@ export function BatchList({
               ))}
             </div>
 
-            <div className="flex flex-wrap items-center gap-3 text-sm text-slate-600">
+            <div className="flex flex-wrap items-center gap-3 text-sm text-slate-600 dark:text-slate-400">
               <span>
                 Coach:{" "}
-                <span className="font-medium text-slate-900">
+                <span className="font-medium text-slate-900 dark:text-slate-200">
                   {batch.coach ? batch.coach.name : "Unassigned"}
                 </span>
               </span>
@@ -208,7 +208,7 @@ export function BatchList({
               <span className="text-slate-300">•</span>
               <span>
                 Classes:{" "}
-                <span className={`font-medium ${batch.scheduledInstances - batch.completedInstances === 3 ? 'text-rose-600 flex items-center gap-1 inline-flex' : 'text-slate-900'}`}>
+                <span className={`font-medium ${batch.scheduledInstances - batch.completedInstances === 3 ? 'text-rose-600 flex items-center gap-1 inline-flex' : 'text-slate-900 dark:text-slate-200'}`}>
                   {batch.scheduledInstances} scheduled, {batch.completedInstances} completed
                 </span>
               </span>
@@ -245,3 +245,4 @@ export function BatchList({
     </div>
   );
 }
+

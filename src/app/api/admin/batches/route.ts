@@ -30,37 +30,34 @@ export async function GET(req: NextRequest) {
         : {}),
     };
 
-    const [batches, totalBatches, coachesData, studentsData] = await Promise.all([
+    const [batches, totalBatches] = await Promise.all([
       prisma.batch.findMany({
         where,
         orderBy: [{ isActive: "desc" }, { name: "asc" }],
         take,
         skip,
-        include: {
-          coach: { include: { user: { select: { id: true, name: true, email: true } } } },
-          schedules: { orderBy: { startTime: "asc" } },
+        select: {
+          id: true,
+          name: true,
+          code: true,
+          meetLink: true,
+          isActive: true,
+          startDate: true,
+          type: true,
+          payoutRate: true,
+          level: true,
+          startSession: true,
+          coach: { select: { id: true, user: { select: { name: true, email: true } } } },
+          schedules: { select: { id: true, day: true, startTime: true, endTime: true }, orderBy: { startTime: "asc" } },
           students: {
-            include: {
-              student: { include: { user: { select: { id: true, name: true, email: true } } } },
-            },
+            select: {
+              student: { select: { id: true, user: { select: { name: true, email: true } } } }
+            }
           },
-          _count: { select: { classInstances: true } },
-        },
+          _count: { select: { classInstances: true } }
+        }
       }),
       prisma.batch.count({ where }),
-      prisma.coachProfile.findMany({
-        where: { user: { isActive: true, emailVerified: true } },
-        include: { 
-          user: { select: { name: true, email: true } },
-          availabilities: true
-        },
-        orderBy: { user: { name: "asc" } },
-      }),
-      prisma.studentProfile.findMany({
-        where: { user: { isActive: true, emailVerified: true } },
-        include: { user: { select: { name: true, email: true } } },
-        orderBy: { user: { name: "asc" } },
-      })
     ]);
 
     // Batch status counts via groupBy
@@ -81,23 +78,6 @@ export async function GET(req: NextRequest) {
       statusMap.get(row.batchId)![row.status] = row._count;
     }
 
-    const coaches = coachesData.map(c => ({
-      id: c.id,
-      name: c.user.name,
-      email: c.user.email,
-      availabilities: c.availabilities.map(a => ({
-        date: a.date.toISOString(),
-        startTime: a.startTime,
-        endTime: a.endTime,
-      })),
-    }));
-
-    const students = studentsData.map((s) => ({
-      id: s.id,
-      name: s.user.name,
-      email: s.user.email,
-    }));
-
     const batchItems = batches.map((batch) => {
       const counts = statusMap.get(batch.id) ?? {};
       const completedInstances = counts['COMPLETED'] ?? 0;
@@ -114,12 +94,7 @@ export async function GET(req: NextRequest) {
         startDate: batch.startDate,
         type: batch.type,
         coach: batch.coach ? { id: batch.coach.id, name: batch.coach.user.name, email: batch.coach.user.email } : null,
-        schedules: batch.schedules.map((slot) => ({
-          id: slot.id,
-          day: slot.day,
-          startTime: slot.startTime,
-          endTime: slot.endTime,
-        })),
+        schedules: batch.schedules,
         students: batch.students.map((bs) => ({ id: bs.student.id, name: bs.student.user.name, email: bs.student.user.email })),
         payoutRate: batch.payoutRate,
         totalInstances,
@@ -135,8 +110,6 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json({
       batches: batchItems,
-      coaches,
-      students,
       totalPages,
       currentPage,
     });

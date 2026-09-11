@@ -1,0 +1,43 @@
+/// Coach monthly leaderboard — 500 points total.
+/// 400 pts auto-calculated from ClassFeedback; 100 pts manually awarded by admin.
+model CoachLeaderboardEntry {
+  id             String   @id @default(cuid())
+  coachProfileId String
+  /// Calendar month key, e.g. "2026-09"
+  month          String
+
+  // ── Auto-calculated from ClassFeedback (400 pts total) ──────────────────────
+  /// Average overallCoachScore/10 × 100 across all assigned students' feedbacks
+  studentPerfScore  Int @default(0) // 0–100
+  /// Distributed from classQualityScore + volume: avg/10 × 200
+  studentFeedScore  Int @default(0) // 0–200
+  /// Average classQualityScore/10 × 100 across all classes
+  classQualityScore Int @default(0) // 0–100
+
+  /// Total classes with at least one feedback in this month
+  totalClassesWithFeedback Int @default(0)
+  /// Total feedback submissions counted this month
+  totalFeedbackCount       Int @default(0)
+
+  // ── Manually awarded by Admin (100 pts) ─────────────────────────────────────
+  /// Points manually awarded by admin (0–100)
+  managementPoints      Int       @default(0)
+  managementNote        String?
+  managementAwardedAt   DateTime?
+  /// userId of admin who awarded the points
+  managementAwardedById String?
+
+  // ── Totals ───────────────────────────────────────────────────────────────────
+  totalScore Int  @default(0) // 0–500
+  rank       Int?
+
+  calculatedAt DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  coach               CoachProfile @relation("CoachLeaderboard", fields: [coachProfileId], references: [id], onDelete: Cascade)
+  managementAwardedBy User?        @relation("AdminLeaderboardAwards", fields: [managementAwardedById], references: [id])
+
+  @@unique([coachProfileId, month])
+  @@index([month, totalScore])
+  @@map("coach_leaderboard_entries")
+}

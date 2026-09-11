@@ -285,3 +285,4 @@ export async function bulkUpdateClassTimings(input: z.infer<typeof bulkUpdateCla
     return { success: false, error: err.message || 'Failed to update timings.' };
   }
 }
+

@@ -120,3 +120,4 @@ export const bulkUpdateClassTimingsSchema = z.object({
   path: ["newEndTime"],
 });
 
+

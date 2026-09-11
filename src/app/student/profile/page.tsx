@@ -15,10 +15,10 @@ export default async function StudentProfilePage() {
   return (
     <div className="space-y-6 max-w-3xl">
       <div>
-        <h1 className="text-xl font-semibold text-slate-900">
+        <h1 className="text-xl font-semibold text-slate-900 dark:text-white">
           My Profile
         </h1>
-        <p className="text-sm text-slate-500 mt-1">
+        <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
           Manage your personal information, profile photo, and chess credentials.
         </p>
       </div>
@@ -35,3 +35,4 @@ export default async function StudentProfilePage() {
     </div>
   );
 }
+

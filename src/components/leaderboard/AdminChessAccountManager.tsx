@@ -61,10 +61,10 @@ function StudentRow({ student }: { student: Student }) {
   }
 
   return (
-    <div className={`border rounded-xl overflow-hidden transition-all ${student.isLinked ? 'border-slate-200' : 'border-amber-200 bg-amber-50/30'}`}>
+    <div className={`border rounded-xl overflow-hidden transition-all ${student.isLinked ? 'border-slate-200 dark:border-slate-800' : 'border-amber-200 dark:border-amber-800/30 bg-amber-50/30 dark:bg-amber-900/10'}`}>
       {/* Row header */}
       <div
-        className="flex items-center gap-3 p-3 cursor-pointer hover:bg-slate-50 transition-colors"
+        className="flex items-center gap-3 p-3 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors"
         onClick={() => setExpanded((v) => !v)}
       >
         {/* Avatar */}
@@ -74,13 +74,13 @@ function StudentRow({ student }: { student: Student }) {
 
         {/* Name / email */}
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-semibold text-slate-800 truncate">{student.name}</p>
+          <p className="text-sm font-semibold text-slate-800 dark:text-slate-200 truncate">{student.name}</p>
           <p className="text-xs text-slate-400 truncate">{student.email}</p>
         </div>
 
         {/* Status */}
         {student.isLinked ? (
-          <div className="flex items-center gap-1.5 text-xs text-emerald-600 bg-emerald-50 border border-emerald-200 rounded-lg px-2 py-1">
+          <div className="flex items-center gap-1.5 text-xs text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800/30 rounded-lg px-2 py-1">
             <UserCheck className="w-3.5 h-3.5" />
             <span className="hidden sm:inline">
               {student.chessAccount?.chessComUsername || student.chessAccount?.lichessUsername}
@@ -88,7 +88,7 @@ function StudentRow({ student }: { student: Student }) {
             <span className="sm:hidden">Linked</span>
           </div>
         ) : (
-          <div className="flex items-center gap-1.5 text-xs text-amber-600 bg-amber-50 border border-amber-200 rounded-lg px-2 py-1">
+          <div className="flex items-center gap-1.5 text-xs text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800/30 rounded-lg px-2 py-1">
             <UserX className="w-3.5 h-3.5" />
             Not linked
           </div>
@@ -99,11 +99,11 @@ function StudentRow({ student }: { student: Student }) {
 
       {/* Expanded form */}
       {expanded && (
-        <form onSubmit={handleLink} className="border-t border-slate-100 p-4 space-y-4 bg-white">
+        <form onSubmit={handleLink} className="border-t border-slate-100 dark:border-slate-800 p-4 space-y-4 bg-white dark:bg-slate-900">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {/* Chess.com */}
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                 Chess.com Username
               </label>
               <div className="relative">
@@ -112,7 +112,7 @@ function StudentRow({ student }: { student: Student }) {
                   value={chessComUsername}
                   onChange={(e) => setChessComUsername(e.target.value)}
                   placeholder="e.g. MagnusCarlsen"
-                  className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent pr-8"
+                  className="w-full px-3 py-2 text-sm border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent pr-8"
                 />
                 {chessComUsername && (
                   <a
@@ -140,7 +140,7 @@ function StudentRow({ student }: { student: Student }) {
 
             {/* Lichess */}
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                 Lichess Username
               </label>
               <div className="relative">
@@ -149,7 +149,7 @@ function StudentRow({ student }: { student: Student }) {
                   value={lichessUsername}
                   onChange={(e) => setLichessUsername(e.target.value)}
                   placeholder="e.g. DrNykterstein"
-                  className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent pr-8"
+                  className="w-full px-3 py-2 text-sm border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent pr-8"
                 />
                 {lichessUsername && (
                   <a
@@ -178,7 +178,7 @@ function StudentRow({ student }: { student: Student }) {
 
           {/* Result feedback */}
           {result && (
-            <div className={`flex items-center gap-2 text-xs p-2 rounded-lg ${result.success ? 'bg-emerald-50 border border-emerald-200 text-emerald-700' : 'bg-red-50 border border-red-200 text-red-700'}`}>
+            <div className={`flex items-center gap-2 text-xs p-2 rounded-lg ${result.success ? 'bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800/30 text-emerald-700 dark:text-emerald-400' : 'bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800/30 text-red-700 dark:text-red-400'}`}>
               {result.success ? <CheckCircle className="w-3.5 h-3.5" /> : <XCircle className="w-3.5 h-3.5" />}
               {result.success ? 'Chess account linked! Fetch job queued.' : result.error}
             </div>
@@ -236,13 +236,13 @@ export function AdminChessAccountManager({ students }: AdminChessAccountManagerP
       {/* Stats */}
       <div className="grid grid-cols-3 gap-3 text-center">
         {[
-          { label: 'Total Students', value: students.length, color: 'text-slate-700' },
-          { label: 'Linked', value: linkedCount, color: 'text-emerald-600' },
-          { label: 'Not Linked', value: unlinkedCount, color: 'text-amber-600' },
+          { label: 'Total Students', value: students.length, color: 'text-slate-700 dark:text-slate-300' },
+          { label: 'Linked', value: linkedCount, color: 'text-emerald-600 dark:text-emerald-400' },
+          { label: 'Not Linked', value: unlinkedCount, color: 'text-amber-600 dark:text-amber-400' },
         ].map((s) => (
-          <div key={s.label} className="bg-slate-50 border border-slate-200 rounded-xl p-3">
+          <div key={s.label} className="bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-xl p-3">
             <p className={`text-xl font-bold ${s.color}`}>{s.value}</p>
-            <p className="text-xs text-slate-500 mt-0.5">{s.label}</p>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{s.label}</p>
           </div>
         ))}
       </div>
@@ -256,13 +256,13 @@ export function AdminChessAccountManager({ students }: AdminChessAccountManagerP
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search by name or email..."
-            className="w-full pl-9 pr-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500"
+            className="w-full pl-9 pr-3 py-2 text-sm border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500"
           />
         </div>
         <select
           value={filter}
           onChange={(e) => setFilter(e.target.value as typeof filter)}
-          className="px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white"
+          className="px-3 py-2 text-sm border border-slate-300 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white dark:bg-slate-800 dark:text-white"
         >
           <option value="all">All</option>
           <option value="unlinked">Not Linked</option>
@@ -283,3 +283,4 @@ export function AdminChessAccountManager({ students }: AdminChessAccountManagerP
     </div>
   );
 }
+

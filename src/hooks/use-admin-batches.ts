@@ -10,8 +10,6 @@ export function getAdminBatchesKey(page: number, query: string, showInactive: bo
 
 export type AdminBatchListResponse = {
   batches: any[];
-  coaches: any[];
-  students: any[];
   totalPages: number;
   currentPage: number;
 };
@@ -31,3 +29,19 @@ export function useAdminBatches(page: number, query: string, showInactive: boole
 export function invalidateAdminBatches(page: number, query: string, showInactive: boolean) {
   return mutate(getAdminBatchesKey(page, query, showInactive));
 }
+
+export type AdminBatchOptionsResponse = {
+  coaches: any[];
+  students: any[];
+};
+
+export function useAdminBatchOptions() {
+  const { data, error, isLoading } = useSWR<AdminBatchOptionsResponse>("/api/admin/batches/options");
+
+  return {
+    data,
+    isLoading,
+    error,
+  };
+}
+

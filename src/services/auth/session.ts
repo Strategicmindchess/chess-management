@@ -112,3 +112,4 @@ export async function invalidateOtherSessionsAndRestart(
     throw new Error("Could not invalidate sessions");
   }
 }
+

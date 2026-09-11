@@ -58,3 +58,4 @@ export async function signup(input: SignupInput): Promise<SignupResult> {
 
   return { success: true, email: user.email };
 }
+

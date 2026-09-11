@@ -64,3 +64,4 @@ export async function deleteAvailabilitySlot(id: string): Promise<ActionResult> 
     return { success: false, error: "Failed to delete slot." };
   }
 }
+

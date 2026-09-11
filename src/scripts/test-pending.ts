@@ -63,3 +63,4 @@ async function testQuery() {
 }
 
 testQuery().finally(() => prisma.$disconnect());
+

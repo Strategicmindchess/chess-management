@@ -97,8 +97,8 @@ export function AdminTicketsClient({
       onClick={() => switchFilter(type)}
       className={`px-4 py-1.5 rounded-lg text-sm font-semibold border transition-colors ${
         creatorFilter === type
-          ? "bg-slate-900 text-white border-slate-900"
-          : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
+          ? "bg-slate-900 text-white border-slate-900 dark:bg-brand-500/20 dark:text-brand-400 dark:border-brand-500/30"
+          : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50 dark:bg-slate-900 dark:text-slate-400 dark:border-slate-800 dark:hover:bg-slate-800"
       }`}
     >
       {label}
@@ -114,9 +114,10 @@ export function AdminTicketsClient({
         {TAB("coach", "Coaches")}
       </div>
 
-      <div className="flex h-[680px] border border-slate-200 rounded-xl overflow-hidden bg-white shadow-sm">
+      <div className="relative overflow-hidden flex h-[680px] border border-slate-200 dark:border-rose-500/20 rounded-xl bg-white dark:bg-[#2a0f18]/90 dark:backdrop-blur-xl shadow-sm dark:shadow-[0_4px_20px_rgba(244,63,94,0.15)] group hover:dark:border-rose-500/50 transition-colors">
+        <div className="absolute top-0 right-0 w-64 h-64 bg-rose-500/10 rounded-full blur-[40px] -mr-20 -mt-20 pointer-events-none hidden dark:block" />
         {/* Left: Ticket List */}
-        <div className="w-1/3 border-r border-slate-100 flex flex-col bg-slate-50">
+        <div className="w-1/3 border-r border-slate-100 dark:border-slate-800 flex flex-col bg-slate-50 dark:bg-transparent">
           <div className="flex-1 overflow-y-auto p-4 space-y-3">
             {tickets.map(ticket => {
               const creator = creatorLabel(ticket);
@@ -126,8 +127,8 @@ export function AdminTicketsClient({
                   onClick={() => setActiveTicketId(ticket.id)}
                   className={`p-4 rounded-lg border cursor-pointer transition-colors ${
                     activeTicketId === ticket.id
-                      ? "bg-brand-50 border-brand-200"
-                      : "bg-white border-slate-200 hover:border-brand-300"
+                      ? "bg-brand-50 dark:bg-brand-900/20 border-brand-200 dark:border-brand-500/30"
+                      : "bg-white dark:bg-slate-900/50 border-slate-200 dark:border-slate-800 hover:border-brand-300 dark:hover:border-brand-500/50"
                   }`}
                 >
                   <div className="flex justify-between items-start mb-2">
@@ -138,8 +139,8 @@ export function AdminTicketsClient({
                       {creator.tag}
                     </span>
                   </div>
-                  <h4 className="font-semibold text-sm text-slate-900 line-clamp-1">{ticket.title}</h4>
-                  <p className="text-xs text-slate-500 mt-1.5 font-medium line-clamp-1">
+                  <h4 className="font-semibold text-sm text-slate-900 dark:text-slate-100 line-clamp-1">{ticket.title}</h4>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-1.5 font-medium line-clamp-1">
                     From: {creator.name}
                   </p>
                   <p className="text-[11px] text-slate-400 mt-1">
@@ -173,12 +174,12 @@ export function AdminTicketsClient({
         <div className="w-2/3 flex flex-col">
           {activeTicket ? (
             <>
-              <div className="p-6 border-b border-slate-100 flex justify-between items-start bg-white">
+              <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex justify-between items-start bg-white dark:bg-transparent">
                 <div>
-                  <h3 className="text-xl font-bold text-slate-900 mb-1.5">{activeTicket.title}</h3>
-                  <p className="text-sm text-slate-500">
+                  <h3 className="text-xl font-bold text-slate-900 dark:text-slate-100 mb-1.5">{activeTicket.title}</h3>
+                  <p className="text-sm text-slate-500 dark:text-slate-400">
                     Raised by{" "}
-                    <span className="font-medium text-slate-700">{creatorLabel(activeTicket).name}</span>
+                    <span className="font-medium text-slate-700 dark:text-slate-300">{creatorLabel(activeTicket).name}</span>
                     {" "}·{" "}
                     <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${CREATOR_COLORS[creatorLabel(activeTicket).tag] ?? "bg-slate-100"}`}>
                       {creatorLabel(activeTicket).tag}
@@ -199,9 +200,9 @@ export function AdminTicketsClient({
                 </Button>
               </div>
 
-              <div className="flex-1 overflow-y-auto p-6 space-y-5 bg-slate-50/50">
+              <div className="flex-1 overflow-y-auto p-6 space-y-5 bg-slate-50/50 dark:bg-transparent">
                 {/* Original message */}
-                <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm text-sm text-slate-700 whitespace-pre-wrap leading-relaxed">
+                <div className="bg-white dark:bg-slate-900/50 p-5 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm text-sm text-slate-700 dark:text-slate-300 whitespace-pre-wrap leading-relaxed">
                   {activeTicket.description}
                 </div>
 
@@ -209,13 +210,13 @@ export function AdminTicketsClient({
                 {activeTicket.replies.map(reply => (
                   <div key={reply.id} className={`flex flex-col ${reply.author.role === "ADMIN" ? "items-end" : "items-start"}`}>
                     <div className="flex items-baseline gap-2 mb-1.5">
-                      <span className="text-xs font-semibold text-slate-700">{reply.author.name}</span>
-                      <span className="text-[11px] text-slate-400">{new Date(reply.createdAt).toLocaleTimeString()}</span>
+                      <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">{reply.author.name}</span>
+                      <span className="text-[11px] text-slate-400 dark:text-slate-500">{new Date(reply.createdAt).toLocaleTimeString()}</span>
                     </div>
                     <div className={`p-4 rounded-xl text-sm leading-relaxed max-w-[85%] shadow-sm ${
                       reply.author.role === "ADMIN"
                         ? "bg-brand-600 text-white rounded-tr-sm"
-                        : "bg-white border border-slate-200 text-slate-800 rounded-tl-sm"
+                        : "bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-200 rounded-tl-sm"
                     }`}>
                       {reply.content}
                     </div>
@@ -224,7 +225,7 @@ export function AdminTicketsClient({
               </div>
 
               {/* Reply box */}
-              <div className="p-5 border-t border-slate-200 bg-white">
+              <div className="p-5 border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-transparent">
                 <div className="flex gap-3">
                   <textarea
                     value={replyContent}
@@ -245,10 +246,10 @@ export function AdminTicketsClient({
               </div>
             </>
           ) : (
-            <div className="flex-1 flex flex-col items-center justify-center text-slate-400 bg-slate-50/50">
-              <MessageSquare className="w-16 h-16 mb-4 text-slate-200" />
-              <p className="text-base font-medium text-slate-500">Select a ticket to view and reply</p>
-              <p className="text-sm text-slate-400 mt-1">Choose a ticket from the list on the left.</p>
+            <div className="flex-1 flex flex-col items-center justify-center text-slate-400 bg-slate-50/50 dark:bg-transparent">
+              <MessageSquare className="w-16 h-16 mb-4 text-slate-200 dark:text-slate-800" />
+              <p className="text-base font-medium text-slate-500 dark:text-slate-400">Select a ticket to view and reply</p>
+              <p className="text-sm text-slate-400 dark:text-slate-500 mt-1">Choose a ticket from the list on the left.</p>
             </div>
           )}
         </div>
@@ -256,3 +257,4 @@ export function AdminTicketsClient({
     </div>
   );
 }
+

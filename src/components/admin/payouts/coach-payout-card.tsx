@@ -18,20 +18,20 @@ export function CoachPayoutCard({ coach, monthString }: Props) {
   const [expanded, setExpanded] = useState(false);
 
   return (
-    <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+    <div className="bg-white dark:bg-[#11141c]/90 dark:backdrop-blur-xl rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm dark:shadow-[0_4px_20px_rgba(0,0,0,0.3)] overflow-hidden">
       {/* Header row */}
       <button
         onClick={() => setExpanded((p) => !p)}
-        className="w-full flex items-center justify-between p-5 hover:bg-slate-50 transition-colors text-left"
+        className="w-full flex items-center justify-between p-5 hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors text-left"
       >
         <div className="flex items-center gap-4">
-          <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-700 font-bold text-sm">
+          <div className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-700 dark:text-slate-300 font-bold text-sm">
             {coach.coachName.charAt(0).toUpperCase()}
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <p className="font-semibold text-slate-900">{coach.coachName}</p>
-              <span className="text-xs bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full">
+              <p className="font-semibold text-slate-900 dark:text-slate-100">{coach.coachName}</p>
+              <span className="text-xs bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 px-2 py-0.5 rounded-full">
                 {coach.employmentType}
               </span>
               {coach.tdsApplicable && (
@@ -40,7 +40,7 @@ export function CoachPayoutCard({ coach, monthString }: Props) {
                 </span>
               )}
             </div>
-            <p className="text-xs text-slate-500 mt-0.5">
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
               {coach.totalSessions} sessions · {coach.batches.length} batch{coach.batches.length !== 1 ? "es" : ""}
             </p>
           </div>
@@ -48,8 +48,8 @@ export function CoachPayoutCard({ coach, monthString }: Props) {
 
         <div className="flex items-center gap-6">
           <div className="text-right hidden sm:block">
-            <p className="text-xs text-slate-400">Gross</p>
-            <p className="font-semibold text-slate-700">₹{coach.grossPayout.toLocaleString()}</p>
+            <p className="text-xs text-slate-400 dark:text-slate-500">Gross</p>
+            <p className="font-semibold text-slate-700 dark:text-slate-300">₹{coach.grossPayout.toLocaleString()}</p>
           </div>
           {coach.totalPenalties > 0 && (
             <div className="text-right hidden sm:block">
@@ -153,3 +153,4 @@ export function CoachPayoutCard({ coach, monthString }: Props) {
     </div>
   );
 }
+

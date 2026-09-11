@@ -79,6 +79,8 @@ export async function submitClassLog(input: SubmitClassLogInput) {
           topicCovered: data.topicCovered,
           durationMins: data.durationMins,
           payoutAmount: batch.payoutRate, // Snapshot of current rate
+          attendanceMarkedAt: new Date(), // FIX: Ensure this is explicitly saved
+          coachJoinedAt: new Date(),      // FIX: Ensure this is saved so they aren't marked as never joined
         },
       });
 
@@ -229,3 +231,4 @@ export async function getBatchClassLogs(batchId: string) {
     return { success: false, error: err.message || "Failed to fetch class logs" };
   }
 }
+

@@ -21,3 +21,4 @@ export default async function AdminEmployeesPage() {
   return <EmployeesClient initialEmployees={employees} />;
 }
 
+

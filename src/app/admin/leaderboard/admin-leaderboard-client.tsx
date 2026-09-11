@@ -60,7 +60,7 @@ export function AdminLeaderboardClient() {
       {/* Header */}
       <div className="flex items-start justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900 flex items-center gap-2">
+          <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2">
             <Trophy className="w-7 h-7 text-amber-500" />
             Leaderboard Management
           </h1>
@@ -90,12 +90,13 @@ export function AdminLeaderboardClient() {
         {stats.map((stat) => {
           const Icon = stat.icon;
           return (
-            <div key={stat.label} className="bg-white border border-slate-200 rounded-xl p-4">
-              <div className="flex items-center justify-between mb-2">
+            <div key={stat.label} className="group relative overflow-hidden bg-white dark:bg-[#1a142c]/90 dark:backdrop-blur-xl dark:shadow-[0_4px_20px_rgba(0,0,0,0.3)] border border-slate-200 dark:border-purple-500/20 rounded-xl p-4 shadow-sm hover:border-purple-500/50 transition-colors">
+              <div className="absolute top-0 right-0 w-24 h-24 bg-purple-500/10 rounded-full blur-[20px] -mr-8 -mt-8 pointer-events-none hidden dark:block" />
+              <div className="flex items-center justify-between mb-2 relative z-10">
                 <p className="text-xs text-slate-500">{stat.label}</p>
                 <Icon className={`w-4 h-4 ${stat.color}`} />
               </div>
-              <p className={`text-2xl font-bold ${stat.color}`}>{stat.value}</p>
+              <p className={`text-2xl font-bold relative z-10 ${stat.color}`}>{stat.value}</p>
             </div>
           );
         })}
@@ -106,14 +107,15 @@ export function AdminLeaderboardClient() {
 
       {/* Calc log */}
       {calcLog && (
-        <div className="bg-white border border-slate-200 rounded-xl p-4">
-          <h3 className="text-sm font-bold text-slate-800 mb-2 flex items-center gap-2">
+        <div className="relative overflow-hidden bg-white dark:bg-[#2a1c0f]/90 dark:backdrop-blur-xl dark:shadow-[0_4px_20px_rgba(0,0,0,0.3)] border border-slate-200 dark:border-amber-500/20 rounded-xl p-4 shadow-sm">
+          <div className="absolute top-0 right-0 w-24 h-24 bg-amber-500/10 rounded-full blur-[20px] -mr-8 -mt-8 pointer-events-none hidden dark:block" />
+          <h3 className="text-sm font-bold text-slate-800 dark:text-amber-400 mb-2 flex items-center gap-2 relative z-10">
             <Calculator className="w-4 h-4 text-brand-600" />
             Last Calculation Log
           </h3>
           <div className="grid grid-cols-3 gap-4 text-center">
             <div>
-              <p className="text-lg font-bold text-slate-800">{calcLog.totalStudents}</p>
+              <p className="text-lg font-bold text-slate-800 dark:text-slate-100">{calcLog.totalStudents}</p>
               <p className="text-xs text-slate-400">Total Students</p>
             </div>
             <div>
@@ -154,10 +156,10 @@ export function AdminLeaderboardClient() {
         <div className="lg:col-span-2">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-3">
             <div className="flex items-center gap-3">
-              <h2 className="text-base font-bold text-slate-800">{periodType === 'WEEKLY' ? 'Weekly' : 'Monthly'} Leaderboard</h2>
-              <div className="flex items-center bg-slate-100 rounded-lg p-1">
-                <Link href="?period=MONTHLY" className={`px-3 py-1 text-xs rounded-md font-medium transition-colors ${periodType === 'MONTHLY' ? 'bg-white shadow text-brand-700' : 'text-slate-500 hover:text-slate-700'}`}>Monthly</Link>
-                <Link href="?period=WEEKLY" className={`px-3 py-1 text-xs rounded-md font-medium transition-colors ${periodType === 'WEEKLY' ? 'bg-white shadow text-brand-700' : 'text-slate-500 hover:text-slate-700'}`}>Weekly</Link>
+              <h2 className="text-base font-bold text-slate-800 dark:text-slate-200">{periodType === 'WEEKLY' ? 'Weekly' : 'Monthly'} Leaderboard</h2>
+              <div className="flex items-center bg-slate-100 dark:bg-slate-800 rounded-lg p-1">
+                <Link href="?period=MONTHLY" className={`px-3 py-1 text-xs rounded-md font-medium transition-colors ${periodType === 'MONTHLY' ? 'bg-white dark:bg-brand-500/20 shadow dark:shadow-brand-500/20 text-brand-700 dark:text-brand-300' : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'}`}>Monthly</Link>
+                <Link href="?period=WEEKLY" className={`px-3 py-1 text-xs rounded-md font-medium transition-colors ${periodType === 'WEEKLY' ? 'bg-white dark:bg-brand-500/20 shadow dark:shadow-brand-500/20 text-brand-700 dark:text-brand-300' : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'}`}>Weekly</Link>
               </div>
             </div>
             {leaderboardData.calculatedAt && (
@@ -176,3 +178,4 @@ export function AdminLeaderboardClient() {
     </div>
   );
 }
+

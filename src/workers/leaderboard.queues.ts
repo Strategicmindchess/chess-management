@@ -97,3 +97,4 @@ export const penaltyQueue = new Queue<{}>(QUEUE_NAMES.PENALTY, {
     removeOnFail: { count: 50 },
   },
 });
+

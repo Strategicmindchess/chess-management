@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { requireRole } from "@/lib/dal";
 import { prisma } from "@/lib/prisma";
 import { Role } from "@/lib/enums";
+import { createNotification } from "@/lib/notifications";
+import { NotificationType, NotifPriority } from "@/generated/prisma/client";
 
 // ─── POST /api/class-feedback ─────────────────────────────────────────────────
 // Student submits feedback after class — triggers penalty recalculation
@@ -52,6 +54,10 @@ export async function POST(req: NextRequest) {
   const studentProfileId = studentProfile.id;
 
   try {
+    // If student didn't explicitly rate the coach, fall back to classQualityScore
+    // so that the leaderboard Perf column has data to work with on recalculate.
+    const resolvedOverallScore = overallCoachScore ?? classQualityScore ?? null;
+
     const feedback = await prisma.classFeedback.create({
       data: {
         classLogId,
@@ -60,9 +66,37 @@ export async function POST(req: NextRequest) {
         phoneUsedOver4Times: phoneUsedOver4Times ?? false,
         classQualityScore: classQualityScore ?? null,
         conceptUnderstood: conceptUnderstood ?? true,
-        overallCoachScore: overallCoachScore ?? null,
+        overallCoachScore: resolvedOverallScore,
       },
     });
+
+    // Check attendance for the current month
+    const now = new Date();
+    const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
+    const attendanceRecords = await prisma.attendanceRecord.findMany({
+      where: {
+        studentProfileId,
+        classLog: { date: { gte: firstDay } },
+      },
+    });
+
+    const totalClasses = attendanceRecords.length;
+    if (totalClasses >= 4) { // Only alert if they have at least 4 classes tracked this month
+      const presentCount = attendanceRecords.filter((r) => r.status === "PRESENT").length;
+      const percentage = (presentCount / totalClasses) * 100;
+
+      if (percentage < 75) {
+        await createNotification({
+          recipientId: user.id, // Alert the student
+          type: NotificationType.ATTENDANCE_ALERT,
+          title: "⚠️ Attendance Alert",
+          message: `Your attendance this month is ${percentage.toFixed(0)}%. Please attend classes regularly to avoid score penalties.`,
+          eventKey: `ATTENDANCE_ALERT:${studentProfileId}:${now.getFullYear()}-${now.getMonth()}`,
+          priority: NotifPriority.HIGH,
+          href: `/student/dashboard`, // Or student attendance page
+        });
+      }
+    }
 
     // No immediate penalty calculation here.
     // The BullMQ penalty worker processes eligible ClassLogs in a daily scheduled run.
@@ -100,3 +134,4 @@ export async function GET(req: NextRequest) {
 
   return NextResponse.json({ feedbacks });
 }
+

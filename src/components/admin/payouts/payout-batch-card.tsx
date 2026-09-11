@@ -54,27 +54,27 @@ export function PayoutBatchCard({
   };
 
   return (
-    <Card className="overflow-hidden border-slate-200 shadow-sm transition-all hover:shadow-md">
+    <Card className="overflow-hidden border-slate-200 dark:border-slate-800 shadow-sm dark:shadow-[0_4px_20px_rgba(0,0,0,0.3)] transition-all hover:shadow-md bg-white dark:bg-[#11141c]/90 dark:backdrop-blur-xl">
       <div 
-        className="flex cursor-pointer items-center justify-between p-5 bg-white"
+        className="flex cursor-pointer items-center justify-between p-5 bg-white dark:bg-transparent"
         onClick={handleToggle}
       >
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 w-full mr-4">
           <div>
-            <p className="text-sm text-slate-500 font-medium">Batch Name</p>
-            <p className="text-slate-900 font-semibold">{batchName}</p>
+            <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">Batch Name</p>
+            <p className="text-slate-900 dark:text-slate-100 font-semibold">{batchName}</p>
           </div>
           <div>
-            <p className="text-sm text-slate-500 font-medium">Total Sessions</p>
-            <p className="text-slate-900">{totalSessions}</p>
+            <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">Total Sessions</p>
+            <p className="text-slate-900 dark:text-slate-100">{totalSessions}</p>
           </div>
           <div>
-            <p className="text-sm text-slate-500 font-medium">Coach Name</p>
-            <p className="text-slate-900">{coachName}</p>
+            <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">Coach Name</p>
+            <p className="text-slate-900 dark:text-slate-100">{coachName}</p>
           </div>
           <div>
-            <p className="text-sm text-slate-500 font-medium">Total Payout</p>
-            <p className="text-emerald-700 font-bold">₹{totalPayout.toLocaleString()}</p>
+            <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">Total Payout</p>
+            <p className="text-emerald-700 dark:text-emerald-500 font-bold">₹{totalPayout.toLocaleString()}</p>
           </div>
         </div>
         <div className="flex-shrink-0 text-slate-400">
@@ -83,11 +83,11 @@ export function PayoutBatchCard({
       </div>
 
       {isExpanded && (
-        <div className="bg-slate-50/50 border-t border-slate-100 p-0">
+        <div className="bg-slate-50/50 dark:bg-transparent border-t border-slate-100 dark:border-slate-800 p-0">
           {logs && logs.length > 0 ? (
             <div className="overflow-x-auto">
-              <table className="w-full text-sm text-left text-slate-600">
-                <thead className="text-xs text-slate-500 uppercase bg-slate-100/50 border-b border-slate-200">
+              <table className="w-full text-sm text-left text-slate-600 dark:text-slate-300">
+                <thead className="text-xs text-slate-500 dark:text-slate-400 uppercase bg-slate-100/50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-800">
                   <tr>
                     <th className="px-5 py-3">Date</th>
                     <th className="px-5 py-3">Topic</th>
@@ -96,7 +96,7 @@ export function PayoutBatchCard({
                     <th className="px-5 py-3 text-center">Attendance</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100">
+                <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                   {logs.map((log) => {
                     const presentCount = log.attendance.filter(a => a.status === "PRESENT").length;
                     const totalCount = log.attendance.length;

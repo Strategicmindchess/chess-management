@@ -27,3 +27,4 @@ export function useAdminLeaderboard(period: "MONTHLY" | "WEEKLY") {
 export function invalidateAdminLeaderboard(period: "MONTHLY" | "WEEKLY") {
   return mutate(getAdminLeaderboardKey(period));
 }
+

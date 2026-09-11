@@ -102,3 +102,4 @@ export function FileRow({ item, onNavigate }: FileRowProps) {
     </div>
   );
 }
+

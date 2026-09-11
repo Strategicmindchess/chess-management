@@ -11,16 +11,22 @@ export async function GET(req: NextRequest) {
   const user = await requireRole([Role.STUDENT]);
 
   try {
-    const studentProfile = await prisma.studentProfile.findUnique({
-      where: { userId: user.id },
-      include: {
-        chessAccount: true,
-        leaderboardEntries: {
-          orderBy: { periodStart: 'desc' },
-          take: 1,
+    const [studentProfile, monthlyData, weeklyData, refreshStatus, coachFeedback] = await Promise.all([
+      prisma.studentProfile.findUnique({
+        where: { userId: user.id },
+        include: {
+          chessAccount: true,
+          leaderboardEntries: {
+            orderBy: { periodStart: 'desc' },
+            take: 1,
+          },
         },
-      },
-    });
+      }),
+      getLeaderboard('MONTHLY'),
+      getLeaderboard('WEEKLY'),
+      getMyRefreshStatus(),
+      getStudentCoachFeedback('MONTHLY', new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString())
+    ]);
 
     if (!studentProfile) {
       return NextResponse.json({ error: "Student profile not found" }, { status: 404 });
@@ -28,13 +34,6 @@ export async function GET(req: NextRequest) {
 
     const chessAccount = studentProfile.chessAccount;
     const hasLinkedAccounts = !!(chessAccount?.chessComUsername || chessAccount?.lichessUsername);
-
-    const [monthlyData, weeklyData, refreshStatus, coachFeedback] = await Promise.all([
-      getLeaderboard('MONTHLY'),
-      getLeaderboard('WEEKLY'),
-      getMyRefreshStatus(),
-      getStudentCoachFeedback('MONTHLY', new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString())
-    ]);
 
     const puzzleSolverAward = monthlyData.puzzleSolverAward;
 
@@ -55,3 +54,4 @@ export async function GET(req: NextRequest) {
     );
   }
 }
+

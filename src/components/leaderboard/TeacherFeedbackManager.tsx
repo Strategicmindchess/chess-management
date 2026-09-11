@@ -67,7 +67,7 @@ export function TeacherFeedbackManager({
                   placeholder="Search students..."
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  className="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+                  className="w-full pl-9 pr-4 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-sm dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500"
                 />
               </div>
 
@@ -83,10 +83,10 @@ export function TeacherFeedbackManager({
                     return (
                       <div
                         key={s.studentProfileId}
-                        className="flex items-center justify-between p-3 rounded-lg border border-slate-100 bg-white hover:border-brand-200 hover:shadow-sm transition-all"
+                        className="flex items-center justify-between p-3 rounded-lg border border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-brand-200 dark:hover:border-brand-500/50 hover:shadow-sm transition-all"
                       >
                         <div>
-                          <p className="text-sm font-semibold text-slate-800">{s.name}</p>
+                          <p className="text-sm font-semibold text-slate-800 dark:text-slate-200">{s.name}</p>
                           {isDone ? (
                             <div className="flex items-center gap-1 text-[10px] text-emerald-600 font-medium mt-0.5">
                               <CheckCircle2 className="w-3 h-3" /> Submitted
@@ -99,8 +99,8 @@ export function TeacherFeedbackManager({
                           onClick={() => setSelectedStudentId(s.studentProfileId)}
                           className={`px-3 py-1.5 text-xs font-semibold rounded-md transition-colors ${
                             isDone
-                              ? 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                              : 'bg-brand-50 text-brand-700 hover:bg-brand-100'
+                              ? 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
+                              : 'bg-brand-50 dark:bg-brand-900/30 text-brand-700 dark:text-brand-400 hover:bg-brand-100 dark:hover:bg-brand-900/50'
                           }`}
                         >
                           {isDone ? 'Edit' : 'Feedback'}
@@ -116,7 +116,7 @@ export function TeacherFeedbackManager({
             <div className="flex-1 flex flex-col">
               <button
                 onClick={() => setSelectedStudentId(null)}
-                className="flex items-center gap-1 text-xs font-medium text-slate-500 hover:text-slate-800 mb-4 self-start"
+                className="flex items-center gap-1 text-xs font-medium text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 mb-4 self-start"
               >
                 <ChevronLeft className="w-4 h-4" /> Back to list
               </button>
@@ -142,3 +142,4 @@ export function TeacherFeedbackManager({
     </>
   );
 }
+

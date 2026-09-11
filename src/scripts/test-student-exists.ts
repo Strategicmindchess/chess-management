@@ -15,3 +15,4 @@ async function checkStudent() {
 }
 
 checkStudent().finally(() => prisma.$disconnect());
+

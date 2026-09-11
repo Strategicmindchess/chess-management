@@ -35,3 +35,4 @@ export function DateFilter({ defaultDate }: { defaultDate: Date }) {
     </div>
   );
 }
+

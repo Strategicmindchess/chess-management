@@ -105,7 +105,8 @@ export function MandatoryFeedbackModal() {
         </div>
 
         <div className="space-y-2">
-          <Label>Class Quality Score (1-10)</Label>
+          <Label>Class Quality Score (1–10)</Label>
+          <p className="text-xs text-slate-500">How would you rate the overall quality of this class?</p>
           <div className="flex gap-2 flex-wrap">
             {[...Array(10)].map((_, i) => (
               <button
@@ -133,3 +134,4 @@ export function MandatoryFeedbackModal() {
     </Dialog>
   );
 }
+

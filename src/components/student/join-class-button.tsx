@@ -90,3 +90,4 @@ export function JoinClassButton({ meetLink, nextInstance }: JoinClassButtonProps
     </a>
   );
 }
+

@@ -59,8 +59,8 @@ export function AdminRefreshControls({ periodStart, isCalculating }: AdminRefres
   ];
 
   return (
-    <div className="bg-white border border-slate-200 rounded-xl p-4">
-      <h3 className="text-sm font-bold text-slate-800 mb-3">Admin Controls</h3>
+    <div className="bg-white dark:bg-[#2a1c0f]/90 dark:backdrop-blur-xl border border-slate-200 dark:border-amber-500/20 rounded-xl p-4">
+      <h3 className="text-sm font-bold text-slate-800 dark:text-amber-400 mb-3">Admin Controls</h3>
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         {buttons.map((btn) => {
           const Icon = btn.icon;
@@ -79,9 +79,9 @@ export function AdminRefreshControls({ periodStart, isCalculating }: AdminRefres
                 )}
                 {btn.label}
               </button>
-              <p className="text-[11px] text-slate-400 text-center">{btn.description}</p>
+              <p className="text-[11px] text-slate-400 dark:text-slate-500 text-center">{btn.description}</p>
               {res && (
-                <div className={`flex items-center gap-1 text-xs px-2 py-1 rounded ${res.success ? 'text-emerald-600 bg-emerald-50' : 'text-red-600 bg-red-50'}`}>
+                <div className={`flex items-center gap-1 text-xs px-2 py-1 rounded ${res.success ? 'text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20' : 'text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20'}`}>
                   {res.success ? <CheckCircle className="w-3 h-3" /> : <XCircle className="w-3 h-3" />}
                   {res.success ? res.message : res.error}
                 </div>
@@ -93,3 +93,4 @@ export function AdminRefreshControls({ periodStart, isCalculating }: AdminRefres
     </div>
   );
 }
+

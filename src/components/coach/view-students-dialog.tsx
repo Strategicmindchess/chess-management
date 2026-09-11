@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Users } from "lucide-react";
+import { Users, Gift, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog } from "@/components/ui/dialog";
 
@@ -22,6 +22,52 @@ type StudentDetails = {
 interface ViewStudentsDialogProps {
   batchName: string;
   students: StudentDetails[];
+}
+
+function AwardChocolateButton({ studentProfileId, studentName }: { studentProfileId: string; studentName: string }) {
+  const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
+
+  const handleAward = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch("/api/teacher/chocolate-questions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ studentProfileId }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed");
+      setSuccess(true);
+      setTimeout(() => setSuccess(false), 3000);
+    } catch (err: any) {
+      alert(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (success) {
+    return (
+      <span className="text-xs font-semibold text-emerald-600 bg-emerald-50 px-2 py-1 rounded border border-emerald-100 flex items-center gap-1">
+        <Gift className="w-3.5 h-3.5" /> Awarded!
+      </span>
+    );
+  }
+
+  return (
+    <Button
+      variant="secondary"
+      size="sm"
+      onClick={handleAward}
+      disabled={loading}
+      className="h-7 text-xs bg-amber-100 text-amber-800 hover:bg-amber-200 border border-amber-200"
+      title={`Award a chocolate point to ${studentName}`}
+    >
+      {loading ? <Loader2 className="w-3.5 h-3.5 mr-1 animate-spin" /> : <Gift className="w-3.5 h-3.5 mr-1" />}
+      Award 🍫
+    </Button>
+  );
 }
 
 export function ViewStudentsDialog({ batchName, students }: ViewStudentsDialogProps) {
@@ -48,7 +94,10 @@ export function ViewStudentsDialog({ batchName, students }: ViewStudentsDialogPr
             <div className="grid gap-4">
               {students.map((student) => (
                 <div key={student.id} className="p-4 rounded-lg border border-slate-200 bg-slate-50">
-                  <h3 className="font-semibold text-slate-900 mb-1">{student.name}</h3>
+                  <div className="flex items-start justify-between mb-2">
+                    <h3 className="font-semibold text-slate-900">{student.name}</h3>
+                    <AwardChocolateButton studentProfileId={student.id} studentName={student.name} />
+                  </div>
                   <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm text-slate-600">
                     <div>
                       <span className="font-medium">Email:</span> {student.email}
@@ -96,3 +145,4 @@ export function ViewStudentsDialog({ batchName, students }: ViewStudentsDialogPr
     </>
   );
 }
+

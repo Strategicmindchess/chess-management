@@ -45,3 +45,4 @@ export async function isFeesUnlocked(): Promise<boolean> {
   const jar = await cookies();
   return jar.get(COOKIE_NAME)?.value === "1";
 }
+

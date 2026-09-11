@@ -13,3 +13,4 @@ export async function verifyPassword(
 ): Promise<boolean> {
   return bcrypt.compare(plainTextPassword, passwordHash);
 }
+

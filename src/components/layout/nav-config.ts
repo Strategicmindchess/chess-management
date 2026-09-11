@@ -16,6 +16,7 @@ export const NAV_ITEMS: Record<Role, NavItem[]> = {
     { href: "/admin/users", label: "Coaches & Students", icon: Users },
     { href: "/admin/batches", label: "Batches", icon: CalendarDays },
     { href: "/admin/leaderboard", label: "Leaderboard", icon: Trophy },
+    { href: "/admin/coach-leaderboard", label: "Coach Leaderboard", icon: Trophy },
     { href: "/admin/tickets", label: "Support Tickets", icon: ClipboardCheck },
     { href: "/admin/attendance/batch", label: "Attendance", icon: ClipboardCheck },
     { href: "/admin/payouts", label: "Payouts", icon: IndianRupee },
@@ -27,7 +28,8 @@ export const NAV_ITEMS: Record<Role, NavItem[]> = {
   [Role.TEACHER]: [
     { href: "/teacher", label: "Dashboard", icon: LayoutDashboard },
     { href: "/teacher/batches", label: "Today's Batches", icon: Users },
-    { href: "/teacher/leaderboard", label: "Leaderboard", icon: Trophy },
+    { href: "/teacher/leaderboard", label: "Student Leaderboard", icon: Trophy },
+    { href: "/teacher/coach-leaderboard", label: "Coach Leaderboard", icon: Trophy },
     { href: "/teacher/attendance", label: "Attendance", icon: CalendarDays },
     { href: "/teacher/availability", label: "Availability", icon: CalendarDays },
     { href: "/teacher/payouts", label: "Payouts", icon: LayoutDashboard },
@@ -43,3 +45,4 @@ export const NAV_ITEMS: Record<Role, NavItem[]> = {
     { href: "/student/profile", label: "Profile", icon: Users },
   ],
 };
+

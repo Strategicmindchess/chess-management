@@ -1,11 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { Card } from "@/components/ui/card";
 import { CreateBatchButton } from "@/components/admin/create-batch-dialog";
 import { BatchList } from "@/components/admin/batch-list";
-import { useAdminBatches } from "@/hooks/use-admin-batches";
+import { useAdminBatches, useAdminBatchOptions } from "@/hooks/use-admin-batches";
 import { Loader2 } from "lucide-react";
 
 export function AdminBatchesClient() {
@@ -15,6 +14,7 @@ export function AdminBatchesClient() {
   const showInactive = searchParams.get("showInactive") === "true";
 
   const { data, isLoading, error } = useAdminBatches(page, query, showInactive);
+  const { data: optionsData } = useAdminBatchOptions();
 
   if (error) {
     return <div className="text-red-500">Failed to load batches.</div>;
@@ -24,14 +24,14 @@ export function AdminBatchesClient() {
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-xl font-semibold text-slate-900">Batches</h1>
-          <p className="text-sm text-slate-500">
+          <h1 className="text-xl font-semibold text-slate-900 dark:text-white">Batches</h1>
+          <p className="text-sm text-slate-500 dark:text-slate-400">
             Create batches, assign coaches, and enroll students.
           </p>
         </div>
         <div className="flex items-center gap-4">
           {isLoading && <Loader2 className="w-5 h-5 text-slate-400 animate-spin" />}
-          <CreateBatchButton coaches={data?.coaches || []} />
+          <CreateBatchButton coaches={optionsData?.coaches || []} />
         </div>
       </div>
 
@@ -39,8 +39,8 @@ export function AdminBatchesClient() {
         {data ? (
           <BatchList 
             batches={data.batches} 
-            coaches={data.coaches} 
-            students={data.students} 
+            coaches={optionsData?.coaches || []} 
+            students={optionsData?.students || []} 
             currentPage={data.currentPage}
             totalPages={data.totalPages}
             searchParams={{ query, showInactive: showInactive ? "true" : "false" }}
@@ -54,3 +54,4 @@ export function AdminBatchesClient() {
     </div>
   );
 }
+

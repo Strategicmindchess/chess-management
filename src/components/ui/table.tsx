@@ -12,7 +12,7 @@ export function TableHead({ className, ...props }: React.ComponentProps<'thead'>
   return (
     <thead
       className={cn(
-        'border-b border-slate-200 text-xs tracking-wide text-slate-500 uppercase',
+        'border-b border-slate-200 text-xs tracking-wide text-slate-500 uppercase dark:border-slate-800/80 dark:text-slate-400',
         className,
       )}
       {...props}
@@ -21,11 +21,11 @@ export function TableHead({ className, ...props }: React.ComponentProps<'thead'>
 }
 
 export function TableBody({ className, ...props }: React.ComponentProps<'tbody'>) {
-  return <tbody className={cn('divide-y divide-slate-100', className)} {...props} />;
+  return <tbody className={cn('divide-y divide-slate-100 dark:divide-slate-800/50', className)} {...props} />;
 }
 
 export function TableRow({ className, ...props }: React.ComponentProps<'tr'>) {
-  return <tr className={cn('hover:bg-slate-50/60', className)} {...props} />;
+  return <tr className={cn('hover:bg-slate-50/60 dark:hover:bg-slate-800/20 transition-colors', className)} {...props} />;
 }
 
 export function TableHeaderCell({ className, ...props }: React.ComponentProps<'th'>) {
@@ -33,5 +33,5 @@ export function TableHeaderCell({ className, ...props }: React.ComponentProps<'t
 }
 
 export function TableCell({ className, ...props }: React.ComponentProps<'td'>) {
-  return <td className={cn('px-4 py-3 text-slate-700', className)} {...props} />;
+  return <td className={cn('px-4 py-3 text-slate-700 dark:text-slate-300', className)} {...props} />;
 }

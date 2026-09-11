@@ -1,0 +1,48 @@
+/// Platform notification — created once per business event, never duplicated.
+/// eventKey uniquely identifies the event (e.g. "FEE_OVERDUE:feeCycleId:userId").
+/// Dashboard reads existing notifications; it never creates them.
+model Notification {
+  id          String           @id @default(cuid())
+  recipientId String
+  type        NotificationType
+  title       String
+  message     String
+  isRead      Boolean          @default(false)
+  priority    NotifPriority    @default(NORMAL)
+
+  /// Idempotency key — safe to call createNotification() multiple times for same event.
+  /// Format: "<TYPE>:<referenceId>:<recipientId>"
+  eventKey String @unique
+
+  /// Optional deep-link for navigation (e.g. "/admin/fees?studentId=...")
+  href String?
+
+  createdAt DateTime  @default(now())
+  readAt    DateTime?
+
+  recipient User @relation("UserNotifications", fields: [recipientId], references: [id], onDelete: Cascade)
+
+  @@index([recipientId, isRead])
+  @@index([recipientId, createdAt])
+  @@map("notifications")
+}
+
+enum NotificationType {
+  FEE_OVERDUE
+  PENALTY_APPLIED
+  ATTENDANCE_ALERT
+  PAYOUT_PROCESSED
+  RESCHEDULE_REQUEST
+  RESCHEDULE_DECISION
+  TICKET_RAISED
+  TICKET_UPDATED
+  CHOCOLATE_ELIGIBLE
+  MANAGEMENT_POINTS_AWARDED
+}
+
+enum NotifPriority {
+  LOW
+  NORMAL
+  HIGH
+  URGENT
+}

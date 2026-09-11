@@ -32,3 +32,4 @@ function GoogleLogo({ className }: { className?: string }) {
     </svg>
   );
 }
+

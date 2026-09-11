@@ -6,6 +6,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { JoinClassButton } from '@/components/student/join-class-button';
 import { StartBatchButton } from '@/components/coach/start-batch-button';
 import { ViewStudentsDialog } from '@/components/coach/view-students-dialog';
+import { TeacherRescheduleDialog } from '@/components/coach/teacher-reschedule-dialog';
 import { format } from 'date-fns';
 
 type StudentDetail = {
@@ -47,7 +48,8 @@ export function ClassSessionCard({ role, session, isUpcoming = false }: ClassSes
   })) || [];
 
   return (
-    <Card className="overflow-hidden border-slate-200 shadow-sm hover:shadow-md transition-shadow h-full flex flex-col">
+    <Card className="relative overflow-hidden border-slate-200 dark:border-slate-800 shadow-[0_4px_20px_rgba(0,0,0,0.05)] dark:shadow-[0_4px_20px_rgba(0,0,0,0.3)] hover:shadow-md transition-all h-full flex flex-col bg-white dark:bg-[#11141c]/90 dark:backdrop-blur-xl group">
+      <div className="absolute top-0 right-0 w-32 h-32 bg-brand-500/10 rounded-full blur-[40px] pointer-events-none -z-10 group-hover:bg-brand-500/20 transition-colors duration-500 hidden dark:block" />
       <div className="bg-gradient-to-r from-slate-800 to-slate-900 px-5 py-4 flex justify-between items-start shrink-0">
         <div>
           <h2 className="text-lg font-bold text-white">{batch.name}</h2>
@@ -72,19 +74,19 @@ export function ClassSessionCard({ role, session, isUpcoming = false }: ClassSes
       <CardContent className="p-0 flex flex-col flex-grow">
         <div className="p-5 flex-grow space-y-4">
           <div className="flex items-center gap-3">
-            <div className="bg-slate-100 text-slate-700 p-2 rounded-lg">
+            <div className="bg-slate-100 dark:bg-slate-800/50 text-slate-700 dark:text-slate-300 p-2 rounded-lg border border-transparent dark:border-slate-700/50">
               <CalendarIcon className="w-5 h-5" />
             </div>
             <div>
-              <p className="font-medium text-slate-900">
+              <p className="font-medium text-slate-900 dark:text-slate-100">
                 {format(new Date(date), 'EEEE, MMM do, yyyy')}
               </p>
               {lectureName && (
-                <p className="text-sm font-semibold text-brand-700 mt-0.5">
+                <p className="text-sm font-semibold text-brand-700 dark:text-brand-400 mt-0.5">
                   📖 {lectureName}
                 </p>
               )}
-              <p className="text-sm text-slate-500 flex items-center mt-1">
+              <p className="text-sm text-slate-500 dark:text-slate-400 flex items-center mt-1">
                 <Clock className="w-4 h-4 mr-1.5" />
                 {startTime} - {endTime}
               </p>
@@ -92,7 +94,7 @@ export function ClassSessionCard({ role, session, isUpcoming = false }: ClassSes
           </div>
         </div>
 
-        <div className="p-4 bg-slate-50 border-t border-slate-100 mt-auto space-y-3 shrink-0">
+        <div className="p-4 bg-slate-50 dark:bg-[#11141c]/50 border-t border-slate-100 dark:border-slate-800 mt-auto space-y-3 shrink-0 relative z-10">
           {role === 'teacher' ? (
             <>
               {session.status === 'CANCELLED' ? (
@@ -100,18 +102,28 @@ export function ClassSessionCard({ role, session, isUpcoming = false }: ClassSes
                   Class Cancelled
                 </div>
               ) : isUpcoming ? (
-                <div title="Class not yet open" className="w-full text-center py-2 px-3 text-sm font-semibold text-slate-400 bg-slate-100 rounded-md cursor-not-allowed">
+                <div title="Class not yet open" className="w-full text-center py-2 px-3 text-sm font-semibold text-slate-400 dark:text-slate-500 bg-slate-100 dark:bg-slate-800/50 rounded-md cursor-not-allowed">
                   Start Batch (Opens later)
                 </div>
               ) : (
                 <StartBatchButton meetLink={batch.meetLink} batchName={batch.name} />
               )}
               
-              <div className="w-full">
-                <ViewStudentsDialog 
-                  batchName={batch.name}
-                  students={students}
-                />
+              <div className="w-full flex gap-2">
+                <div className="flex-1">
+                  <ViewStudentsDialog 
+                    batchName={batch.name}
+                    students={students}
+                  />
+                </div>
+                <div className="flex-1">
+                  <TeacherRescheduleDialog
+                    classInstanceId={session.id}
+                    batchName={batch.name}
+                    originalDate={format(new Date(date), 'MMM do, yyyy')}
+                    originalTime={`${startTime} - ${endTime}`}
+                  />
+                </div>
               </div>
             </>
           ) : (
@@ -121,7 +133,7 @@ export function ClassSessionCard({ role, session, isUpcoming = false }: ClassSes
                   Cancelled
                 </span>
               ) : isUpcoming ? (
-                <span title="Class not yet open" className="inline-flex items-center gap-1.5 text-sm font-semibold text-slate-400 bg-slate-100 px-3 py-1.5 rounded-md cursor-not-allowed">
+                <span title="Class not yet open" className="inline-flex items-center gap-1.5 text-sm font-semibold text-slate-400 dark:text-slate-500 bg-slate-100 dark:bg-slate-800/50 px-3 py-1.5 rounded-md cursor-not-allowed">
                   Join Class <ExternalLink className="h-3.5 w-3.5" />
                 </span>
               ) : (
@@ -137,3 +149,4 @@ export function ClassSessionCard({ role, session, isUpcoming = false }: ClassSes
     </Card>
   );
 }
+

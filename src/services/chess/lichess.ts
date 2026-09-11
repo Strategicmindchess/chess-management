@@ -152,3 +152,4 @@ export async function verifyLichessUser(username: string): Promise<boolean> {
   );
   return result.ok;
 }
+

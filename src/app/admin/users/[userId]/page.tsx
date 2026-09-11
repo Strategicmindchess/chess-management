@@ -9,6 +9,83 @@ import { EditUserButton } from "./edit-user-button";
 import { CoachPayoutSettings } from "@/components/admin/coach-payout-settings";
 import { format } from "date-fns";
 
+import { unstable_cache } from "next/cache";
+
+const getUserProfileData = unstable_cache(
+  async (userId: string) => {
+    const baseUser = await prisma.user.findUnique({
+      where: { id: userId },
+      include: {
+        studentProfile: true,
+        coachProfile: true,
+      }
+    });
+
+    if (!baseUser) return null;
+
+    let studentProfile = baseUser.studentProfile as any;
+    let coachProfile = baseUser.coachProfile as any;
+
+    if (baseUser.role === Role.STUDENT && baseUser.studentProfile) {
+      const [enrollments, attendanceRecords] = await Promise.all([
+        prisma.batchStudent.findMany({
+          where: { studentProfileId: baseUser.studentProfile.id },
+          include: { batch: { include: { coach: { include: { user: true } } } } }
+        }),
+        prisma.attendanceRecord.findMany({
+          where: { studentProfileId: baseUser.studentProfile.id },
+          include: { classLog: { include: { batch: true } } },
+          orderBy: { classLog: { date: "desc" } },
+        })
+      ]);
+      studentProfile = { ...baseUser.studentProfile, enrollments, attendanceRecords };
+    }
+
+    let penalizedClassLogs: any[] = [];
+
+    if (baseUser.role === Role.TEACHER && baseUser.coachProfile) {
+      const [batches, classLogs, payoutRates, payoutAdjustments, penalized] = await Promise.all([
+        prisma.batch.findMany({ where: { coachProfileId: baseUser.coachProfile.id } }),
+        prisma.classLog.findMany({
+          where: { coachProfileId: baseUser.coachProfile.id },
+          orderBy: { date: "desc" },
+          take: 50,
+          include: { batch: true },
+        }),
+        prisma.coachPayoutRate.findMany({
+          where: { coachProfileId: baseUser.coachProfile.id },
+          orderBy: [{ level: "asc" }, { durationMins: "asc" }]
+        }),
+        prisma.payoutAdjustment.findMany({
+          where: { coachProfileId: baseUser.coachProfile.id },
+          orderBy: { createdAt: "desc" },
+          take: 10,
+        }),
+        prisma.classLog.findMany({
+          where: { 
+            coachProfileId: baseUser.coachProfile.id,
+            penaltyAmount: { gt: 0 } 
+          },
+          orderBy: { date: 'desc' },
+          include: { batch: true }
+        })
+      ]);
+      coachProfile = { ...baseUser.coachProfile, batches, classLogs, payoutRates, payoutAdjustments };
+      penalizedClassLogs = penalized;
+    }
+
+    return {
+      user: {
+        ...baseUser,
+        studentProfile,
+        coachProfile
+      },
+      penalizedClassLogs
+    };
+  },
+  ['admin-user-profile'],
+  { tags: ['admin-user-profile'], revalidate: 3600 }
+);
 
 export default async function UserProfilePage({
   params,
@@ -19,41 +96,11 @@ export default async function UserProfilePage({
 
   const { userId } = await params;
 
-  const user = await prisma.user.findUnique({
-    where: { id: userId },
-    include: {
-      studentProfile: {
-        include: {
-          enrollments: {
-            include: { batch: { include: { coach: { include: { user: true } } } } }
-          },
-          attendanceRecords: {
-            include: { classLog: { include: { batch: true } } },
-            orderBy: { classLog: { date: "desc" } },
-          }
-        }
-      },
-      coachProfile: {
-        include: {
-          batches: true,
-          classLogs: {
-            orderBy: { date: "desc" },
-            take: 50,
-            include: { batch: true },
-          },
-          payoutRates: {
-            orderBy: [{ level: "asc" }, { durationMins: "asc" }]
-          },
-          payoutAdjustments: {
-            orderBy: { createdAt: "desc" },
-            take: 10,
-          }
-        }
-      }
-    }
-  });
-
-  if (!user) notFound();
+  const data = await getUserProfileData(userId);
+  
+  if (!data || !data.user) notFound();
+  
+  const { user, penalizedClassLogs } = data;
 
   // Prepare the UserRow data for the Edit component
   const userRow = {
@@ -76,9 +123,9 @@ export default async function UserProfilePage({
   let totalClasses = 0;
   let present = 0;
   let absent = 0;
-  if (isStudent) {
-    totalClasses = user.studentProfile!.attendanceRecords.length;
-    present = user.studentProfile!.attendanceRecords.filter(a => a.status === "PRESENT").length;
+  if (isStudent && user.studentProfile.attendanceRecords) {
+    totalClasses = user.studentProfile.attendanceRecords.length;
+    present = user.studentProfile.attendanceRecords.filter((a: any) => a.status === "PRESENT").length;
     absent = totalClasses - present;
   }
 
@@ -86,10 +133,10 @@ export default async function UserProfilePage({
   let coachTotalClasses = 0;
   let coachPayoutTotal = 0;
   let coachPenaltyTotal = 0;
-  if (isCoach) {
-    coachTotalClasses = user.coachProfile!.classLogs.length;
-    coachPayoutTotal = user.coachProfile!.classLogs.reduce((acc, log) => acc + log.payoutAmount, 0);
-    coachPenaltyTotal = user.coachProfile!.classLogs.reduce((acc, log) => {
+  if (isCoach && user.coachProfile.classLogs) {
+    coachTotalClasses = user.coachProfile.classLogs.length;
+    coachPayoutTotal = user.coachProfile.classLogs.reduce((acc: number, log: any) => acc + log.payoutAmount, 0);
+    coachPenaltyTotal = user.coachProfile.classLogs.reduce((acc: number, log: any) => {
       if (!log.penaltyWaived) return acc + (log.penaltyAmount ?? 0);
       return acc;
     }, 0);
@@ -98,26 +145,13 @@ export default async function UserProfilePage({
   const LEVELS = ["BEGINNER","CORE_1","CORE_2","CORE_3","CORE_4","INTERMEDIATE_1","INTERMEDIATE_2","INTERMEDIATE_3","ADVANCE_1","ADVANCE_2","ELITE"];
   const DURATIONS = [30, 40, 45, 50, 60];
 
-  // Fetch all penalized logs separately so it's not limited by the take: 50
-  let penalizedClassLogs: any[] = [];
-  if (isCoach) {
-    penalizedClassLogs = await prisma.classLog.findMany({
-      where: { 
-        coachProfileId: user.coachProfile!.id,
-        penaltyAmount: { gt: 0 } 
-      },
-      orderBy: { date: 'desc' },
-      include: { batch: true }
-    });
-  }
-
   return (
     <div className="space-y-6 max-w-6xl mx-auto pb-12">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-white p-6 rounded-lg border border-slate-200 shadow-sm">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-white dark:bg-slate-900 p-6 rounded-lg border border-slate-200 dark:border-slate-800 shadow-sm">
         <div>
           <div className="flex items-center gap-3 mb-1">
-            <h1 className="text-2xl font-bold text-slate-900">{user.name}</h1>
+            <h1 className="text-2xl font-bold text-slate-900 dark:text-white">{user.name}</h1>
             <Badge variant="brand">{ROLE_LABEL[user.role]}</Badge>
             <Badge variant={user.isActive ? "success" : "neutral"}>
               {user.isActive ? "Active" : "Inactive"}
@@ -197,7 +231,7 @@ export default async function UserProfilePage({
                 <span className="text-slate-500">Assigned Batches</span>
                 <span className="font-medium">
                   {user.studentProfile!.enrollments.length > 0
-                    ? user.studentProfile!.enrollments.map(e => e.batch.name).join(", ")
+                    ? user.studentProfile!.enrollments.map((e: any) => e.batch.name).join(", ")
                     : "None"}
                 </span>
               </div>
@@ -207,7 +241,7 @@ export default async function UserProfilePage({
                 <span className="text-slate-500">Assigned Batches</span>
                 <span className="font-medium">
                   {user.coachProfile!.batches.length > 0
-                    ? user.coachProfile!.batches.map(b => b.name).join(", ")
+                    ? user.coachProfile!.batches.map((b: any) => b.name).join(", ")
                     : "None"}
                 </span>
               </div>
@@ -228,17 +262,17 @@ export default async function UserProfilePage({
             </CardHeader>
             <CardContent>
               <div className="flex gap-4 mb-6">
-                <div className="bg-slate-50 p-3 rounded-md flex-1 text-center border border-slate-100">
-                  <p className="text-xs text-slate-500 uppercase tracking-wider mb-1">Total</p>
-                  <p className="text-xl font-semibold">{totalClasses}</p>
+                <div className="bg-slate-50 dark:bg-slate-800/50 p-3 rounded-md flex-1 text-center border border-slate-100 dark:border-slate-700">
+                  <p className="text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">Total</p>
+                  <p className="text-xl font-semibold dark:text-white">{totalClasses}</p>
                 </div>
-                <div className="bg-emerald-50 p-3 rounded-md flex-1 text-center border border-emerald-100">
-                  <p className="text-xs text-emerald-600 uppercase tracking-wider mb-1">Present</p>
-                  <p className="text-xl font-semibold text-emerald-700">{present}</p>
+                <div className="bg-emerald-50 dark:bg-emerald-900/20 p-3 rounded-md flex-1 text-center border border-emerald-100 dark:border-emerald-800">
+                  <p className="text-xs text-emerald-600 dark:text-emerald-400 uppercase tracking-wider mb-1">Present</p>
+                  <p className="text-xl font-semibold text-emerald-700 dark:text-emerald-300">{present}</p>
                 </div>
-                <div className="bg-rose-50 p-3 rounded-md flex-1 text-center border border-rose-100">
-                  <p className="text-xs text-rose-600 uppercase tracking-wider mb-1">Absent</p>
-                  <p className="text-xl font-semibold text-rose-700">{absent}</p>
+                <div className="bg-rose-50 dark:bg-rose-900/20 p-3 rounded-md flex-1 text-center border border-rose-100 dark:border-rose-800">
+                  <p className="text-xs text-rose-600 dark:text-rose-400 uppercase tracking-wider mb-1">Absent</p>
+                  <p className="text-xl font-semibold text-rose-700 dark:text-rose-300">{absent}</p>
                 </div>
               </div>
 
@@ -248,11 +282,11 @@ export default async function UserProfilePage({
                   <p className="text-sm text-slate-500 text-center py-2">No classes attended yet.</p>
                 ) : (
                   <div className="space-y-2">
-                    {user.studentProfile!.attendanceRecords.slice(0, 5).map(record => (
-                      <div key={record.id} className="flex justify-between items-center py-2 border-b border-slate-50 last:border-0 text-sm">
+                    {user.studentProfile!.attendanceRecords.slice(0, 5).map((record: any) => (
+                      <div key={record.id} className="flex justify-between items-center py-2 border-b border-slate-100 dark:border-slate-800 last:border-0 text-sm">
                         <div>
-                          <p className="font-medium text-slate-800">{format(new Date(record.classLog.date), "dd MMM yyyy")}</p>
-                          <p className="text-xs text-slate-500">{record.classLog.batch.name}</p>
+                          <p className="font-medium text-slate-800 dark:text-slate-200">{format(new Date(record.classLog.date), "dd MMM yyyy")}</p>
+                          <p className="text-xs text-slate-500 dark:text-slate-400">{record.classLog.batch.name}</p>
                         </div>
                         <Badge variant={record.status === "PRESENT" ? "success" : "danger"}>
                           {record.status === "PRESENT" ? "Present" : "Absent"}
@@ -274,13 +308,13 @@ export default async function UserProfilePage({
             </CardHeader>
             <CardContent className="max-h-[650px] overflow-y-auto pr-4 mr-1 custom-scrollbar">
               <div className="flex gap-4 mb-6">
-                <div className="bg-slate-50 p-3 rounded-md flex-1 text-center border border-slate-100">
-                  <p className="text-xs text-slate-500 uppercase tracking-wider mb-1">Classes Held</p>
-                  <p className="text-xl font-semibold">{coachTotalClasses}</p>
+                <div className="bg-slate-50 dark:bg-slate-800/50 p-3 rounded-md flex-1 text-center border border-slate-100 dark:border-slate-700">
+                  <p className="text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">Classes Held</p>
+                  <p className="text-xl font-semibold dark:text-white">{coachTotalClasses}</p>
                 </div>
-                <div className="bg-emerald-50 p-3 rounded-md flex-1 text-center border border-emerald-100">
-                  <p className="text-xs text-emerald-600 uppercase tracking-wider mb-1">Total Payouts</p>
-                  <p className="text-xl font-semibold text-emerald-700">₹{coachPayoutTotal.toLocaleString()}</p>
+                <div className="bg-emerald-50 dark:bg-emerald-900/20 p-3 rounded-md flex-1 text-center border border-emerald-100 dark:border-emerald-800">
+                  <p className="text-xs text-emerald-600 dark:text-emerald-400 uppercase tracking-wider mb-1">Total Payouts</p>
+                  <p className="text-xl font-semibold text-emerald-700 dark:text-emerald-300">₹{coachPayoutTotal.toLocaleString()}</p>
                 </div>
               </div>
 
@@ -290,11 +324,11 @@ export default async function UserProfilePage({
                   <p className="text-sm text-slate-500 text-center py-2">No classes logged yet.</p>
                 ) : (
                   <div className="space-y-2">
-                    {user.coachProfile!.classLogs.slice(0, 5).map(log => (
-                      <div key={log.id} className="flex justify-between items-center py-2 border-b border-slate-50 last:border-0 text-sm">
+                    {user.coachProfile!.classLogs.slice(0, 5).map((log: any) => (
+                      <div key={log.id} className="flex justify-between items-center py-2 border-b border-slate-100 dark:border-slate-800 last:border-0 text-sm">
                         <div>
-                          <p className="font-medium text-slate-800">{format(new Date(log.date), "dd MMM yyyy")}</p>
-                          <p className="text-xs text-slate-500">{log.topicCovered || "No topic"}</p>
+                          <p className="font-medium text-slate-800 dark:text-slate-200">{format(new Date(log.date), "dd MMM yyyy")}</p>
+                          <p className="text-xs text-slate-500 dark:text-slate-400">{log.topicCovered || "No topic"}</p>
                         </div>
                         <span className="font-medium text-emerald-600">₹{log.payoutAmount}</span>
                       </div>
@@ -317,21 +351,21 @@ export default async function UserProfilePage({
                 coachId={user.coachProfile!.id}
                 tdsApplicable={user.coachProfile!.tdsApplicable}
                 employmentType={user.coachProfile!.employmentType}
-                payoutRates={user.coachProfile!.payoutRates.map(r => ({
+                payoutRates={user.coachProfile!.payoutRates.map((r: any) => ({
                   level: r.level as string,
                   durationMins: r.durationMins,
                   ratePerSession: r.ratePerSession,
                 }))}
-                payoutAdjustments={user.coachProfile!.payoutAdjustments.map(a => ({
+                payoutAdjustments={user.coachProfile!.payoutAdjustments.map((a: any) => ({
                   id: a.id,
                   type: a.type,
                   amount: a.amount,
                   reason: a.reason,
                   month: a.month,
                 }))}
-                classLogs={user.coachProfile!.classLogs.map(l => ({
+                classLogs={user.coachProfile!.classLogs.map((l: any) => ({
                   id: l.id,
-                  date: l.date.toISOString(),
+                  date: new Date(l.date).toISOString(),
                   batch: l.batch ? { name: l.batch.name } : null,
                   penaltyAmount: l.penaltyAmount ?? 0,
                   penaltyWaived: l.penaltyWaived ?? false,
@@ -339,7 +373,7 @@ export default async function UserProfilePage({
                 }))}
                 penalizedLogs={penalizedClassLogs.map(l => ({
                   id: l.id,
-                  date: l.date.toISOString(),
+                  date: new Date(l.date).toISOString(),
                   batch: l.batch ? { name: l.batch.name } : null,
                   penaltyAmount: l.penaltyAmount ?? 0,
                   penaltyWaived: l.penaltyWaived ?? false,

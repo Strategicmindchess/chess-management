@@ -32,3 +32,4 @@ export async function generateDownloadUrl(key: string) {
 
   return await getSignedUrl(s3Client, command, { expiresIn: 3600 });
 }
+

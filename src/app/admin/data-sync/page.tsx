@@ -50,8 +50,8 @@ export default async function DataSyncPage() {
           <Activity className="w-6 h-6 text-blue-600" />
         </div>
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Data Sync Dashboard</h1>
-          <p className="text-sm text-gray-500">Monitor background sync status and worker health</p>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Data Sync Dashboard</h1>
+          <p className="text-sm text-gray-500 dark:text-slate-400">Monitor background sync status and worker health</p>
         </div>
       </div>
       
@@ -59,3 +59,4 @@ export default async function DataSyncPage() {
     </div>
   );
 }
+

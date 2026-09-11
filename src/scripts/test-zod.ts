@@ -11,3 +11,4 @@ console.log(emailSchema.safeParse("teacher@gmail.com "));
 console.log(emailSchema.safeParse("teacher@gmail.com."));
 console.log(emailSchema.safeParse(null));
 console.log(emailSchema.safeParse(undefined));
+

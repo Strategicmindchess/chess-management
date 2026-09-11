@@ -19,3 +19,4 @@ batchWorker.on('completed', (job) => {
 batchWorker.on('failed', (job, err) => {
   console.log(`[BatchWorker] Job ${job?.id} failed with error: ${err.message}`);
 });
+

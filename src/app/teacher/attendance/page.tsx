@@ -105,3 +105,4 @@ export default async function TeacherAttendancePage() {
     </div>
   );
 }
+

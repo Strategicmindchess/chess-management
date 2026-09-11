@@ -33,3 +33,4 @@ export async function changePassword(input: ChangePasswordInput): Promise<Action
   await invalidateOtherSessionsAndRestart(user.id, user.role);
   return { success: true };
 }
+

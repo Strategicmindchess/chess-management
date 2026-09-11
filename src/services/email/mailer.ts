@@ -58,3 +58,4 @@ export async function sendMail({ to, subject, html }: SendMailInput): Promise<vo
     html,
   });
 }
+

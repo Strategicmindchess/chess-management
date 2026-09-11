@@ -12,3 +12,4 @@ export function Checkbox({ className, ...props }: React.ComponentProps<'input'>)
     />
   );
 }
+

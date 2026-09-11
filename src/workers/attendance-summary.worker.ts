@@ -124,3 +124,4 @@ attendanceSummaryWorker.on('completed', (job, result) => {
 attendanceSummaryWorker.on('failed', (job, err) => {
   logger.job.fail('attendance-summary', { jobId: job?.id, error: err.message });
 });
+

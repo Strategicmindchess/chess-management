@@ -48,3 +48,4 @@ logCleanupWorker.on('completed', (job, result) => {
 logCleanupWorker.on('failed', (job, err) => {
   logger.job.fail('log-cleanup', { jobId: job?.id, error: err.message });
 });
+

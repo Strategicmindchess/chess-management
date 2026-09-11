@@ -31,10 +31,10 @@ export default async function AttendanceBatchListPage({
 
   return (
     <div className="space-y-6 max-w-5xl">
-      <div className="flex justify-between items-end border-b border-slate-200 pb-4">
+      <div className="flex justify-between items-end border-b border-slate-200 dark:border-slate-800 dark:border-slate-800 pb-4">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">Attendance by Batch</h1>
-          <p className="text-sm text-slate-500 mt-1">Select a batch to view its class logs and attendance records.</p>
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-white dark:text-white">Attendance by Batch</h1>
+          <p className="text-sm text-slate-500 dark:text-slate-400 dark:text-slate-400 mt-1">Select a batch to view its class logs and attendance records.</p>
         </div>
         <div className="flex gap-2">
           <Link href="/admin/attendance/batch">
@@ -47,7 +47,7 @@ export default async function AttendanceBatchListPage({
       </div>
       
       <div className="pt-2">
-        <Suspense fallback={<div className="h-10 w-full max-w-sm bg-slate-100 animate-pulse rounded-md"></div>}>
+        <Suspense fallback={<div className="h-10 w-full max-w-sm bg-slate-100 dark:bg-slate-800 animate-pulse rounded-md"></div>}>
           <AttendanceSearchBar placeholder="Search batches..." />
         </Suspense>
       </div>
@@ -55,24 +55,24 @@ export default async function AttendanceBatchListPage({
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {batches.map(batch => (
           <Link key={batch.id} href={`/admin/attendance/batch/${batch.id}`}>
-            <Card className="hover:shadow-md transition-shadow cursor-pointer border-slate-200 h-full flex flex-col group">
-              <CardHeader className="pb-3 border-b border-slate-100 bg-slate-50/50">
+            <Card className="hover:shadow-md transition-shadow cursor-pointer border-slate-200 dark:border-slate-800 dark:border-slate-800 h-full flex flex-col group">
+              <CardHeader className="pb-3 border-b border-slate-100 dark:border-slate-800 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50/50 dark:bg-slate-900/50 rounded-t-xl">
                 <div className="flex justify-between items-start">
-                  <CardTitle className="text-lg text-brand-900 group-hover:text-brand-600 transition-colors">
+                  <CardTitle className="text-lg text-brand-900 dark:text-brand-100 dark:text-brand-100 group-hover:text-brand-600 dark:group-hover:text-brand-300 transition-colors">
                     {batch.name}
                   </CardTitle>
                   <ChevronRight className="w-5 h-5 text-slate-400 group-hover:text-brand-500 transition-colors" />
                 </div>
-                <div className="text-sm text-slate-500">Coach: {batch.coach?.user.name || "Unassigned"}</div>
+                <div className="text-sm text-slate-500 dark:text-slate-400 dark:text-slate-400">Coach: {batch.coach?.user.name || "Unassigned"}</div>
               </CardHeader>
               <CardContent className="pt-4 flex-grow">
-                <div className="flex justify-between items-center text-sm text-slate-600">
+                <div className="flex justify-between items-center text-sm text-slate-600 dark:text-slate-400 dark:text-slate-400">
                   <div className="flex items-center gap-1.5">
-                    <CalendarDays className="w-4 h-4 text-slate-400" />
+                    <CalendarDays className="w-4 h-4 text-slate-400 dark:text-slate-500 dark:text-slate-400" />
                     <span>{batch._count.classLogs} Classes</span>
                   </div>
                   <div className="flex items-center gap-1.5">
-                    <Users className="w-4 h-4 text-slate-400" />
+                    <Users className="w-4 h-4 text-slate-400 dark:text-slate-500 dark:text-slate-400" />
                     <span>{batch._count.students} Students</span>
                   </div>
                 </div>
@@ -84,3 +84,4 @@ export default async function AttendanceBatchListPage({
     </div>
   );
 }
+

@@ -96,10 +96,12 @@ export async function updateAdminUserFields(formData: FormData) {
     }
 
     revalidatePath("/admin/users");
+    revalidatePath(`/admin/users/${data.userId}`);
+
     return { success: true };
-  } catch (error) {
-    console.error("Failed to update user:", error);
-    return { error: "Failed to update user. Please try again." };
+  } catch (error: any) {
+    console.error("Admin user update error:", error);
+    return { error: error.message || "Failed to update user." };
   }
 }
 
@@ -118,3 +120,4 @@ export async function deleteUser(userId: string) {
     return { error: "Failed to delete user. Please try again." };
   }
 }
+

@@ -295,3 +295,53 @@ model StudentSyncRun {
   @@index([studentProfileId])
   @@index([completedAt])
 }
+
+// ── Chocolate Question Points ─────────────────────────────────────────────────
+
+/// Coach awards +5 (correct) or -2 (wrong) per question answer per student.
+/// Max 8 questions per student per coach per month, enforced at API level.
+model ChocolateQuestionRecord {
+  id               String  @id @default(cuid())
+  studentProfileId String
+  coachId          String
+  /// Calendar month, e.g. "2026-09"
+  month            String
+  /// Sequential question number 1–8 for this student+coach+month combination
+  questionNumber   Int
+  isCorrect        Boolean
+  /// +5 for correct, -2 for wrong
+  points           Int
+  note             String?
+  createdAt        DateTime @default(now())
+
+  student StudentProfile @relation("StudentChocolateQuestions", fields: [studentProfileId], references: [id], onDelete: Cascade)
+  coach   CoachProfile   @relation("CoachChocolateQuestions", fields: [coachId], references: [id], onDelete: Cascade)
+
+  @@unique([studentProfileId, coachId, month, questionNumber])
+  @@index([studentProfileId, month])
+  @@index([coachId, month])
+  @@map("chocolate_question_records")
+}
+
+/// Tracks a student's total chocolate points for a month and reward eligibility.
+/// isEligible becomes true once totalPoints >= 40.
+model ChocolateEligibility {
+  id               String    @id @default(cuid())
+  studentProfileId String
+  /// Calendar month, e.g. "2026-09"
+  month            String
+  totalPoints      Int       @default(0)
+  /// True when totalPoints >= 40
+  isEligible       Boolean   @default(false)
+  eligibleAt       DateTime?
+  /// Admin marks reward as given (chocolate from SMC Management)
+  rewardGiven      Boolean   @default(false)
+  rewardGivenAt    DateTime?
+  updatedAt        DateTime  @updatedAt
+
+  student StudentProfile @relation("StudentChocolateEligibility", fields: [studentProfileId], references: [id], onDelete: Cascade)
+
+  @@unique([studentProfileId, month])
+  @@index([month, isEligible])
+  @@map("chocolate_eligibility")
+}

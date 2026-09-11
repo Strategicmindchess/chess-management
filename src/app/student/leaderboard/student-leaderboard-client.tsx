@@ -39,11 +39,11 @@ export function StudentLeaderboardClient() {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900 flex items-center gap-2">
+          <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2">
             <Trophy className="w-7 h-7 text-amber-500" />
             Leaderboard
           </h1>
-          <p className="text-sm text-slate-500 mt-1">
+          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
             Compete with fellow students across Chess.com & Lichess activity.
           </p>
         </div>
@@ -61,11 +61,11 @@ export function StudentLeaderboardClient() {
 
       {/* No account linked warning */}
       {!hasLinkedAccounts && (
-        <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-start gap-3">
-          <Link2 className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+        <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800/30 rounded-xl p-4 flex items-start gap-3">
+          <Link2 className="w-5 h-5 text-amber-600 dark:text-amber-500 flex-shrink-0 mt-0.5" />
           <div>
-            <p className="text-sm font-semibold text-amber-800">Link your chess accounts to participate</p>
-            <p className="text-xs text-amber-600 mt-1">
+            <p className="text-sm font-semibold text-amber-800 dark:text-amber-300">Link your chess accounts to participate</p>
+            <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">
               Connect your Chess.com and/or Lichess username in &ldquo;My Account&rdquo; tab below to appear on the leaderboard.
             </p>
           </div>
@@ -138,17 +138,17 @@ export function StudentLeaderboardClient() {
           </div>
 
           {/* Rule Book section (always visible below) */}
-          <div className="border-t border-slate-100 pt-6">
+          <div className="border-t border-slate-100 dark:border-slate-800 pt-6">
             <RuleBook />
           </div>
 
           {/* Chess Account linking */}
-          <div className="border-t border-slate-100 pt-6">
-            <h2 className="text-base font-bold text-slate-800 flex items-center gap-2 mb-4">
+          <div className="border-t border-slate-100 dark:border-slate-800 pt-6">
+            <h2 className="text-base font-bold text-slate-800 dark:text-slate-200 flex items-center gap-2 mb-4">
               <Link2 className="w-5 h-5 text-brand-600" />
               My Chess Accounts
             </h2>
-            <div className="bg-white border border-slate-200 rounded-xl p-5">
+            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5">
               <LinkChessAccountForm
                 currentChessCom={chessAccount?.chessComUsername}
                 currentLichess={chessAccount?.lichessUsername}
@@ -163,16 +163,16 @@ export function StudentLeaderboardClient() {
 
           {/* My current score */}
           {studentProfile?.leaderboardEntries[0] && (
-            <div className="bg-white border border-slate-200 rounded-xl p-4">
-              <h3 className="text-sm font-bold text-slate-800 mb-3">My Current Score</h3>
+            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4">
+              <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200 mb-3">My Current Score</h3>
               <div className="text-center">
                 <p className="text-4xl font-black text-brand-600">
                   {studentProfile.leaderboardEntries[0].totalScore}
                 </p>
-                <p className="text-xs text-slate-400 mt-1">/ 1000 points</p>
+                <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">/ 1000 points</p>
               </div>
               <div className="mt-3 text-center">
-                  <p className="text-xs text-slate-500">
+                  <p className="text-xs text-slate-500 dark:text-slate-400">
                   Rank #{studentProfile.leaderboardEntries[0].rank ?? '—'}
                 </p>
               </div>
@@ -181,50 +181,50 @@ export function StudentLeaderboardClient() {
 
           {/* Teacher Feedback Report */}
           {coachFeedback && (
-            <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
-              <h3 className="text-sm font-bold text-slate-800 mb-3 flex items-center gap-2">
+            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 shadow-sm">
+              <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200 mb-3 flex items-center gap-2">
                 <MessageSquareQuote className="w-4 h-4 text-brand-600" />
                 Coach Feedback Report
               </h3>
               <div className="space-y-3">
                 <div className="flex justify-between text-xs">
-                  <span className="text-slate-500">Coach</span>
-                  <span className="font-semibold text-slate-700">{coachFeedback.coach.user.name}</span>
+                  <span className="text-slate-500 dark:text-slate-400">Coach</span>
+                  <span className="font-semibold text-slate-700 dark:text-slate-300">{coachFeedback.coach.user.name}</span>
                 </div>
                 
-                <div className="space-y-2 pt-2 border-t border-slate-100">
+                <div className="space-y-2 pt-2 border-t border-slate-100 dark:border-slate-800">
                   <div className="flex justify-between text-xs">
-                    <span className="text-slate-500">Engagement</span>
-                    <span className="font-medium text-slate-700">{coachFeedback.engagement} / 10</span>
+                    <span className="text-slate-500 dark:text-slate-400">Engagement</span>
+                    <span className="font-medium text-slate-700 dark:text-slate-300">{coachFeedback.engagement} / 10</span>
                   </div>
                   <div className="flex justify-between text-xs">
-                    <span className="text-slate-500">Behaviour</span>
-                    <span className="font-medium text-slate-700">{coachFeedback.behaviour} / 10</span>
+                    <span className="text-slate-500 dark:text-slate-400">Behaviour</span>
+                    <span className="font-medium text-slate-700 dark:text-slate-300">{coachFeedback.behaviour} / 10</span>
                   </div>
                   <div className="flex justify-between text-xs">
-                    <span className="text-slate-500">Concept Adoption</span>
-                    <span className="font-medium text-slate-700">{coachFeedback.conceptAdoption} / 10</span>
+                    <span className="text-slate-500 dark:text-slate-400">Concept Adoption</span>
+                    <span className="font-medium text-slate-700 dark:text-slate-300">{coachFeedback.conceptAdoption} / 10</span>
                   </div>
                   <div className="flex justify-between text-xs">
-                    <span className="text-slate-500">Punctuality</span>
-                    <span className="font-medium text-slate-700">{coachFeedback.joiningOnTime} / 10</span>
+                    <span className="text-slate-500 dark:text-slate-400">Punctuality</span>
+                    <span className="font-medium text-slate-700 dark:text-slate-300">{coachFeedback.joiningOnTime} / 10</span>
                   </div>
                   <div className="flex justify-between text-xs">
-                    <span className="text-slate-500">Camera On</span>
-                    <span className="font-medium text-slate-700">{coachFeedback.cameraOn} / 10</span>
+                    <span className="text-slate-500 dark:text-slate-400">Camera On</span>
+                    <span className="font-medium text-slate-700 dark:text-slate-300">{coachFeedback.cameraOn} / 10</span>
                   </div>
                 </div>
 
-                <div className="pt-3 border-t border-slate-100 flex justify-between items-center text-sm">
-                  <span className="font-bold text-slate-700">Total Score</span>
+                <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex justify-between items-center text-sm">
+                  <span className="font-bold text-slate-700 dark:text-slate-300">Total Score</span>
                   <span className="font-black text-brand-600">
-                    {coachFeedback.engagement + coachFeedback.behaviour + coachFeedback.conceptAdoption + coachFeedback.joiningOnTime + coachFeedback.cameraOn} <span className="text-xs text-slate-400 font-medium">/ 50</span>
+                    {coachFeedback.engagement + coachFeedback.behaviour + coachFeedback.conceptAdoption + coachFeedback.joiningOnTime + coachFeedback.cameraOn} <span className="text-xs text-slate-400 dark:text-slate-500 font-medium">/ 50</span>
                   </span>
                 </div>
 
                 {coachFeedback.remarks && (
-                  <div className="mt-3 p-3 bg-brand-50 rounded-lg border border-brand-100">
-                    <p className="text-xs text-slate-700 italic">"{coachFeedback.remarks}"</p>
+                  <div className="mt-3 p-3 bg-brand-50 dark:bg-brand-900/20 rounded-lg border border-brand-100 dark:border-brand-800/30">
+                    <p className="text-xs text-slate-700 dark:text-slate-300 italic">"{coachFeedback.remarks}"</p>
                   </div>
                 )}
               </div>
@@ -235,3 +235,4 @@ export function StudentLeaderboardClient() {
     </div>
   );
 }
+

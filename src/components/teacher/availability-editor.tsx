@@ -170,3 +170,4 @@ export function AvailabilityEditor({ initialSlots }: AvailabilityEditorProps) {
     </div>
   );
 }
+

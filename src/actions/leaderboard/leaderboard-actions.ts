@@ -23,6 +23,7 @@ export interface LeaderboardRow {
   totalScore: number;
   chessComUsername: string | null;
   lichessUsername: string | null;
+  chocolatePoints: number;
   isDisqualified: boolean;
   // Admin-only data quality flags
   isDataStale: boolean;    // snapshot not updated in 2+ days
@@ -54,14 +55,12 @@ export interface LeaderboardRow {
   };
 }
 
-/** Get the full leaderboard for a period. Redis → DB fallback. */
 export async function getLeaderboard(
   periodType: 'WEEKLY' | 'MONTHLY',
   periodStart?: string
 ): Promise<{ entries: LeaderboardRow[]; calculatedAt: Date | null; puzzleSolverAward: unknown }> {
   const user = await getCurrentUser();
 
-  // Default to current period
   const periodObj = getCurrentPeriod(periodType);
   const resolvedPeriodStart: Date = periodStart ? new Date(periodStart) : periodObj.periodStart;
   const start = periodStart ?? resolvedPeriodStart.toISOString();
@@ -77,8 +76,31 @@ export async function getLeaderboard(
     };
   }
 
+  // Strict Redis-only mode for UI! We DO NOT hit DB if missing.
+  // The worker runs generateLeaderboardCache to populate it.
+  console.log(`[Leaderboard] Strict cache miss for ${cacheKey}. Triggering background generation but returning empty for now.`);
+  
+  // Non-blocking trigger just in case
+  generateLeaderboardCache(periodType, start).catch(console.error);
+
+  return { entries: [], calculatedAt: null, puzzleSolverAward: null };
+}
+
+/** 
+ * Generates the leaderboard from the DB and writes to Redis. 
+ * Eagerly called by the worker so UI never hits the DB.
+ */
+export async function generateLeaderboardCache(
+  periodType: 'WEEKLY' | 'MONTHLY',
+  periodStart?: string
+): Promise<{ entries: LeaderboardRow[]; calculatedAt: Date | null; puzzleSolverAward: unknown }> {
+  const periodObj = getCurrentPeriod(periodType);
+  const resolvedPeriodStart: Date = periodStart ? new Date(periodStart) : periodObj.periodStart;
+  const start = periodStart ?? resolvedPeriodStart.toISOString();
+  const cacheKey = REDIS_KEYS.leaderboard(periodType, start);
+
   // ── DB query ──────────────────────────────────────────────────────────────
-  const [dbEntries, puzzleSolverAward, failedFetchLogs] = await Promise.all([
+  const [dbEntries, puzzleSolverAward, failedFetchLogs, chocolateEligs] = await Promise.all([
     prisma.leaderboardEntry.findMany({
       where: {
         periodType,
@@ -118,12 +140,21 @@ export async function getLeaderboard(
       },
       select: { studentProfileId: true, provider: true },
     }),
+
+    // Fetch chocolate points for the month
+    prisma.chocolateEligibility.findMany({
+      where: {
+        month: `${resolvedPeriodStart.getFullYear()}-${String(resolvedPeriodStart.getMonth() + 1).padStart(2, "0")}`
+      }
+    }),
   ]);
 
   // Build failure sets for quick lookup
   const ccFailedSet = new Set(failedFetchLogs.filter(l => l.provider === 'CHESS_COM').map(l => l.studentProfileId));
   const liFailedSet = new Set(failedFetchLogs.filter(l => l.provider === 'LICHESS').map(l => l.studentProfileId));
   const twoDaysAgo = new Date(Date.now() - 2 * 24 * 60 * 60 * 1000);
+  
+  const chocolateMap = new Map((chocolateEligs ?? []).map((e: any) => [e.studentProfileId, e.totalPoints]));
 
   const entries: LeaderboardRow[] = dbEntries.map((e) => ({
     rank: e.rank ?? 999,
@@ -131,6 +162,7 @@ export async function getLeaderboard(
     studentName: e.student.user.name,
     profilePictureUrl: e.student.user.profilePictureUrl,
     totalScore: e.totalScore,
+    chocolatePoints: chocolateMap.get(e.studentProfileId) || 0,
     chessComUsername: e.student.chessAccount?.chessComUsername ?? null,
     lichessUsername: e.student.chessAccount?.lichessUsername ?? null,
     isDisqualified: e.isDisqualified,
@@ -235,6 +267,7 @@ export async function getStudentLeaderboardEntry(
     studentName: entry.student.user.name,
     profilePictureUrl: entry.student.user.profilePictureUrl,
     totalScore: entry.totalScore,
+    chocolatePoints: 0, // Optionally fetch this in getStudentLeaderboardEntry if needed
     chessComUsername: entry.student.chessAccount?.chessComUsername ?? null,
     lichessUsername: entry.student.chessAccount?.lichessUsername ?? null,
     isDisqualified: entry.isDisqualified,
@@ -497,3 +530,4 @@ export async function getStudentCoachFeedback(
     },
   });
 }
+

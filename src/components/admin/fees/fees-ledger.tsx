@@ -424,13 +424,13 @@ export function FeesLedger({ initialConfigs, availableStudents, availableBatches
 
   // ── Render ────────────────────────────────────────────────────────────────
   return (
-    <div className="relative font-sans text-gray-900">
+    <div className="relative font-sans text-gray-900 dark:text-white">
       {/* Header */}
       <div className="flex justify-between items-center pb-5 relative z-10">
         <div className="flex items-center gap-3">
           <div>
             <div className="font-serif font-semibold text-xl tracking-tight">Student Ledger</div>
-            <div className="text-xs text-gray-500">Roster &amp; fee tracking</div>
+            <div className="text-xs text-gray-500 dark:text-gray-400">Roster &amp; fee tracking</div>
           </div>
         </div>
         <button onClick={() => { setAddForm({ profileId: "", feeType: "MONTHLY", feeAmount: "", classesPerCycle: "8", frequency: "MONTHLY", startDate: "", feeStartDate: "", notes: "" }); setAddError(null); setAddOpen(true); }}
@@ -441,9 +441,9 @@ export function FeesLedger({ initialConfigs, availableStudents, availableBatches
 
       {/* Period Bar */}
       <div className="flex items-center gap-3 mb-4 relative z-10">
-        <button onClick={() => setPeriod(shiftMonthKey(period, -1))} className="w-7 h-7 rounded border border-gray-300 bg-white hover:bg-gray-50 cursor-pointer flex items-center justify-center text-lg text-gray-600">‹</button>
+        <button onClick={() => setPeriod(shiftMonthKey(period, -1))} className="w-7 h-7 rounded border border-gray-300 dark:border-slate-700 bg-white dark:bg-[#11141c]/90 dark:backdrop-blur-xl hover:bg-gray-50 dark:bg-slate-900/50 cursor-pointer flex items-center justify-center text-lg text-gray-600 dark:text-gray-300">‹</button>
         <span className="font-mono text-sm font-medium min-w-[90px] text-center text-gray-700">{monthLabel(period)}</span>
-        <button onClick={() => setPeriod(shiftMonthKey(period, 1))} className="w-7 h-7 rounded border border-gray-300 bg-white hover:bg-gray-50 cursor-pointer flex items-center justify-center text-lg text-gray-600">›</button>
+        <button onClick={() => setPeriod(shiftMonthKey(period, 1))} className="w-7 h-7 rounded border border-gray-300 dark:border-slate-700 bg-white dark:bg-[#11141c]/90 dark:backdrop-blur-xl hover:bg-gray-50 dark:bg-slate-900/50 cursor-pointer flex items-center justify-center text-lg text-gray-600 dark:text-gray-300">›</button>
         {period !== monthKey(new Date()) && (
           <button onClick={() => setPeriod(monthKey(new Date()))} className="text-xs text-blue-600 bg-transparent border-none cursor-pointer font-semibold underline hover:text-blue-800 ml-2">Today</button>
         )}
@@ -452,33 +452,33 @@ export function FeesLedger({ initialConfigs, availableStudents, availableBatches
       {/* Summary Cards */}
       <div className="grid grid-cols-4 gap-3 mb-4 relative z-10">
         {[
-          { label: "Students", value: filtered.length, color: "text-gray-900" },
+          { label: "Students", value: filtered.length, color: "text-gray-900 dark:text-white" },
           { label: "Paid", value: paid, color: "text-green-600" },
           { label: "Unpaid", value: unpaid, color: "text-red-600" },
           { label: "Collected", value: `₹${revenue.toLocaleString("en-IN")}`, color: "text-amber-600" },
         ].map((card) => (
-          <div key={card.label} className="bg-white border border-gray-200 rounded-xl p-3 text-center shadow-sm">
+          <div key={card.label} className="bg-white dark:bg-[#11141c]/90 dark:backdrop-blur-xl border border-gray-200 dark:border-slate-800 rounded-xl p-3 text-center shadow-sm">
             <div className={`font-serif text-lg font-semibold ${card.color}`}>{card.value}</div>
-            <div className="text-[10px] text-gray-500 mt-0.5 uppercase tracking-wider font-medium">{card.label}</div>
+            <div className="text-[10px] text-gray-500 dark:text-gray-400 mt-0.5 uppercase tracking-wider font-medium">{card.label}</div>
           </div>
         ))}
       </div>
 
       {/* Controls */}
       <div className="flex gap-2 flex-wrap mb-4 relative z-10">
-        <div className="flex-1 flex items-center gap-2 bg-white border border-gray-200 rounded-lg px-3 py-2 min-w-[160px] shadow-sm">
+        <div className="flex-1 flex items-center gap-2 bg-white dark:bg-[#11141c]/90 dark:backdrop-blur-xl border border-gray-200 dark:border-slate-800 rounded-lg px-3 py-2 min-w-[160px] shadow-sm">
           <span className="text-gray-400">🔍</span>
-          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search name, city, phone…" className="border-none outline-none text-sm bg-transparent flex-1 text-gray-900 placeholder-gray-400 w-full" />
+          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search name, city, phone…" className="border-none outline-none text-sm bg-transparent flex-1 text-gray-900 dark:text-white placeholder-gray-400 w-full" />
         </div>
-        <select value={filterCoach} onChange={(e) => setFilterCoach(e.target.value)} className="bg-white border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer shadow-sm">
+        <select value={filterCoach} onChange={(e) => setFilterCoach(e.target.value)} className="bg-white dark:bg-[#11141c]/90 dark:backdrop-blur-xl border border-gray-200 dark:border-slate-800 rounded-lg px-3 py-2 text-sm text-gray-900 dark:text-white outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer shadow-sm">
           {coaches.map((c) => <option key={c} value={c}>{c === "All" ? "All coaches" : c}</option>)}
         </select>
-        <select value={filterMode} onChange={(e) => setFilterMode(e.target.value)} className="bg-white border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer shadow-sm">
+        <select value={filterMode} onChange={(e) => setFilterMode(e.target.value)} className="bg-white dark:bg-[#11141c]/90 dark:backdrop-blur-xl border border-gray-200 dark:border-slate-800 rounded-lg px-3 py-2 text-sm text-gray-900 dark:text-white outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer shadow-sm">
           <option value="All">All modes</option>
           <option value="GROUP_SESSION">Group</option>
           <option value="ONE_ON_ONE_SESSION">1-on-1</option>
         </select>
-        <select value={filterFeeType} onChange={(e) => setFilterFeeType(e.target.value)} className="bg-white border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer shadow-sm">
+        <select value={filterFeeType} onChange={(e) => setFilterFeeType(e.target.value)} className="bg-white dark:bg-[#11141c]/90 dark:backdrop-blur-xl border border-gray-200 dark:border-slate-800 rounded-lg px-3 py-2 text-sm text-gray-900 dark:text-white outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer shadow-sm">
           <option value="All">All fee types</option>
           <option value="MONTHLY">Monthly</option>
           <option value="BATCH_BASED">Batch-based</option>
@@ -488,7 +488,7 @@ export function FeesLedger({ initialConfigs, availableStudents, availableBatches
       {/* Student Cards */}
       <div className="flex flex-col gap-3 relative z-10">
         {filtered.length === 0 ? (
-          <div className="text-center text-gray-500 text-sm py-10">
+          <div className="text-center text-gray-500 dark:text-gray-400 text-sm py-10">
             {configs.length === 0 ? "No students added yet. Click '+ Add student' to get started." : "No students match this filter."}
           </div>
         ) : filtered.map((c) => {
@@ -502,16 +502,16 @@ export function FeesLedger({ initialConfigs, availableStudents, availableBatches
           const isBatch = c.feeType === "BATCH_BASED";
 
           return (
-            <div key={c.id} className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+            <div key={c.id} className="bg-white dark:bg-[#11141c]/90 dark:backdrop-blur-xl border border-gray-200 dark:border-slate-800 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow">
               {/* Card header */}
-              <div onClick={() => setExpanded((p) => ({ ...p, [c.id]: !p[c.id] }))} className="flex items-center justify-between p-3.5 cursor-pointer hover:bg-gray-50 transition-colors">
+              <div onClick={() => setExpanded((p) => ({ ...p, [c.id]: !p[c.id] }))} className="flex items-center justify-between p-3.5 cursor-pointer hover:bg-gray-50 dark:bg-slate-900/50 transition-colors">
                 <div className="flex items-center gap-3 min-w-0">
-                  <div className="w-10 h-10 rounded-lg bg-gray-100 text-gray-900 flex items-center justify-center font-serif font-bold text-lg shrink-0">
+                  <div className="w-10 h-10 rounded-lg bg-gray-100 text-gray-900 dark:text-white flex items-center justify-center font-serif font-bold text-lg shrink-0">
                     {(s.user.name.trim().charAt(0) || "?").toUpperCase()}
                   </div>
                   <div>
-                    <div className="font-semibold text-gray-900 text-sm">{s.user.name}</div>
-                    <div className="text-xs text-gray-500 mt-0.5">
+                    <div className="font-semibold text-gray-900 dark:text-white text-sm">{s.user.name}</div>
+                    <div className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
                       {batchCode ? `Batch ${batchCode} • ` : ""}
                       {s.level ? `${LEVEL_LABELS[s.level] ?? s.level} • ` : ""}
                       {coachName ? `Coach ${coachName} • ` : ""}
@@ -522,7 +522,7 @@ export function FeesLedger({ initialConfigs, availableStudents, availableBatches
                 <div className="flex items-center gap-3 shrink-0">
                   <button
                     onClick={(e) => { e.stopPropagation(); if (active) toggleCycleStatus(c.id, active); }}
-                    className={`border-none rounded-full px-3 py-1.5 text-xs font-bold cursor-pointer transition-colors ${status === "PAID" ? "bg-green-100 text-green-700 hover:bg-green-200" : status === "WAIVED" ? "bg-gray-100 text-gray-600 hover:bg-gray-200" : overdue ? "bg-red-100 text-red-700 hover:bg-red-200" : "bg-amber-100 text-amber-700 hover:bg-amber-200"}`}>
+                    className={`border-none rounded-full px-3 py-1.5 text-xs font-bold cursor-pointer transition-colors ${status === "PAID" ? "bg-green-100 text-green-700 hover:bg-green-200" : status === "WAIVED" ? "bg-gray-100 text-gray-600 dark:text-gray-300 hover:bg-gray-200" : overdue ? "bg-red-100 text-red-700 hover:bg-red-200" : "bg-amber-100 text-amber-700 hover:bg-amber-200"}`}>
                     {status === "PAID" ? "Paid" : status === "WAIVED" ? "Waived" : overdue ? "Overdue" : "Unpaid"}
                   </button>
                   <span className={`text-gray-400 text-sm transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}>▼</span>
@@ -531,7 +531,7 @@ export function FeesLedger({ initialConfigs, availableStudents, availableBatches
 
               {/* Expanded detail */}
               {isOpen && (
-                <div className="border-t border-gray-100 p-4 bg-gray-50">
+                <div className="border-t border-gray-100 p-4 bg-gray-50 dark:bg-slate-900/50">
                   {/* Info grid */}
                   <div className="grid grid-cols-2 gap-4 mb-4">
                     {[
@@ -545,70 +545,70 @@ export function FeesLedger({ initialConfigs, availableStudents, availableBatches
                       ...(c.feeStartDate ? [{ icon: "📅", label: "Fee start date", val: fmtDate(c.feeStartDate) }] : []),
                     ].map((row) => (
                       <div key={row.label}>
-                        <div className="text-[10px] text-gray-500 uppercase tracking-wider mb-1 flex items-center gap-1">{row.icon} {row.label}</div>
-                        <div className="text-sm font-medium text-gray-900">{row.val}</div>
+                        <div className="text-[10px] text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1 flex items-center gap-1">{row.icon} {row.label}</div>
+                        <div className="text-sm font-medium text-gray-900 dark:text-white">{row.val}</div>
                       </div>
                     ))}
                   </div>
 
                   {/* Cycles */}
                   <div className="flex justify-between items-center mb-2">
-                    <div className="text-[10px] text-gray-500 uppercase tracking-wider">
+                    <div className="text-[10px] text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                       {isBatch ? "Batch payment cycles" : "Fee cycles"}
                     </div>
                   </div>
                   <div className="flex flex-col gap-2 mb-3">
                     {c.cycles.filter((cy) => !cy.isHidden).length === 0 ? (
-                      <div className="text-center text-gray-500 text-sm py-3">No active cycles.</div>
+                      <div className="text-center text-gray-500 dark:text-gray-400 text-sm py-3">No active cycles.</div>
                     ) : c.cycles.filter((cy) => !cy.isHidden).map((cy, idx) => {
                       const isActiveCy = active?.id === cy.id;
                       const cyOverdue = cy.status === "UNPAID" && cy.dueDate && cy.dueDate < todayStr();
                       return (
-                        <div key={cy.id} className={`border rounded-xl p-3 bg-white transition-shadow ${isActiveCy ? "border-amber-400 ring-1 ring-amber-400" : "border-gray-200"}`}>
+                        <div key={cy.id} className={`border rounded-xl p-3 bg-white dark:bg-[#11141c]/90 dark:backdrop-blur-xl transition-shadow ${isActiveCy ? "border-amber-400 ring-1 ring-amber-400" : "border-gray-200 dark:border-slate-800"}`}>
                           <div className="flex justify-between items-center mb-3">
-                            <span className="text-xs font-semibold text-gray-500">
+                            <span className="text-xs font-semibold text-gray-500 dark:text-gray-400">
                               {isBatch ? `Batch Cycle ${idx + 1}` : `Cycle ${idx + 1}`}
                             </span>
                             <button onClick={() => toggleCycleStatus(c.id, cy)}
-                              className={`border-none rounded-full px-3 py-1 text-xs font-bold cursor-pointer transition-colors ${cy.status === "PAID" ? "bg-green-100 text-green-700 hover:bg-green-200" : cy.status === "WAIVED" ? "bg-gray-100 text-gray-600 hover:bg-gray-200" : "bg-red-100 text-red-700 hover:bg-red-200"}`}>
+                              className={`border-none rounded-full px-3 py-1 text-xs font-bold cursor-pointer transition-colors ${cy.status === "PAID" ? "bg-green-100 text-green-700 hover:bg-green-200" : cy.status === "WAIVED" ? "bg-gray-100 text-gray-600 dark:text-gray-300 hover:bg-gray-200" : "bg-red-100 text-red-700 hover:bg-red-200"}`}>
                               {cy.status === "PAID" ? "Paid" : cy.status === "WAIVED" ? "Waived" : "Unpaid"}
                             </button>
                           </div>
                           <div className="grid grid-cols-3 gap-3 mb-3">
                             {isBatch ? (
                               <>
-                                <label className="flex flex-col gap-1 text-[10px] text-gray-500">
+                                <label className="flex flex-col gap-1 text-[10px] text-gray-500 dark:text-gray-400">
                                   <span>Batch code</span>
-                                  <input type="text" defaultValue={cy.batchCode ?? ""} onBlur={(e) => updateCycleField(c.id, cy.id, { batchCode: e.target.value || null })} className="border border-gray-200 rounded-md px-2 py-1.5 text-xs text-gray-900 bg-gray-50 focus:ring-1 focus:ring-blue-500 outline-none w-full" />
+                                  <input type="text" defaultValue={cy.batchCode ?? ""} onBlur={(e) => updateCycleField(c.id, cy.id, { batchCode: e.target.value || null })} className="border border-gray-200 dark:border-slate-800 rounded-md px-2 py-1.5 text-xs text-gray-900 dark:text-white bg-gray-50 dark:bg-slate-900/50 focus:ring-1 focus:ring-blue-500 outline-none w-full" />
                                 </label>
-                                <label className="flex flex-col gap-1 text-[10px] text-gray-500 col-span-2">
+                                <label className="flex flex-col gap-1 text-[10px] text-gray-500 dark:text-gray-400 col-span-2">
                                   <span>Batch name</span>
-                                  <input type="text" defaultValue={cy.batchName ?? ""} onBlur={(e) => updateCycleField(c.id, cy.id, { batchName: e.target.value || null })} className="border border-gray-200 rounded-md px-2 py-1.5 text-xs text-gray-900 bg-gray-50 focus:ring-1 focus:ring-blue-500 outline-none w-full" />
+                                  <input type="text" defaultValue={cy.batchName ?? ""} onBlur={(e) => updateCycleField(c.id, cy.id, { batchName: e.target.value || null })} className="border border-gray-200 dark:border-slate-800 rounded-md px-2 py-1.5 text-xs text-gray-900 dark:text-white bg-gray-50 dark:bg-slate-900/50 focus:ring-1 focus:ring-blue-500 outline-none w-full" />
                                 </label>
                               </>
                             ) : (
                               <>
-                                <label className="flex flex-col gap-1 text-[10px] text-gray-500">
+                                <label className="flex flex-col gap-1 text-[10px] text-gray-500 dark:text-gray-400">
                                   <span>Due date {cyOverdue ? "⚠️" : ""}</span>
-                                  <input type="date" defaultValue={safeSlice(cy.dueDate, 10) ?? ""} onBlur={(e) => updateCycleField(c.id, cy.id, { dueDate: e.target.value || null })} className="border border-gray-200 rounded-md px-2 py-1.5 text-xs text-gray-900 bg-gray-50 focus:ring-1 focus:ring-blue-500 outline-none w-full" />
+                                  <input type="date" defaultValue={safeSlice(cy.dueDate, 10) ?? ""} onBlur={(e) => updateCycleField(c.id, cy.id, { dueDate: e.target.value || null })} className="border border-gray-200 dark:border-slate-800 rounded-md px-2 py-1.5 text-xs text-gray-900 dark:text-white bg-gray-50 dark:bg-slate-900/50 focus:ring-1 focus:ring-blue-500 outline-none w-full" />
                                 </label>
-                                <label className="flex flex-col gap-1 text-[10px] text-gray-500">
+                                <label className="flex flex-col gap-1 text-[10px] text-gray-500 dark:text-gray-400">
                                   <span>Classes</span>
-                                  <input type="number" defaultValue={cy.classes ?? ""} onBlur={(e) => updateCycleField(c.id, cy.id, { classes: Number(e.target.value) || null })} className="border border-gray-200 rounded-md px-2 py-1.5 text-xs text-gray-900 bg-gray-50 focus:ring-1 focus:ring-blue-500 outline-none w-full" />
+                                  <input type="number" defaultValue={cy.classes ?? ""} onBlur={(e) => updateCycleField(c.id, cy.id, { classes: Number(e.target.value) || null })} className="border border-gray-200 dark:border-slate-800 rounded-md px-2 py-1.5 text-xs text-gray-900 dark:text-white bg-gray-50 dark:bg-slate-900/50 focus:ring-1 focus:ring-blue-500 outline-none w-full" />
                                 </label>
                               </>
                             )}
-                            <label className="flex flex-col gap-1 text-[10px] text-gray-500">
+                            <label className="flex flex-col gap-1 text-[10px] text-gray-500 dark:text-gray-400">
                               <span>Amount (₹)</span>
-                              <input type="number" defaultValue={cy.amount} onBlur={(e) => updateCycleField(c.id, cy.id, { amount: Number(e.target.value) || 0 })} className="border border-gray-200 rounded-md px-2 py-1.5 text-xs text-gray-900 bg-gray-50 focus:ring-1 focus:ring-blue-500 outline-none w-full" />
+                              <input type="number" defaultValue={cy.amount} onBlur={(e) => updateCycleField(c.id, cy.id, { amount: Number(e.target.value) || 0 })} className="border border-gray-200 dark:border-slate-800 rounded-md px-2 py-1.5 text-xs text-gray-900 dark:text-white bg-gray-50 dark:bg-slate-900/50 focus:ring-1 focus:ring-blue-500 outline-none w-full" />
                             </label>
                           </div>
                           <div className="flex justify-between items-center">
-                            <span className="text-[11px] text-gray-500">
+                            <span className="text-[11px] text-gray-500 dark:text-gray-400">
                               {cy.status === "PAID" ? `Paid on ${fmtDate(cy.paidDate)}` : cy.dueDate ? `Due ${fmtDate(cy.dueDate)}` : isBatch ? "Due on batch completion" : "No due date set"}
                             </span>
                             <div className="flex gap-2">
-                              <button onClick={() => hideCycleById(c.id, cy.id)} className="bg-transparent border-none text-gray-500 hover:text-gray-700 text-[11px] font-semibold cursor-pointer">Hide</button>
+                              <button onClick={() => hideCycleById(c.id, cy.id)} className="bg-transparent border-none text-gray-500 dark:text-gray-400 hover:text-gray-700 text-[11px] font-semibold cursor-pointer">Hide</button>
                               <button onClick={() => deleteCycleById(c.id, cy.id)} className="bg-transparent border-none text-red-600 text-[11px] font-semibold cursor-pointer hover:text-red-800">Remove</button>
                             </div>
                           </div>
@@ -616,14 +616,14 @@ export function FeesLedger({ initialConfigs, availableStudents, availableBatches
                       );
                     })}
                   </div>
-                  <button onClick={() => openAddCycle(c)} className="w-full bg-white border border-dashed border-gray-300 rounded-lg py-2.5 text-xs font-semibold text-gray-600 cursor-pointer mb-4 hover:bg-gray-50 transition-colors">
+                  <button onClick={() => openAddCycle(c)} className="w-full bg-white dark:bg-[#11141c]/90 dark:backdrop-blur-xl border border-dashed border-gray-300 dark:border-slate-700 rounded-lg py-2.5 text-xs font-semibold text-gray-600 dark:text-gray-300 cursor-pointer mb-4 hover:bg-gray-50 dark:bg-slate-900/50 transition-colors">
                     + Add {isBatch ? "batch" : ""} cycle
                   </button>
 
                   {/* Actions */}
                   <div className="flex gap-2 justify-end">
-                    <button onClick={() => openEdit(c)} className="flex items-center gap-1.5 bg-white border border-gray-200 rounded-md px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50 shadow-sm cursor-pointer transition-colors">✎ Edit</button>
-                    <button onClick={() => setDeleteTarget(c)} className="flex items-center gap-1.5 bg-white border border-red-200 rounded-md px-3 py-1.5 text-xs font-semibold text-red-600 hover:bg-red-50 shadow-sm cursor-pointer transition-colors">🗑 Delete</button>
+                    <button onClick={() => openEdit(c)} className="flex items-center gap-1.5 bg-white dark:bg-[#11141c]/90 dark:backdrop-blur-xl border border-gray-200 dark:border-slate-800 rounded-md px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50 dark:bg-slate-900/50 shadow-sm cursor-pointer transition-colors">✎ Edit</button>
+                    <button onClick={() => setDeleteTarget(c)} className="flex items-center gap-1.5 bg-white dark:bg-[#11141c]/90 dark:backdrop-blur-xl border border-red-200 rounded-md px-3 py-1.5 text-xs font-semibold text-red-600 hover:bg-red-50 shadow-sm cursor-pointer transition-colors">🗑 Delete</button>
                   </div>
                 </div>
               )}
@@ -648,13 +648,13 @@ export function FeesLedger({ initialConfigs, availableStudents, availableBatches
               const selectedStu = availableStudents.find((s) => s.profileId === addForm.profileId);
               if (selectedStu) {
                 return (
-                  <div className="bg-gray-50 border border-gray-200 p-3 rounded-lg mt-1 flex flex-col gap-2">
-                    <div className="text-sm font-semibold text-gray-900">{selectedStu.name}</div>
-                    {selectedStu.phone && <div className="text-xs text-gray-600 flex items-center gap-2">📞 {selectedStu.phone}</div>}
-                    {selectedStu.coach && <div className="text-xs text-gray-600 flex items-center gap-2">👨‍🏫 Coach: {selectedStu.coach}</div>}
-                    {selectedStu.level && <div className="text-xs text-gray-600 flex items-center gap-2">⭐ Level: {selectedStu.level}</div>}
+                  <div className="bg-gray-50 dark:bg-slate-900/50 border border-gray-200 dark:border-slate-800 p-3 rounded-lg mt-1 flex flex-col gap-2">
+                    <div className="text-sm font-semibold text-gray-900 dark:text-white">{selectedStu.name}</div>
+                    {selectedStu.phone && <div className="text-xs text-gray-600 dark:text-gray-300 flex items-center gap-2">📞 {selectedStu.phone}</div>}
+                    {selectedStu.coach && <div className="text-xs text-gray-600 dark:text-gray-300 flex items-center gap-2">👨‍🏫 Coach: {selectedStu.coach}</div>}
+                    {selectedStu.level && <div className="text-xs text-gray-600 dark:text-gray-300 flex items-center gap-2">⭐ Level: {selectedStu.level}</div>}
                     {selectedStu.batches.length > 0 && (
-                      <div className="text-xs text-gray-600 flex items-start gap-2">
+                      <div className="text-xs text-gray-600 dark:text-gray-300 flex items-start gap-2">
                         🏫 <div>Batches:<br/><span className="font-medium">{selectedStu.batches.map(b => `${b.name} (${b.code})`).join(', ')}</span></div>
                       </div>
                     )}
@@ -666,39 +666,39 @@ export function FeesLedger({ initialConfigs, availableStudents, availableBatches
           </Field>
           <div className="grid grid-cols-2 gap-4">
             <Field label="Fee type">
-              <select value={addForm.feeType} onChange={(e) => setAddForm((p) => ({ ...p, feeType: e.target.value as "MONTHLY" | "BATCH_BASED" }))} className="border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-900 outline-none focus:ring-2 focus:ring-blue-500 w-full bg-white">
+              <select value={addForm.feeType} onChange={(e) => setAddForm((p) => ({ ...p, feeType: e.target.value as "MONTHLY" | "BATCH_BASED" }))} className="border border-gray-200 dark:border-slate-800 rounded-lg px-3 py-2.5 text-sm text-gray-900 dark:text-white outline-none focus:ring-2 focus:ring-blue-500 w-full bg-white dark:bg-[#11141c]/90 dark:backdrop-blur-xl">
                 <option value="MONTHLY">Monthly-based</option>
                 <option value="BATCH_BASED">Batch-based</option>
               </select>
             </Field>
             <Field label="Default fee (₹)">
-              <input type="number" value={addForm.feeAmount} onChange={(e) => setAddForm((p) => ({ ...p, feeAmount: e.target.value }))} placeholder="2000" className="border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-900 outline-none focus:ring-2 focus:ring-blue-500 w-full bg-white" />
+              <input type="number" value={addForm.feeAmount} onChange={(e) => setAddForm((p) => ({ ...p, feeAmount: e.target.value }))} placeholder="2000" className="border border-gray-200 dark:border-slate-800 rounded-lg px-3 py-2.5 text-sm text-gray-900 dark:text-white outline-none focus:ring-2 focus:ring-blue-500 w-full bg-white dark:bg-[#11141c]/90 dark:backdrop-blur-xl" />
             </Field>
             {addForm.feeType === "MONTHLY" && (
               <>
                 <Field label="Frequency">
-                  <select value={addForm.frequency} onChange={(e) => setAddForm((p) => ({ ...p, frequency: e.target.value }))} className="border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-900 outline-none focus:ring-2 focus:ring-blue-500 w-full bg-white">
+                  <select value={addForm.frequency} onChange={(e) => setAddForm((p) => ({ ...p, frequency: e.target.value }))} className="border border-gray-200 dark:border-slate-800 rounded-lg px-3 py-2.5 text-sm text-gray-900 dark:text-white outline-none focus:ring-2 focus:ring-blue-500 w-full bg-white dark:bg-[#11141c]/90 dark:backdrop-blur-xl">
                     {Object.entries(FREQ_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
                   </select>
                 </Field>
                 <Field label="Classes / cycle">
-                  <input type="number" value={addForm.classesPerCycle} onChange={(e) => setAddForm((p) => ({ ...p, classesPerCycle: e.target.value }))} placeholder="8" className="border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-900 outline-none focus:ring-2 focus:ring-blue-500 w-full bg-white" />
+                  <input type="number" value={addForm.classesPerCycle} onChange={(e) => setAddForm((p) => ({ ...p, classesPerCycle: e.target.value }))} placeholder="8" className="border border-gray-200 dark:border-slate-800 rounded-lg px-3 py-2.5 text-sm text-gray-900 dark:text-white outline-none focus:ring-2 focus:ring-blue-500 w-full bg-white dark:bg-[#11141c]/90 dark:backdrop-blur-xl" />
                 </Field>
                 <Field label="Fee start date">
-                  <input type="date" value={addForm.feeStartDate} onChange={(e) => setAddForm((p) => ({ ...p, feeStartDate: e.target.value }))} className="border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-900 outline-none focus:ring-2 focus:ring-blue-500 w-full bg-white" />
+                  <input type="date" value={addForm.feeStartDate} onChange={(e) => setAddForm((p) => ({ ...p, feeStartDate: e.target.value }))} className="border border-gray-200 dark:border-slate-800 rounded-lg px-3 py-2.5 text-sm text-gray-900 dark:text-white outline-none focus:ring-2 focus:ring-blue-500 w-full bg-white dark:bg-[#11141c]/90 dark:backdrop-blur-xl" />
                 </Field>
               </>
             )}
             <Field label="Start date">
-              <input type="date" value={addForm.startDate} onChange={(e) => setAddForm((p) => ({ ...p, startDate: e.target.value }))} className="border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-900 outline-none focus:ring-2 focus:ring-blue-500 w-full bg-white" />
+              <input type="date" value={addForm.startDate} onChange={(e) => setAddForm((p) => ({ ...p, startDate: e.target.value }))} className="border border-gray-200 dark:border-slate-800 rounded-lg px-3 py-2.5 text-sm text-gray-900 dark:text-white outline-none focus:ring-2 focus:ring-blue-500 w-full bg-white dark:bg-[#11141c]/90 dark:backdrop-blur-xl" />
             </Field>
           </div>
           <Field label="Notes (optional)">
-            <input value={addForm.notes} onChange={(e) => setAddForm((p) => ({ ...p, notes: e.target.value }))} placeholder="Any notes…" className="border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-900 outline-none focus:ring-2 focus:ring-blue-500 w-full bg-white" />
+            <input value={addForm.notes} onChange={(e) => setAddForm((p) => ({ ...p, notes: e.target.value }))} placeholder="Any notes…" className="border border-gray-200 dark:border-slate-800 rounded-lg px-3 py-2.5 text-sm text-gray-900 dark:text-white outline-none focus:ring-2 focus:ring-blue-500 w-full bg-white dark:bg-[#11141c]/90 dark:backdrop-blur-xl" />
           </Field>
           {addError && <p className="text-red-600 text-xs">{addError}</p>}
           <div className="flex gap-2 justify-end mt-2">
-            <button onClick={() => setAddOpen(false)} className="bg-gray-100 hover:bg-gray-200 text-gray-800 border-none rounded-lg px-4 py-2.5 text-sm font-semibold cursor-pointer transition-colors">Cancel</button>
+            <button onClick={() => setAddOpen(false)} className="bg-gray-100 hover:bg-gray-200 text-gray-800 dark:text-gray-200 border-none rounded-lg px-4 py-2.5 text-sm font-semibold cursor-pointer transition-colors">Cancel</button>
             <button onClick={submitAdd} disabled={addLoading} className="bg-blue-600 hover:bg-blue-700 text-white border-none rounded-lg px-4 py-2.5 text-sm font-semibold cursor-pointer transition-colors disabled:opacity-50 disabled:cursor-not-allowed">{addLoading ? "Adding…" : "Add student"}</button>
           </div>
         </div>
@@ -709,35 +709,35 @@ export function FeesLedger({ initialConfigs, availableStudents, availableBatches
         <div className="flex flex-col gap-4">
           <div className="grid grid-cols-2 gap-4">
             <Field label="Fee type">
-              <select value={editForm.feeType} onChange={(e) => setEditForm((p) => ({ ...p, feeType: e.target.value as "MONTHLY" | "BATCH_BASED" }))} className="border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-900 outline-none focus:ring-2 focus:ring-blue-500 w-full bg-white">
+              <select value={editForm.feeType} onChange={(e) => setEditForm((p) => ({ ...p, feeType: e.target.value as "MONTHLY" | "BATCH_BASED" }))} className="border border-gray-200 dark:border-slate-800 rounded-lg px-3 py-2.5 text-sm text-gray-900 dark:text-white outline-none focus:ring-2 focus:ring-blue-500 w-full bg-white dark:bg-[#11141c]/90 dark:backdrop-blur-xl">
                 <option value="MONTHLY">Monthly-based</option>
                 <option value="BATCH_BASED">Batch-based</option>
               </select>
             </Field>
             <Field label="Default fee (₹)">
-              <input type="number" value={editForm.feeAmount} onChange={(e) => setEditForm((p) => ({ ...p, feeAmount: e.target.value }))} className="border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-900 outline-none focus:ring-2 focus:ring-blue-500 w-full bg-white" />
+              <input type="number" value={editForm.feeAmount} onChange={(e) => setEditForm((p) => ({ ...p, feeAmount: e.target.value }))} className="border border-gray-200 dark:border-slate-800 rounded-lg px-3 py-2.5 text-sm text-gray-900 dark:text-white outline-none focus:ring-2 focus:ring-blue-500 w-full bg-white dark:bg-[#11141c]/90 dark:backdrop-blur-xl" />
             </Field>
             {editForm.feeType === "MONTHLY" && (
               <>
                 <Field label="Frequency">
-                  <select value={editForm.frequency} onChange={(e) => setEditForm((p) => ({ ...p, frequency: e.target.value }))} className="border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-900 outline-none focus:ring-2 focus:ring-blue-500 w-full bg-white">
+                  <select value={editForm.frequency} onChange={(e) => setEditForm((p) => ({ ...p, frequency: e.target.value }))} className="border border-gray-200 dark:border-slate-800 rounded-lg px-3 py-2.5 text-sm text-gray-900 dark:text-white outline-none focus:ring-2 focus:ring-blue-500 w-full bg-white dark:bg-[#11141c]/90 dark:backdrop-blur-xl">
                     {Object.entries(FREQ_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
                   </select>
                 </Field>
                 <Field label="Classes / cycle">
-                  <input type="number" value={editForm.classesPerCycle} onChange={(e) => setEditForm((p) => ({ ...p, classesPerCycle: e.target.value }))} className="border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-900 outline-none focus:ring-2 focus:ring-blue-500 w-full bg-white" />
+                  <input type="number" value={editForm.classesPerCycle} onChange={(e) => setEditForm((p) => ({ ...p, classesPerCycle: e.target.value }))} className="border border-gray-200 dark:border-slate-800 rounded-lg px-3 py-2.5 text-sm text-gray-900 dark:text-white outline-none focus:ring-2 focus:ring-blue-500 w-full bg-white dark:bg-[#11141c]/90 dark:backdrop-blur-xl" />
                 </Field>
                 <Field label="Fee start date">
-                  <input type="date" value={editForm.feeStartDate} onChange={(e) => setEditForm((p) => ({ ...p, feeStartDate: e.target.value }))} className="border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-900 outline-none focus:ring-2 focus:ring-blue-500 w-full bg-white" />
+                  <input type="date" value={editForm.feeStartDate} onChange={(e) => setEditForm((p) => ({ ...p, feeStartDate: e.target.value }))} className="border border-gray-200 dark:border-slate-800 rounded-lg px-3 py-2.5 text-sm text-gray-900 dark:text-white outline-none focus:ring-2 focus:ring-blue-500 w-full bg-white dark:bg-[#11141c]/90 dark:backdrop-blur-xl" />
                 </Field>
               </>
             )}
             <Field label="Start date">
-              <input type="date" value={editForm.startDate} onChange={(e) => setEditForm((p) => ({ ...p, startDate: e.target.value }))} className="border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-900 outline-none focus:ring-2 focus:ring-blue-500 w-full bg-white" />
+              <input type="date" value={editForm.startDate} onChange={(e) => setEditForm((p) => ({ ...p, startDate: e.target.value }))} className="border border-gray-200 dark:border-slate-800 rounded-lg px-3 py-2.5 text-sm text-gray-900 dark:text-white outline-none focus:ring-2 focus:ring-blue-500 w-full bg-white dark:bg-[#11141c]/90 dark:backdrop-blur-xl" />
             </Field>
           </div>
           <Field label="Assigned Batch">
-            <select value={editForm.batchId} onChange={(e) => setEditForm((p) => ({ ...p, batchId: e.target.value }))} className="border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-900 outline-none focus:ring-2 focus:ring-blue-500 w-full bg-white">
+            <select value={editForm.batchId} onChange={(e) => setEditForm((p) => ({ ...p, batchId: e.target.value }))} className="border border-gray-200 dark:border-slate-800 rounded-lg px-3 py-2.5 text-sm text-gray-900 dark:text-white outline-none focus:ring-2 focus:ring-blue-500 w-full bg-white dark:bg-[#11141c]/90 dark:backdrop-blur-xl">
               <option value="">No Batch Assigned</option>
               {availableBatches.map(b => (
                 <option key={b.id} value={b.id}>{b.name} ({b.code})</option>
@@ -745,11 +745,11 @@ export function FeesLedger({ initialConfigs, availableStudents, availableBatches
             </select>
           </Field>
           <Field label="Notes (optional)">
-            <input value={editForm.notes} onChange={(e) => setEditForm((p) => ({ ...p, notes: e.target.value }))} className="border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-900 outline-none focus:ring-2 focus:ring-blue-500 w-full bg-white" />
+            <input value={editForm.notes} onChange={(e) => setEditForm((p) => ({ ...p, notes: e.target.value }))} className="border border-gray-200 dark:border-slate-800 rounded-lg px-3 py-2.5 text-sm text-gray-900 dark:text-white outline-none focus:ring-2 focus:ring-blue-500 w-full bg-white dark:bg-[#11141c]/90 dark:backdrop-blur-xl" />
           </Field>
           {editError && <p className="text-red-600 text-xs">{editError}</p>}
           <div className="flex gap-2 justify-end mt-2">
-            <button onClick={() => setEditTarget(null)} className="bg-gray-100 hover:bg-gray-200 text-gray-800 border-none rounded-lg px-4 py-2.5 text-sm font-semibold cursor-pointer transition-colors">Cancel</button>
+            <button onClick={() => setEditTarget(null)} className="bg-gray-100 hover:bg-gray-200 text-gray-800 dark:text-gray-200 border-none rounded-lg px-4 py-2.5 text-sm font-semibold cursor-pointer transition-colors">Cancel</button>
             <button onClick={submitEdit} disabled={editLoading} className="bg-blue-600 hover:bg-blue-700 text-white border-none rounded-lg px-4 py-2.5 text-sm font-semibold cursor-pointer transition-colors disabled:opacity-50 disabled:cursor-not-allowed">{editLoading ? "Saving…" : "Save changes"}</button>
           </div>
         </div>
@@ -778,35 +778,35 @@ export function FeesLedger({ initialConfigs, availableStudents, availableBatches
               </Field>
               <div className="grid grid-cols-2 gap-4">
                 <Field label="Batch code">
-                  <input type="text" value={cycleForm.batchCode} onChange={(e) => setCycleForm((p) => ({ ...p, batchCode: e.target.value }))} placeholder="e.g. B-14" className="border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-900 outline-none focus:ring-2 focus:ring-blue-500 w-full bg-white" />
+                  <input type="text" value={cycleForm.batchCode} onChange={(e) => setCycleForm((p) => ({ ...p, batchCode: e.target.value }))} placeholder="e.g. B-14" className="border border-gray-200 dark:border-slate-800 rounded-lg px-3 py-2.5 text-sm text-gray-900 dark:text-white outline-none focus:ring-2 focus:ring-blue-500 w-full bg-white dark:bg-[#11141c]/90 dark:backdrop-blur-xl" />
                 </Field>
                 <Field label="Amount (₹) *">
-                  <input type="number" value={cycleForm.amount} onChange={(e) => setCycleForm((p) => ({ ...p, amount: e.target.value }))} placeholder="2000" className="border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-900 outline-none focus:ring-2 focus:ring-blue-500 w-full bg-white" />
+                  <input type="number" value={cycleForm.amount} onChange={(e) => setCycleForm((p) => ({ ...p, amount: e.target.value }))} placeholder="2000" className="border border-gray-200 dark:border-slate-800 rounded-lg px-3 py-2.5 text-sm text-gray-900 dark:text-white outline-none focus:ring-2 focus:ring-blue-500 w-full bg-white dark:bg-[#11141c]/90 dark:backdrop-blur-xl" />
                 </Field>
                 <Field label="Batch name" style={{ gridColumn: "span 2" }}>
-                  <input type="text" value={cycleForm.batchName} onChange={(e) => setCycleForm((p) => ({ ...p, batchName: e.target.value }))} placeholder="e.g. Core 2 Group A" className="border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-900 outline-none focus:ring-2 focus:ring-blue-500 w-full bg-white" />
+                  <input type="text" value={cycleForm.batchName} onChange={(e) => setCycleForm((p) => ({ ...p, batchName: e.target.value }))} placeholder="e.g. Core 2 Group A" className="border border-gray-200 dark:border-slate-800 rounded-lg px-3 py-2.5 text-sm text-gray-900 dark:text-white outline-none focus:ring-2 focus:ring-blue-500 w-full bg-white dark:bg-[#11141c]/90 dark:backdrop-blur-xl" />
                 </Field>
               </div>
             </div>
           ) : (
             <div className="grid grid-cols-3 gap-4">
               <Field label="Due date">
-                <input type="date" value={cycleForm.dueDate} onChange={(e) => setCycleForm((p) => ({ ...p, dueDate: e.target.value }))} className="border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-900 outline-none focus:ring-2 focus:ring-blue-500 w-full bg-white" />
+                <input type="date" value={cycleForm.dueDate} onChange={(e) => setCycleForm((p) => ({ ...p, dueDate: e.target.value }))} className="border border-gray-200 dark:border-slate-800 rounded-lg px-3 py-2.5 text-sm text-gray-900 dark:text-white outline-none focus:ring-2 focus:ring-blue-500 w-full bg-white dark:bg-[#11141c]/90 dark:backdrop-blur-xl" />
               </Field>
               <Field label="Classes">
-                <input type="number" value={cycleForm.classes} onChange={(e) => setCycleForm((p) => ({ ...p, classes: e.target.value }))} placeholder="8" className="border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-900 outline-none focus:ring-2 focus:ring-blue-500 w-full bg-white" />
+                <input type="number" value={cycleForm.classes} onChange={(e) => setCycleForm((p) => ({ ...p, classes: e.target.value }))} placeholder="8" className="border border-gray-200 dark:border-slate-800 rounded-lg px-3 py-2.5 text-sm text-gray-900 dark:text-white outline-none focus:ring-2 focus:ring-blue-500 w-full bg-white dark:bg-[#11141c]/90 dark:backdrop-blur-xl" />
               </Field>
               <Field label="Amount (₹) *">
-                <input type="number" value={cycleForm.amount} onChange={(e) => setCycleForm((p) => ({ ...p, amount: e.target.value }))} placeholder="2000" className="border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-900 outline-none focus:ring-2 focus:ring-blue-500 w-full bg-white" />
+                <input type="number" value={cycleForm.amount} onChange={(e) => setCycleForm((p) => ({ ...p, amount: e.target.value }))} placeholder="2000" className="border border-gray-200 dark:border-slate-800 rounded-lg px-3 py-2.5 text-sm text-gray-900 dark:text-white outline-none focus:ring-2 focus:ring-blue-500 w-full bg-white dark:bg-[#11141c]/90 dark:backdrop-blur-xl" />
               </Field>
             </div>
           )}
           <Field label="Notes (optional)">
-            <input value={cycleForm.notes} onChange={(e) => setCycleForm((p) => ({ ...p, notes: e.target.value }))} placeholder="Any notes…" className="border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-900 outline-none focus:ring-2 focus:ring-blue-500 w-full bg-white" />
+            <input value={cycleForm.notes} onChange={(e) => setCycleForm((p) => ({ ...p, notes: e.target.value }))} placeholder="Any notes…" className="border border-gray-200 dark:border-slate-800 rounded-lg px-3 py-2.5 text-sm text-gray-900 dark:text-white outline-none focus:ring-2 focus:ring-blue-500 w-full bg-white dark:bg-[#11141c]/90 dark:backdrop-blur-xl" />
           </Field>
           {cycleError && <p className="text-red-600 text-xs">{cycleError}</p>}
           <div className="flex gap-2 justify-end mt-2">
-            <button onClick={() => setAddCycleTarget(null)} className="bg-gray-100 hover:bg-gray-200 text-gray-800 border-none rounded-lg px-4 py-2.5 text-sm font-semibold cursor-pointer transition-colors">Cancel</button>
+            <button onClick={() => setAddCycleTarget(null)} className="bg-gray-100 hover:bg-gray-200 text-gray-800 dark:text-gray-200 border-none rounded-lg px-4 py-2.5 text-sm font-semibold cursor-pointer transition-colors">Cancel</button>
             <button onClick={submitCycle} disabled={cycleLoading} className="bg-blue-600 hover:bg-blue-700 text-white border-none rounded-lg px-4 py-2.5 text-sm font-semibold cursor-pointer transition-colors disabled:opacity-50 disabled:cursor-not-allowed">{cycleLoading ? "Adding…" : "Add cycle"}</button>
           </div>
         </div>
@@ -814,11 +814,11 @@ export function FeesLedger({ initialConfigs, availableStudents, availableBatches
 
       {/* ── Modal: Delete Confirm ─────────────────────────────────────────── */}
       <Modal open={!!deleteTarget} onClose={() => setDeleteTarget(null)} title={`Remove ${deleteTarget?.student.user.name ?? ""}?`}>
-        <p className="text-sm text-gray-600 leading-relaxed mb-6">
+        <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed mb-6">
           This removes their fee configuration and all payment cycles. Student account is not deleted.
         </p>
         <div className="flex gap-3 justify-end">
-          <button onClick={() => setDeleteTarget(null)} className="bg-gray-100 hover:bg-gray-200 text-gray-800 border-none rounded-lg px-4 py-2.5 text-sm font-semibold cursor-pointer transition-colors">Cancel</button>
+          <button onClick={() => setDeleteTarget(null)} className="bg-gray-100 hover:bg-gray-200 text-gray-800 dark:text-gray-200 border-none rounded-lg px-4 py-2.5 text-sm font-semibold cursor-pointer transition-colors">Cancel</button>
           <button onClick={async () => { if (deleteTarget) { await deleteConfig(deleteTarget.id); setDeleteTarget(null); } }} className="bg-red-600 hover:bg-red-700 text-white border-none rounded-lg px-4 py-2.5 text-sm font-semibold cursor-pointer transition-colors">Delete</button>
         </div>
       </Modal>
@@ -836,10 +836,10 @@ function Modal({ open, onClose, title, children }: { open: boolean; onClose: () 
   if (!open) return null;
   return (
     <div className="fixed inset-0 bg-gray-900/40 flex items-end sm:items-center justify-center z-50 p-0 sm:p-4" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
-      <div className="bg-white rounded-t-2xl sm:rounded-2xl p-5 w-full max-w-md max-h-[90vh] overflow-y-auto shadow-xl animate-in slide-in-from-bottom-4 sm:slide-in-from-bottom-0 sm:zoom-in-95 duration-200">
+      <div className="bg-white dark:bg-[#11141c]/90 dark:backdrop-blur-xl rounded-t-2xl sm:rounded-2xl p-5 w-full max-w-md max-h-[90vh] overflow-y-auto shadow-xl animate-in slide-in-from-bottom-4 sm:slide-in-from-bottom-0 sm:zoom-in-95 duration-200">
         <div className="flex justify-between items-center mb-5">
-          <div className="font-serif font-semibold text-xl text-gray-900">{title}</div>
-          <button onClick={onClose} className="w-8 h-8 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-600 flex items-center justify-center transition-colors cursor-pointer border-none">✕</button>
+          <div className="font-serif font-semibold text-xl text-gray-900 dark:text-white">{title}</div>
+          <button onClick={onClose} className="w-8 h-8 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-600 dark:text-gray-300 flex items-center justify-center transition-colors cursor-pointer border-none">✕</button>
         </div>
         {children}
       </div>
@@ -850,7 +850,7 @@ function Modal({ open, onClose, title, children }: { open: boolean; onClose: () 
 function Field({ label, children, style }: { label: string; children: React.ReactNode; style?: React.CSSProperties }) {
   return (
     <div className="flex flex-col gap-1.5" style={style}>
-      <label className="text-xs font-semibold text-gray-600">{label}</label>
+      <label className="text-xs font-semibold text-gray-600 dark:text-gray-300">{label}</label>
       {children}
     </div>
   );
@@ -884,21 +884,21 @@ function SearchableStudentSelect({
         onFocus={() => { setOpen(true); setQuery(""); }}
         onChange={(e) => { setQuery(e.target.value); if (!open) setOpen(true); }}
         onBlur={() => setTimeout(() => setOpen(false), 200)}
-        className="border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-900 outline-none focus:ring-2 focus:ring-blue-500 w-full bg-white shadow-sm"
+        className="border border-gray-200 dark:border-slate-800 rounded-lg px-3 py-2.5 text-sm text-gray-900 dark:text-white outline-none focus:ring-2 focus:ring-blue-500 w-full bg-white dark:bg-[#11141c]/90 dark:backdrop-blur-xl shadow-sm"
       />
       {open && (
-        <div className="absolute top-full left-0 right-0 max-h-60 overflow-y-auto bg-white border border-gray-200 rounded-lg mt-1 z-50 shadow-lg">
+        <div className="absolute top-full left-0 right-0 max-h-60 overflow-y-auto bg-white dark:bg-[#11141c]/90 dark:backdrop-blur-xl border border-gray-200 dark:border-slate-800 rounded-lg mt-1 z-50 shadow-lg">
           {filtered.length === 0 ? (
-            <div className="p-3 text-sm text-gray-500">No students found</div>
+            <div className="p-3 text-sm text-gray-500 dark:text-gray-400">No students found</div>
           ) : (
             filtered.map((s) => (
               <div
                 key={s.profileId}
                 onMouseDown={(e) => { e.preventDefault(); onChange(s.profileId); setQuery(""); setOpen(false); }}
-                className={`p-3 text-sm cursor-pointer border-b border-gray-50 last:border-b-0 hover:bg-gray-50 transition-colors ${value === s.profileId ? "bg-gray-50 font-medium" : "bg-white"}`}
+                className={`p-3 text-sm cursor-pointer border-b border-gray-50 last:border-b-0 hover:bg-gray-50 dark:bg-slate-900/50 transition-colors ${value === s.profileId ? "bg-gray-50 dark:bg-slate-900/50 font-medium" : "bg-white dark:bg-[#11141c]/90 dark:backdrop-blur-xl"}`}
               >
-                <div className="text-gray-900 font-medium">{s.name}</div>
-                <div className="text-xs text-gray-500 mt-0.5">
+                <div className="text-gray-900 dark:text-white font-medium">{s.name}</div>
+                <div className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
                   {s.phone ? `${s.phone}` : ""}
                   {s.city ? ` · ${s.city}` : ""}
                 </div>
@@ -939,21 +939,21 @@ function SearchableBatchSelect({
         onFocus={() => { setOpen(true); setQuery(""); }}
         onChange={(e) => { setQuery(e.target.value); if (!open) setOpen(true); }}
         onBlur={() => setTimeout(() => setOpen(false), 200)}
-        className="border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-900 outline-none focus:ring-2 focus:ring-blue-500 w-full bg-white shadow-sm"
+        className="border border-gray-200 dark:border-slate-800 rounded-lg px-3 py-2.5 text-sm text-gray-900 dark:text-white outline-none focus:ring-2 focus:ring-blue-500 w-full bg-white dark:bg-[#11141c]/90 dark:backdrop-blur-xl shadow-sm"
       />
       {open && (
-        <div className="absolute top-full left-0 right-0 max-h-60 overflow-y-auto bg-white border border-gray-200 rounded-lg mt-1 z-50 shadow-lg">
+        <div className="absolute top-full left-0 right-0 max-h-60 overflow-y-auto bg-white dark:bg-[#11141c]/90 dark:backdrop-blur-xl border border-gray-200 dark:border-slate-800 rounded-lg mt-1 z-50 shadow-lg">
           {filtered.length === 0 ? (
-            <div className="p-3 text-sm text-gray-500">No batches found</div>
+            <div className="p-3 text-sm text-gray-500 dark:text-gray-400">No batches found</div>
           ) : (
             filtered.map((b) => (
               <div
                 key={b.id}
                 onMouseDown={(e) => { e.preventDefault(); onChange(b.code, b.name); setQuery(""); setOpen(false); }}
-                className={`p-3 text-sm cursor-pointer border-b border-gray-50 last:border-b-0 hover:bg-gray-50 transition-colors ${value === b.code ? "bg-gray-50 font-medium" : "bg-white"}`}
+                className={`p-3 text-sm cursor-pointer border-b border-gray-50 last:border-b-0 hover:bg-gray-50 dark:bg-slate-900/50 transition-colors ${value === b.code ? "bg-gray-50 dark:bg-slate-900/50 font-medium" : "bg-white dark:bg-[#11141c]/90 dark:backdrop-blur-xl"}`}
               >
-                <div className="text-gray-900 font-medium">{b.name}</div>
-                <div className="text-xs text-gray-500 mt-0.5">
+                <div className="text-gray-900 dark:text-white font-medium">{b.name}</div>
+                <div className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
                   Code: {b.code}
                   {b.coachName ? ` · Coach: ${b.coachName}` : ""}
                 </div>
@@ -965,3 +965,4 @@ function SearchableBatchSelect({
     </div>
   );
 }
+

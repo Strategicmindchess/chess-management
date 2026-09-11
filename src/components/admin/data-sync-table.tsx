@@ -46,29 +46,29 @@ export function DataSyncTable({ data }: { data: SyncData[] }) {
   };
 
   return (
-    <div className="overflow-x-auto bg-white rounded-lg shadow">
+    <div className="overflow-x-auto bg-white dark:bg-[#11141c]/90 dark:backdrop-blur-xl dark:border dark:border-slate-800 rounded-lg shadow dark:shadow-[0_4px_20px_rgba(0,0,0,0.3)]">
       <table className="w-full text-left text-sm">
-        <thead className="bg-gray-50 border-b">
+        <thead className="bg-gray-50 dark:bg-slate-900/50 border-b dark:border-slate-800">
           <tr>
-            <th className="p-4 font-medium text-gray-600">Student</th>
-            <th className="p-4 font-medium text-gray-600">Accounts</th>
-            <th className="p-4 font-medium text-gray-600">Last Outcome</th>
-            <th className="p-4 font-medium text-gray-600">Provider States (CC | LI)</th>
-            <th className="p-4 font-medium text-gray-600">Last Attempt</th>
-            <th className="p-4 font-medium text-gray-600">Actions</th>
+            <th className="p-4 font-medium text-gray-600 dark:text-slate-300">Student</th>
+            <th className="p-4 font-medium text-gray-600 dark:text-slate-300">Accounts</th>
+            <th className="p-4 font-medium text-gray-600 dark:text-slate-300">Last Outcome</th>
+            <th className="p-4 font-medium text-gray-600 dark:text-slate-300">Provider States (CC | LI)</th>
+            <th className="p-4 font-medium text-gray-600 dark:text-slate-300">Last Attempt</th>
+            <th className="p-4 font-medium text-gray-600 dark:text-slate-300">Actions</th>
           </tr>
         </thead>
-        <tbody className="divide-y">
+        <tbody className="divide-y dark:divide-slate-800">
           {data.map((row) => (
-            <tr key={row.studentProfileId} className="hover:bg-gray-50">
-              <td className="p-4 font-medium text-gray-900">{row.name}</td>
-              <td className="p-4 text-gray-500">
-                {row.chessComUsername && <div className="text-xs font-semibold text-green-700 bg-green-100 inline-block px-2 py-0.5 rounded mr-1">CC: {row.chessComUsername}</div>}
-                {row.lichessUsername && <div className="text-xs font-semibold text-blue-700 bg-blue-100 inline-block px-2 py-0.5 rounded">LI: {row.lichessUsername}</div>}
+            <tr key={row.studentProfileId} className="hover:bg-gray-50 dark:hover:bg-slate-800/40">
+              <td className="p-4 font-medium text-gray-900 dark:text-white">{row.name}</td>
+              <td className="p-4 text-gray-500 dark:text-slate-400">
+                {row.chessComUsername && <div className="text-xs font-semibold text-green-700 dark:text-green-400 bg-green-100 dark:bg-green-900/30 inline-block px-2 py-0.5 rounded mr-1">CC: {row.chessComUsername}</div>}
+                {row.lichessUsername && <div className="text-xs font-semibold text-blue-700 dark:text-blue-400 bg-blue-100 dark:bg-blue-900/30 inline-block px-2 py-0.5 rounded">LI: {row.lichessUsername}</div>}
               </td>
               <td className="p-4">
                 {!row.latestRun ? (
-                  <span className="text-gray-400">Never</span>
+                  <span className="text-gray-400 dark:text-slate-500">Never</span>
                 ) : row.latestRun.status === 'UPDATED' ? (
                   <span className="flex items-center text-green-600"><CheckCircle className="w-4 h-4 mr-1"/> UPDATED</span>
                 ) : row.latestRun.status === 'PRESERVED' ? (
@@ -82,14 +82,14 @@ export function DataSyncTable({ data }: { data: SyncData[] }) {
               </td>
               <td className="p-4">
                 {!row.latestRun ? (
-                  <span className="text-gray-400">-</span>
+                  <span className="text-gray-400 dark:text-slate-500">-</span>
                 ) : (
-                  <span className="text-xs font-mono bg-gray-100 px-2 py-1 rounded border">
+                  <span className="text-xs font-mono bg-gray-100 dark:bg-slate-800 px-2 py-1 rounded border dark:border-slate-700 dark:text-slate-300">
                     {row.latestRun.chessComState || 'N/A'} | {row.latestRun.lichessState || 'N/A'}
                   </span>
                 )}
               </td>
-              <td className="p-4 text-gray-500 text-xs">
+              <td className="p-4 text-gray-500 dark:text-slate-400 text-xs">
                 {row.latestRun ? (
                   <div className="flex items-center">
                     <Clock className="w-3 h-3 mr-1" />
@@ -114,3 +114,4 @@ export function DataSyncTable({ data }: { data: SyncData[] }) {
     </div>
   );
 }
+

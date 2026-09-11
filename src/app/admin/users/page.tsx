@@ -83,10 +83,10 @@ export default async function AdminUsersPage({
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-xl font-semibold text-slate-900">
+          <h1 className="text-xl font-semibold text-slate-900 dark:text-white">
             Coaches & Students
           </h1>
-          <p className="text-sm text-slate-500">
+          <p className="text-sm text-slate-500 dark:text-slate-400">
             Create and manage coach and student accounts.
           </p>
         </div>
@@ -94,7 +94,7 @@ export default async function AdminUsersPage({
       </div>
 
       <Card>
-        <div className="flex gap-1 overflow-x-auto border-b border-slate-100 px-3 pt-3">
+        <div className="flex gap-1 overflow-x-auto border-b border-slate-100 dark:border-slate-800 px-3 pt-3">
           {TABS.map((tab) => {
             const href =
               tab.value === "ALL"
@@ -109,8 +109,8 @@ export default async function AdminUsersPage({
                 className={cn(
                   "rounded-t-lg border-b-2 px-3 py-2 text-sm font-medium whitespace-nowrap",
                   isActive
-                    ? "border-brand-600 text-brand-700"
-                    : "border-transparent text-slate-500 hover:text-slate-700",
+                    ? "border-brand-600 text-brand-700 dark:border-brand-500 dark:text-brand-400"
+                    : "border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-300",
                 )}
               >
                 {tab.label}
@@ -130,3 +130,4 @@ export default async function AdminUsersPage({
     </div>
   );
 }
+

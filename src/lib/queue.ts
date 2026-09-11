@@ -12,3 +12,4 @@ const connection = new IORedis(redisUrl, {
 
 // Export the BullMQ Queue instance
 export const batchQueue = new Queue('batch-queue', { connection });
+

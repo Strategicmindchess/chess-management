@@ -37,7 +37,7 @@ export function LinkChessAccountForm({
     <form onSubmit={handleSubmit} className="space-y-4">
       {/* Chess.com */}
       <div>
-        <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+        <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
           Chess.com Username
         </label>
         <div className="relative">
@@ -46,7 +46,7 @@ export function LinkChessAccountForm({
             value={chessComUsername}
             onChange={(e) => setChessComUsername(e.target.value)}
             placeholder="e.g. MagnusCarlsen"
-            className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent pr-10"
+            className="w-full px-3 py-2 text-sm bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent pr-10"
           />
           {chessComUsername && (
             <a
@@ -60,7 +60,7 @@ export function LinkChessAccountForm({
           )}
         </div>
         {currentChessCom && (
-          <p className="text-xs text-emerald-600 mt-1">
+          <p className="text-xs text-emerald-600 dark:text-emerald-400 mt-1">
             ✓ Currently linked: {currentChessCom}
           </p>
         )}
@@ -68,7 +68,7 @@ export function LinkChessAccountForm({
 
       {/* Lichess */}
       <div>
-        <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+        <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
           Lichess Username
         </label>
         <div className="relative">
@@ -77,7 +77,7 @@ export function LinkChessAccountForm({
             value={lichessUsername}
             onChange={(e) => setLichessUsername(e.target.value)}
             placeholder="e.g. DrNykterstein"
-            className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent pr-10"
+            className="w-full px-3 py-2 text-sm bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent pr-10"
           />
           {lichessUsername && (
             <a
@@ -91,7 +91,7 @@ export function LinkChessAccountForm({
           )}
         </div>
         {currentLichess && (
-          <p className="text-xs text-emerald-600 mt-1">
+          <p className="text-xs text-emerald-600 dark:text-emerald-400 mt-1">
             ✓ Currently linked: {currentLichess}
           </p>
         )}
@@ -99,13 +99,13 @@ export function LinkChessAccountForm({
 
       {/* Result feedback */}
       {result && (
-        <div className={`flex items-start gap-2 p-3 rounded-lg text-xs ${result.success ? 'bg-emerald-50 border border-emerald-200' : 'bg-red-50 border border-red-200'}`}>
+        <div className={`flex items-start gap-2 p-3 rounded-lg text-xs ${result.success ? 'bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800' : 'bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800'}`}>
           {result.success ? (
             <CheckCircle className="w-4 h-4 text-emerald-500 flex-shrink-0 mt-0.5" />
           ) : (
             <XCircle className="w-4 h-4 text-red-500 flex-shrink-0 mt-0.5" />
           )}
-          <span className={result.success ? 'text-emerald-700' : 'text-red-700'}>
+          <span className={result.success ? 'text-emerald-700 dark:text-emerald-400' : 'text-red-700 dark:text-red-400'}>
             {result.success ? 'Chess accounts linked successfully!' : result.error}
           </span>
         </div>
@@ -124,9 +124,10 @@ export function LinkChessAccountForm({
         {isPending ? 'Verifying...' : 'Save Chess Accounts'}
       </button>
 
-      <p className="text-[11px] text-slate-400 text-center">
+      <p className="text-[11px] text-slate-400 dark:text-slate-500 text-center">
         Usernames are verified against the Chess.com and Lichess APIs before saving.
       </p>
     </form>
   );
 }
+

@@ -3,6 +3,7 @@ import { MonthPicker } from "@/components/ui/month-picker";
 import { PayoutBatchCard } from "@/components/admin/payouts/payout-batch-card";
 import { CoachPayoutCard } from "@/components/admin/payouts/coach-payout-card";
 import { EmployeePayoutCard } from "@/components/admin/payouts/employee-payout-card";
+import { ProcessPayoutsButton } from "@/components/admin/payouts/process-payouts-button";
 import { format } from "date-fns";
 import Link from "next/link";
 
@@ -44,7 +45,7 @@ export default async function AdminPayoutsPage({
 
   const TAB_STYLE = (active: boolean) =>
     `px-4 py-2 rounded-lg text-sm font-semibold transition-colors border ${
-      active ? "bg-slate-900 text-white border-slate-900" : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
+      active ? "bg-slate-900 text-white border-slate-900 dark:bg-brand-500/20 dark:text-brand-400 dark:border-brand-500/30" : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50 dark:bg-slate-900 dark:text-slate-400 dark:border-slate-800 dark:hover:bg-slate-800"
     }`;
 
   const DOWNLOAD_ICON = (
@@ -56,8 +57,8 @@ export default async function AdminPayoutsPage({
   return (
     <div className="space-y-6 flex flex-col h-full">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-slate-50 p-4 rounded-lg border border-slate-200">
-        <h1 className="text-xl font-bold text-slate-900 w-full sm:w-auto text-left">
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-slate-50 dark:bg-slate-900 p-4 rounded-lg border border-slate-200 dark:border-slate-800">
+        <h1 className="text-xl font-bold text-slate-900 dark:text-white w-full sm:w-auto text-left">
           Payout Summary
         </h1>
         <MonthPicker />
@@ -79,6 +80,7 @@ export default async function AdminPayoutsPage({
 
         {/* Export buttons */}
         <div className="ml-auto flex gap-2">
+          <ProcessPayoutsButton monthString={monthString} />
           <Link
             href={`/api/export/payouts?month=${monthString}`}
             target="_blank"
@@ -128,8 +130,8 @@ export default async function AdminPayoutsPage({
 
         {activeView === "staff" && (
           staffSummary.length === 0 ? (
-            <div className="flex flex-col items-center justify-center p-12 text-slate-500 bg-white rounded-lg border border-slate-200 border-dashed">
-              <p className="mb-2 text-lg font-medium text-slate-900">No staff members</p>
+            <div className="flex flex-col items-center justify-center p-12 text-slate-500 bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800 border-dashed">
+              <p className="mb-2 text-lg font-medium text-slate-900 dark:text-slate-100">No staff members</p>
               <p className="text-sm text-center">
                 Add employees or freelancers in the{" "}
                 <a href="/admin/employees" className="text-blue-600 underline">Employees</a> section.
@@ -144,7 +146,7 @@ export default async function AdminPayoutsPage({
                   { label: "TDS Deductions", val: staffSummary.reduce((a, e) => a + e.tdsAmount, 0), color: "text-amber-600" },
                   { label: "Total Net", val: staffSummary.reduce((a, e) => a + e.netPayout, 0), color: "text-emerald-700" },
                 ].map(s => (
-                  <div key={s.label} className="bg-white rounded-xl border border-slate-200 p-4 text-center">
+                  <div key={s.label} className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-4 text-center">
                     <p className={`text-xl font-bold ${s.color}`}>₹{s.val.toLocaleString()}</p>
                     <p className="text-xs text-slate-500 mt-1">{s.label}</p>
                   </div>
@@ -159,8 +161,8 @@ export default async function AdminPayoutsPage({
       </div>
 
       {/* Fixed bottom bar */}
-      <div className="fixed bottom-0 right-0 w-full lg:w-[calc(100%-16rem)] p-4 bg-white border-t border-slate-200 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] z-10 flex items-center justify-between lg:px-10">
-        <span className="text-lg font-semibold text-slate-600">{grandTotalLabel}</span>
+      <div className="fixed bottom-0 right-0 w-full lg:w-[calc(100%-16rem)] p-4 bg-white dark:bg-[#0f1419] border-t border-slate-200 dark:border-slate-800 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] z-10 flex items-center justify-between lg:px-10">
+        <span className="text-lg font-semibold text-slate-600 dark:text-slate-300">{grandTotalLabel}</span>
         <span className="text-2xl font-bold text-emerald-700">₹{grandTotal.toLocaleString()}</span>
       </div>
     </div>
@@ -169,9 +171,10 @@ export default async function AdminPayoutsPage({
 
 function EmptyState({ title, desc }: { title: string; desc: string }) {
   return (
-    <div className="flex flex-col items-center justify-center p-12 text-slate-500 bg-white rounded-lg border border-slate-200 border-dashed">
-      <p className="mb-2 text-lg font-medium text-slate-900">{title}</p>
+    <div className="flex flex-col items-center justify-center p-12 text-slate-500 dark:text-slate-400 bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800 border-dashed">
+      <p className="mb-2 text-lg font-medium text-slate-900 dark:text-slate-100">{title}</p>
       <p className="text-sm text-center">{desc}</p>
     </div>
   );
 }
+

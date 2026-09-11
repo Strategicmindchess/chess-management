@@ -37,3 +37,4 @@ export function useAdminDashboard() {
 export function invalidateAdminDashboard() {
   return mutate(ADMIN_DASHBOARD_KEY);
 }
+
