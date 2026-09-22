@@ -9,6 +9,8 @@ import { format, getHours, getMinutes } from "date-fns";
 import { prisma } from "@/lib/prisma";
 import { getStudentDashboardData } from "@/actions/dashboard-actions";
 import { getISTNow } from "@/lib/timezone";
+import { getStudentChocolateStatus } from "@/actions/chocolate-actions";
+import { StudentChocolateCard } from "@/components/student/chocolate-card";
 
 export const dynamic = "force-dynamic";
 
@@ -23,9 +25,10 @@ export default async function StudentDashboardPage() {
     return <div className="p-6 text-white">Profile not found.</div>;
   }
 
-  const [assignmentsData, dashboardData] = await Promise.all([
+  const [assignmentsData, dashboardData, chocolateStatus] = await Promise.all([
     getStudentAssignments() as any,
-    getStudentDashboardData(studentProfile.id)
+    getStudentDashboardData(studentProfile.id),
+    getStudentChocolateStatus()
   ]);
 
   const progress = assignmentsData.success && assignmentsData.progress 
@@ -208,6 +211,13 @@ export default async function StudentDashboardPage() {
           Keep going! Consistency leads to improvement.
         </p>
       </div>
+
+      {/* Chocolate Challenge Card */}
+      {chocolateStatus && (
+        <div className="mt-6">
+          <StudentChocolateCard status={chocolateStatus} />
+        </div>
+      )}
 
       {/* Bottom Row */}
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 mt-6">

@@ -106,7 +106,7 @@ export function ClassSessionCard({ role, session, isUpcoming = false }: ClassSes
                   Start Batch (Opens later)
                 </div>
               ) : (
-                <StartBatchButton meetLink={batch.meetLink} batchName={batch.name} />
+                <StartBatchButton meetLink={batch.meetLink} batchName={batch.name} classInstanceId={session.id} />
               )}
               
               <div className="w-full flex gap-2">

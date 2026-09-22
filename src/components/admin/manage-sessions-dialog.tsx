@@ -10,6 +10,7 @@ import { CalendarRange, CalendarSync, Ban, Loader2, Clock, Check, X, PlusCircle,
 import { generateMoreClassInstances } from "@/actions/batch-actions";
 import { cancelClassInstance, updateClassInstance, rescheduleClassInstance, createClassInstance, bulkUpdateClassTimings } from "@/actions/manage-sessions";
 import { useBatchSessions, invalidateBatchSessions } from "@/hooks/use-batch-sessions";
+import { formatInTimeZone } from "date-fns-tz";
 
 interface Session {
   id: string;
@@ -94,7 +95,7 @@ export function ManageSessionsDialog({ batchId, batchName }: ManageSessionsDialo
     setSelectedSession(session);
     setEditStartTime(session.startTime);
     setEditEndTime(session.endTime);
-    setEditDate(session.date.split("T")[0]);
+    setEditDate(formatInTimeZone(new Date(session.date), 'Asia/Kolkata', 'yyyy-MM-dd'));
     setEditLectureName(session.lectureName || "");
     setEditSessionNumber(session.sessionNumber ? session.sessionNumber.toString() : "");
     setUpdateDialogOpen(true);
@@ -104,7 +105,7 @@ export function ManageSessionsDialog({ batchId, batchName }: ManageSessionsDialo
     setSelectedSession(session);
     setEditStartTime(session.startTime);
     setEditEndTime(session.endTime);
-    setEditDate(session.date.split("T")[0]);
+    setEditDate(formatInTimeZone(new Date(session.date), 'Asia/Kolkata', 'yyyy-MM-dd'));
     setRescheduleDialogOpen(true);
   }
 
@@ -250,46 +251,46 @@ export function ManageSessionsDialog({ batchId, batchName }: ManageSessionsDialo
       >
         <div className="space-y-6">
           {/* Metrics summary */}
-          <div className="grid grid-cols-4 gap-4 p-4 bg-slate-50 border border-slate-100 rounded-lg">
+          <div className="grid grid-cols-4 gap-4 p-4 bg-slate-50 dark:bg-[#252d3d] border border-slate-100 dark:border-slate-700 rounded-lg">
             <div className="text-center">
-              <span className="block text-xs font-medium text-slate-500 uppercase tracking-wider">Total</span>
-              <span className="text-lg font-bold text-slate-800">{totalCount}</span>
+              <span className="block text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Total</span>
+              <span className="text-lg font-bold text-slate-800 dark:text-slate-200">{totalCount}</span>
             </div>
-            <div className="text-center border-l border-slate-200">
-              <span className="block text-xs font-medium text-emerald-600 uppercase tracking-wider">Completed</span>
-              <span className="text-lg font-bold text-emerald-700">{completedCount}</span>
+            <div className="text-center border-l border-slate-200 dark:border-slate-700">
+              <span className="block text-xs font-medium text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">Completed</span>
+              <span className="text-lg font-bold text-emerald-700 dark:text-emerald-500">{completedCount}</span>
             </div>
-            <div className="text-center border-l border-slate-200">
-              <span className="block text-xs font-medium text-blue-600 uppercase tracking-wider">Scheduled</span>
-              <span className="text-lg font-bold text-blue-700">{scheduledCount}</span>
+            <div className="text-center border-l border-slate-200 dark:border-slate-700">
+              <span className="block text-xs font-medium text-blue-600 dark:text-blue-400 uppercase tracking-wider">Scheduled</span>
+              <span className="text-lg font-bold text-blue-700 dark:text-blue-500">{scheduledCount}</span>
             </div>
-            <div className="text-center border-l border-slate-200">
-              <span className="block text-xs font-medium text-slate-400 uppercase tracking-wider">Cancelled</span>
-              <span className="text-lg font-bold text-slate-500">{cancelledCount}</span>
+            <div className="text-center border-l border-slate-200 dark:border-slate-700">
+              <span className="block text-xs font-medium text-slate-400 dark:text-slate-500 uppercase tracking-wider">Cancelled</span>
+              <span className="text-lg font-bold text-slate-500 dark:text-slate-400">{cancelledCount}</span>
             </div>
           </div>
 
           {/* Messages */}
           {error && (
-            <div className="p-3 text-sm font-medium text-rose-600 bg-rose-50 border border-rose-100 rounded-md">
+            <div className="p-3 text-sm font-medium text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/50 border border-rose-100 dark:border-rose-900 rounded-md">
               {error}
             </div>
           )}
           {successMessage && (
-            <div className="p-3 text-sm font-medium text-emerald-600 bg-emerald-50 border border-emerald-100 rounded-md">
+            <div className="p-3 text-sm font-medium text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-100 dark:border-emerald-900 rounded-md">
               {successMessage}
             </div>
           )}
 
           {/* Add more instances form & Create Manual */}
-          <div className="flex flex-col gap-4 p-4 border border-slate-200 rounded-lg bg-white">
+          <div className="flex flex-col gap-4 p-4 border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-[#252d3d]">
             <div className="flex items-center justify-between">
               <div>
-                <h4 className="text-sm font-semibold text-slate-900 flex items-center gap-1.5">
-                  <CalendarSync className="h-4 w-4 text-brand-600" />
+                <h4 className="text-sm font-semibold text-slate-900 dark:text-slate-100 flex items-center gap-1.5">
+                  <CalendarSync className="h-4 w-4 text-brand-600 dark:text-brand-400" />
                   Auto-Schedule More Classes
                 </h4>
-                <p className="text-xs text-slate-500">
+                <p className="text-xs text-slate-500 dark:text-slate-400">
                   Generate future sessions based on the batch schedule.
                 </p>
               </div>
@@ -325,16 +326,16 @@ export function ManageSessionsDialog({ batchId, batchName }: ManageSessionsDialo
 
           {/* Sessions List */}
           <div className="space-y-3">
-            <h4 className="text-sm font-semibold text-slate-900">Class Sessions History & Schedule</h4>
+            <h4 className="text-sm font-semibold text-slate-900 dark:text-slate-100">Class Sessions History & Schedule</h4>
             
-            <div className="border border-slate-200 rounded-lg overflow-hidden bg-white max-h-[300px] overflow-y-auto divide-y divide-slate-100">
+            <div className="border border-slate-200 dark:border-slate-700 rounded-lg overflow-hidden bg-white dark:bg-[#252d3d] max-h-[300px] overflow-y-auto divide-y divide-slate-100 dark:divide-slate-700/50">
               {isLoading ? (
-                <div className="p-8 text-center text-slate-500 flex flex-col items-center justify-center gap-2 bg-slate-50/50">
+                <div className="p-8 text-center text-slate-500 dark:text-slate-400 flex flex-col items-center justify-center gap-2 bg-slate-50/50 dark:bg-transparent">
                   <Loader2 className="h-6 w-6 animate-spin text-slate-400" />
                   <span className="text-sm">Loading sessions...</span>
                 </div>
               ) : sessions.length === 0 ? (
-                <div className="p-8 text-center text-sm text-slate-500 bg-slate-50/50">
+                <div className="p-8 text-center text-sm text-slate-500 dark:text-slate-400 bg-slate-50/50 dark:bg-transparent">
                   No sessions have been scheduled yet for this batch.
                 </div>
               ) : (
@@ -349,10 +350,10 @@ export function ManageSessionsDialog({ batchId, batchName }: ManageSessionsDialo
                   if (isScheduled) badgeColor = "brand";
 
                   return (
-                    <div key={session.id} className="p-3.5 flex flex-col gap-3 hover:bg-slate-50/30 transition-colors">
+                    <div key={session.id} className="p-3.5 flex flex-col gap-3 hover:bg-slate-50/30 dark:hover:bg-slate-800/30 transition-colors">
                       <div className="flex items-center justify-between">
                         <div className="space-y-1">
-                          <p className="text-sm font-semibold text-slate-900 flex items-center gap-2">
+                          <p className="text-sm font-semibold text-slate-900 dark:text-slate-100 flex items-center gap-2">
                             {session.sessionNumber && session.lectureName ? (
                               <span>Lecture {session.sessionNumber}: {session.lectureName}</span>
                             ) : session.sessionNumber ? (
@@ -361,7 +362,7 @@ export function ManageSessionsDialog({ batchId, batchName }: ManageSessionsDialo
                               <span>Class Session</span>
                             )}
                           </p>
-                          <p className="text-xs text-slate-500 flex items-center gap-1">
+                          <p className="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1">
                             {sessionDate.toLocaleDateString("en-US", {
                               weekday: "short",
                               year: "numeric",
@@ -381,7 +382,7 @@ export function ManageSessionsDialog({ batchId, batchName }: ManageSessionsDialo
                               variant="ghost"
                               size="sm"
                               onClick={() => openUpdateDialog(session)}
-                              className="text-brand-600 hover:text-brand-700 hover:bg-brand-50 h-8 px-3 flex items-center gap-1.5 text-xs font-medium"
+                              className="text-brand-600 hover:text-brand-700 hover:bg-brand-50 dark:text-brand-400 dark:hover:bg-brand-950/50 h-8 px-3 flex items-center gap-1.5 text-xs font-medium"
                               disabled={isPending}
                             >
                               Update
@@ -393,7 +394,7 @@ export function ManageSessionsDialog({ batchId, batchName }: ManageSessionsDialo
                               variant="ghost"
                               size="sm"
                               onClick={() => openRescheduleDialog(session)}
-                              className="text-slate-600 hover:text-slate-900 hover:bg-slate-100 h-8 px-3 flex items-center gap-1.5 text-xs font-medium"
+                              className="text-slate-600 hover:text-slate-900 hover:bg-slate-100 dark:text-slate-400 dark:hover:text-slate-200 dark:hover:bg-slate-800 h-8 px-3 flex items-center gap-1.5 text-xs font-medium"
                               disabled={isPending}
                             >
                               Reschedule

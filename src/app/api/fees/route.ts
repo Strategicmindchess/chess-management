@@ -3,17 +3,21 @@ import { requireRole } from "@/lib/dal";
 import { prisma } from "@/lib/prisma";
 import { Role } from "@/lib/enums";
 import type { Prisma } from "@/generated/prisma/client";
+import { withLogging } from "../../../lib/api-logger";
 
 // ─── GET /api/fees ────────────────────────────────────────────────────────────
 // Returns all StudentFeeConfig rows with joined student info + cycles.
-export async function GET() {
-  try {
+// ─── POST /api/fees ───────────────────────────────────────────────────────────
+// Body: { studentProfileId, feeType, feeAmount, classesPerCycle, frequency,
+//         startDate, feeStartDate, notes, firstCycle? }
+export let GET = withLogging(async function() {
+    try {
     await requireRole([Role.ADMIN]);
-  } catch {
+    } catch {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-  }
+    }
 
-  try {
+    try {
     const configs = await prisma.studentFeeConfig.findMany({
       orderBy: { createdAt: "asc" },
       include: {
@@ -57,23 +61,19 @@ export async function GET() {
     });
 
     return NextResponse.json({ configs });
-  } catch (err) {
+    } catch (err) {
     console.error("[GET /api/fees]", err);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
-  }
-}
-
-// ─── POST /api/fees ───────────────────────────────────────────────────────────
-// Body: { studentProfileId, feeType, feeAmount, classesPerCycle, frequency,
-//         startDate, feeStartDate, notes, firstCycle? }
-export async function POST(req: NextRequest) {
-  try {
+    }
+    });
+export let POST = withLogging(async function(req: NextRequest) {
+    try {
     await requireRole([Role.ADMIN]);
-  } catch {
+    } catch {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-  }
+    }
 
-  let body: {
+    let body: {
     studentProfileId?: string;
     feeType?: string;
     feeAmount?: number;
@@ -89,22 +89,22 @@ export async function POST(req: NextRequest) {
       batchCode?: string | null;
       batchName?: string | null;
     };
-  };
+    };
 
-  try {
+    try {
     body = await req.json();
-  } catch {
+    } catch {
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
-  }
+    }
 
-  const { studentProfileId, feeType, feeAmount, classesPerCycle, frequency,
+    const { studentProfileId, feeType, feeAmount, classesPerCycle, frequency,
           startDate, feeStartDate, notes, firstCycle } = body;
 
-  if (!studentProfileId) {
+    if (!studentProfileId) {
     return NextResponse.json({ error: "studentProfileId is required" }, { status: 400 });
-  }
+    }
 
-  try {
+    try {
     const config = await prisma.studentFeeConfig.create({
       data: {
         studentProfileId,
@@ -150,7 +150,7 @@ export async function POST(req: NextRequest) {
     });
 
     return NextResponse.json({ config }, { status: 201 });
-  } catch (err: unknown) {
+    } catch (err: unknown) {
     if (
       err instanceof Error &&
       "code" in err &&
@@ -163,6 +163,5 @@ export async function POST(req: NextRequest) {
     }
     console.error("[POST /api/fees]", err);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
-  }
-}
-
+    }
+    });

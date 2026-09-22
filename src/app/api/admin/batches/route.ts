@@ -2,13 +2,13 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireRole } from "@/lib/dal";
 import { Role } from "@/lib/enums";
+import { withLogging } from "../../../../lib/api-logger";
 
 export const dynamic = "force-dynamic";
+export let GET = withLogging(async function(req: NextRequest) {
+    await requireRole([Role.ADMIN]);
 
-export async function GET(req: NextRequest) {
-  await requireRole([Role.ADMIN]);
-  
-  try {
+    try {
     const { searchParams } = new URL(req.url);
     const page = searchParams.get("page") || "1";
     const query = searchParams.get("query") || "";
@@ -113,10 +113,10 @@ export async function GET(req: NextRequest) {
       totalPages,
       currentPage,
     });
-  } catch (err: any) {
+    } catch (err: any) {
     return NextResponse.json(
       { error: err.message || "Failed to fetch batches" },
       { status: 500 }
     );
-  }
-}
+    }
+    });

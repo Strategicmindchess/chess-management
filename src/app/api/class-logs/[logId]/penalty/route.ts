@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { requireRole } from "@/lib/dal";
 import { prisma } from "@/lib/prisma";
 import { Role } from "@/lib/enums";
+import { withLogging } from "../../../../../lib/api-logger";
 
 type Params = { params: Promise<{ logId: string }> };
 
@@ -11,29 +12,29 @@ type Params = { params: Promise<{ logId: string }> };
 // When admin takes any manual action (waive or amount override), this endpoint
 // also sets adminPenaltyOverride = true and penaltyCalculatedAt = now() so the
 // BullMQ penalty worker will permanently skip this ClassLog in all future runs.
-export async function PATCH(req: NextRequest, { params }: Params) {
-  try {
+export let PATCH = withLogging(async function(req: NextRequest, { params }: Params) {
+    try {
     await requireRole([Role.ADMIN]);
-  } catch {
+    } catch {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-  }
+    }
 
-  const { logId } = await params;
+    const { logId } = await params;
 
-  let body: Record<string, unknown>;
-  try {
+    let body: Record<string, unknown>;
+    try {
     body = await req.json();
-  } catch {
+    } catch {
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
-  }
+    }
 
-  const { penaltyWaived, penaltyAmount, penaltyNote } = body as {
+    const { penaltyWaived, penaltyAmount, penaltyNote } = body as {
     penaltyWaived?: boolean;
     penaltyAmount?: number;
     penaltyNote?: string;
-  };
+    };
 
-  try {
+    try {
     // Any change to waived state or amount is considered a manual admin action.
     const isManualAction = penaltyWaived !== undefined || penaltyAmount !== undefined;
 
@@ -51,8 +52,8 @@ export async function PATCH(req: NextRequest, { params }: Params) {
       },
     });
     return NextResponse.json({ classLog: updated });
-  } catch (err) {
+    } catch (err) {
     console.error("[PATCH /api/class-logs/[logId]/penalty]", err);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
-  }
-}
+    }
+    });

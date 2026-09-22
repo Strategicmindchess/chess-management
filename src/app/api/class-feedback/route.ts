@@ -4,59 +4,76 @@ import { prisma } from "@/lib/prisma";
 import { Role } from "@/lib/enums";
 import { createNotification } from "@/lib/notifications";
 import { NotificationType, NotifPriority } from "@/generated/prisma/client";
+import { withLogging } from "../../../lib/api-logger";
 
 // ─── POST /api/class-feedback ─────────────────────────────────────────────────
 // Student submits feedback after class — triggers penalty recalculation
-export async function POST(req: NextRequest) {
-  try {
+// ─── GET /api/class-feedback ──────────────────────────────────────────────────
+// Admin: list feedback for a class log
+export let POST = withLogging(async function(req: NextRequest) {
+    try {
     await requireRole([Role.STUDENT]);
-  } catch {
+    } catch {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-  }
+    }
 
-  let body: Record<string, unknown>;
-  try {
+    let body: Record<string, unknown>;
+    try {
     body = await req.json();
-  } catch {
+    } catch {
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
-  }
+    }
 
-  const {
+    const {
     classLogId,
     cameraOffOver5Min,
     phoneUsedOver4Times,
     classQualityScore,
     conceptUnderstood,
     overallCoachScore,
-  } = body as {
+    } = body as {
     classLogId: string;
     cameraOffOver5Min?: boolean;
     phoneUsedOver4Times?: boolean;
     classQualityScore?: number;
     conceptUnderstood?: boolean;
     overallCoachScore?: number;
-  };
+    };
 
-  if (!classLogId) {
+    if (!classLogId) {
     return NextResponse.json({ error: "classLogId is required" }, { status: 400 });
-  }
+    }
 
-  // Securely get the student profile for the authenticated user
-  const user = await requireRole([Role.STUDENT]);
-  const studentProfile = await prisma.studentProfile.findUnique({
+    // Securely get the student profile for the authenticated user
+    const user = await requireRole([Role.STUDENT]);
+    const studentProfile = await prisma.studentProfile.findUnique({
     where: { userId: user.id },
-  });
+    });
 
-  if (!studentProfile) {
+    if (!studentProfile) {
     return NextResponse.json({ error: "Student profile not found" }, { status: 404 });
-  }
+    }
 
-  const studentProfileId = studentProfile.id;
+    const studentProfileId = studentProfile.id;
 
-  try {
+    try {
     // If student didn't explicitly rate the coach, fall back to classQualityScore
     // so that the leaderboard Perf column has data to work with on recalculate.
     const resolvedOverallScore = overallCoachScore ?? classQualityScore ?? null;
+
+    const classLog = await prisma.classLog.findUnique({
+      where: { id: classLogId },
+      include: { batch: { include: { students: true } } },
+    });
+
+    if (!classLog) {
+      return NextResponse.json({ error: "Class not found" }, { status: 404 });
+    }
+
+    const isEnrolled = classLog.batch.students.some((s) => s.studentProfileId === studentProfileId);
+    if (!isEnrolled) {
+      return NextResponse.json({ error: "Forbidden: You are not enrolled in this class" }, { status: 403 });
+    }
 
     const feedback = await prisma.classFeedback.create({
       data: {
@@ -101,37 +118,45 @@ export async function POST(req: NextRequest) {
     // No immediate penalty calculation here.
     // The BullMQ penalty worker processes eligible ClassLogs in a daily scheduled run.
     return NextResponse.json({ feedback });
-  } catch (err: any) {
+    } catch (err: any) {
     if (err?.code === "P2002") {
       return NextResponse.json({ error: "Feedback already submitted for this class" }, { status: 409 });
     }
     console.error("[POST /api/class-feedback]", err);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
-  }
-}
+    }
+    });
+export let GET = withLogging(async function(req: NextRequest) {
+    let user;
+    try {
+      user = await requireRole([Role.ADMIN, Role.TEACHER]);
+    } catch {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
 
-// ─── GET /api/class-feedback ──────────────────────────────────────────────────
-// Admin: list feedback for a class log
-export async function GET(req: NextRequest) {
-  try {
-    await requireRole([Role.ADMIN, Role.TEACHER]);
-  } catch {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-  }
+    const { searchParams } = new URL(req.url);
+    const classLogId = searchParams.get("classLogId");
 
-  const { searchParams } = new URL(req.url);
-  const classLogId = searchParams.get("classLogId");
+    if (!classLogId) {
+      return NextResponse.json({ error: "classLogId is required" }, { status: 400 });
+    }
 
-  if (!classLogId) {
-    return NextResponse.json({ error: "classLogId is required" }, { status: 400 });
-  }
+    // Security check: if teacher, they can only view feedback for their own class
+    if (user.role === Role.TEACHER) {
+      const classLog = await prisma.classLog.findUnique({
+        where: { id: classLogId },
+        include: { coach: true },
+      });
+      if (!classLog || classLog.coach.userId !== user.id) {
+        return NextResponse.json({ error: "Forbidden: You can only view feedback for your own classes" }, { status: 403 });
+      }
+    }
 
-  const feedbacks = await prisma.classFeedback.findMany({
+    const feedbacks = await prisma.classFeedback.findMany({
     where: { classLogId },
     include: { student: { include: { user: { select: { name: true } } } } },
     orderBy: { submittedAt: "desc" },
-  });
+    });
 
-  return NextResponse.json({ feedbacks });
-}
-
+    return NextResponse.json({ feedbacks });
+    });

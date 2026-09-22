@@ -263,28 +263,28 @@ export function CoachPayoutSettings({
 
       {/* ── Payout Rate Table ────────────────────────────────────────────── */}
       <div>
-        <h4 className="text-sm font-semibold text-slate-700 mb-3">Per-Session Payout Rates — click cell to edit</h4>
+        <h4 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-3">Per-Session Payout Rates — click cell to edit</h4>
         <div className="overflow-x-auto">
-          <table className="w-full text-xs border border-slate-200 rounded-md">
-            <thead className="bg-slate-50">
+          <table className="w-full text-xs border border-slate-200 dark:border-slate-700 rounded-md">
+            <thead className="bg-slate-50 dark:bg-slate-800">
               <tr>
-                <th className="text-left px-3 py-2 font-semibold text-slate-600 w-32">Level</th>
+                <th className="text-left px-3 py-2 font-semibold text-slate-600 dark:text-slate-300 w-32">Level</th>
                 {DURATIONS.map(d => (
-                  <th key={d} className="px-3 py-2 font-semibold text-slate-600 text-center">{d} min</th>
+                  <th key={d} className="px-3 py-2 font-semibold text-slate-600 dark:text-slate-300 text-center">{d} min</th>
                 ))}
               </tr>
             </thead>
             <tbody>
               {LEVELS.map(level => (
-                <tr key={level} className="border-t border-slate-100 hover:bg-slate-50">
-                  <td className="px-3 py-2 font-medium text-slate-700">{LEVEL_LABELS[level]}</td>
+                <tr key={level} className="border-t border-slate-100 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800/50">
+                  <td className="px-3 py-2 font-medium text-slate-700 dark:text-slate-200">{LEVEL_LABELS[level]}</td>
                   {DURATIONS.map(dur => {
                     const rate = rates.find(r => r.level === level && r.durationMins === dur);
                     const isEditing = editingRate?.level === level && editingRate?.dur === dur;
                     return (
-                      <td key={dur} className="px-2 py-1.5 text-center">
+                      <td key={dur} className="px-2 py-1.5 text-center border-l border-slate-100 dark:border-slate-700">
                         {isEditing ? (
-                          <div className="flex items-center gap-1">
+                          <div className="flex items-center gap-1 justify-center">
                             <input
                               type="number"
                               autoFocus
@@ -294,7 +294,7 @@ export function CoachPayoutSettings({
                                 if (e.key === "Enter") saveRate(level, dur, editingRate.val);
                                 if (e.key === "Escape") setEditingRate(null);
                               }}
-                              className="w-16 text-xs border border-blue-400 rounded px-1 py-0.5 outline-none focus:ring-1 focus:ring-blue-500"
+                              className="w-16 text-xs border border-blue-400 rounded px-1 py-0.5 outline-none focus:ring-1 focus:ring-blue-500 bg-white dark:bg-slate-800 dark:text-white"
                             />
                             <button
                               onClick={() => saveRate(level, dur, editingRate.val)}
@@ -305,10 +305,10 @@ export function CoachPayoutSettings({
                         ) : (
                           <button
                             onClick={() => setEditingRate({ level, dur, val: rate ? String(rate.ratePerSession) : "" })}
-                            className="w-full text-center text-slate-600 hover:bg-blue-50 hover:text-blue-700 rounded py-1 transition-colors"
+                            className="w-full text-center text-slate-600 dark:text-slate-300 hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-700 dark:hover:text-blue-400 rounded py-1 transition-colors"
                             title="Click to edit"
                           >
-                            {rate ? `₹${rate.ratePerSession}` : <span className="text-slate-300">—</span>}
+                            {rate ? `₹${rate.ratePerSession}` : <span className="text-slate-300 dark:text-slate-600">—</span>}
                           </button>
                         )}
                       </td>

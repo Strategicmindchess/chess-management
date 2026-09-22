@@ -2,33 +2,34 @@ import { NextRequest, NextResponse } from "next/server";
 import { requireRole } from "@/lib/dal";
 import { prisma } from "@/lib/prisma";
 import { Role } from "@/lib/enums";
+import { withLogging } from "../../../../../lib/api-logger";
 
 type Params = { params: Promise<{ coachId: string }> };
 
 // ─── PATCH /api/coach/[coachId]/settings ──────────────────────────────────────
 // Admin only: update TDS and employment type on coach profile
-export async function PATCH(req: NextRequest, { params }: Params) {
-  try {
+export let PATCH = withLogging(async function(req: NextRequest, { params }: Params) {
+    try {
     await requireRole([Role.ADMIN]);
-  } catch {
+    } catch {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-  }
+    }
 
-  const { coachId } = await params;
+    const { coachId } = await params;
 
-  let body: Record<string, unknown>;
-  try {
+    let body: Record<string, unknown>;
+    try {
     body = await req.json();
-  } catch {
+    } catch {
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
-  }
+    }
 
-  const { tdsApplicable, employmentType } = body as {
+    const { tdsApplicable, employmentType } = body as {
     tdsApplicable?: boolean;
     employmentType?: "COACH" | "EMPLOYEE" | "FREELANCER";
-  };
+    };
 
-  try {
+    try {
     const updated = await prisma.coachProfile.update({
       where: { id: coachId },
       data: {
@@ -37,8 +38,8 @@ export async function PATCH(req: NextRequest, { params }: Params) {
       },
     });
     return NextResponse.json({ coach: updated });
-  } catch (err) {
+    } catch (err) {
     console.error("[PATCH /api/coach/[coachId]/settings]", err);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
-  }
-}
+    }
+    });

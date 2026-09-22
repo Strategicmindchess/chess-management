@@ -2,41 +2,41 @@ import { NextRequest, NextResponse } from "next/server";
 import { requireRole } from "@/lib/dal";
 import { prisma } from "@/lib/prisma";
 import { Role } from "@/lib/enums";
+import { withLogging } from "../../../lib/api-logger";
 
 // ─── GET /api/employees — list all employees ──────────────────────────────────
-export async function GET() {
-  try {
-    await requireRole([Role.ADMIN]);
-  } catch {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-  }
-
-  const employees = await prisma.employeeProfile.findMany({
-    orderBy: [{ isActive: "desc" }, { name: "asc" }],
-  });
-
-  return NextResponse.json({ employees });
-}
-
 // ─── POST /api/employees — create employee ────────────────────────────────────
-export async function POST(req: NextRequest) {
-  try {
+export let GET = withLogging(async function() {
+    try {
     await requireRole([Role.ADMIN]);
-  } catch {
+    } catch {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-  }
+    }
 
-  let body: Record<string, unknown>;
-  try {
+    const employees = await prisma.employeeProfile.findMany({
+    orderBy: [{ isActive: "desc" }, { name: "asc" }],
+    });
+
+    return NextResponse.json({ employees });
+    });
+export let POST = withLogging(async function(req: NextRequest) {
+    try {
+    await requireRole([Role.ADMIN]);
+    } catch {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+
+    let body: Record<string, unknown>;
+    try {
     body = await req.json();
-  } catch {
+    } catch {
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
-  }
+    }
 
-  const {
+    const {
     name, phone, email, jobRole, employeeType, employmentMode,
     fixedSalary, projectRate, tdsApplicable, joiningDate,
-  } = body as {
+    } = body as {
     name: string;
     phone?: string;
     email?: string;
@@ -47,13 +47,13 @@ export async function POST(req: NextRequest) {
     projectRate?: number;
     tdsApplicable?: boolean;
     joiningDate?: string;
-  };
+    };
 
-  if (!name || !jobRole) {
+    if (!name || !jobRole) {
     return NextResponse.json({ error: "name and jobRole are required" }, { status: 400 });
-  }
+    }
 
-  try {
+    try {
     const employee = await prisma.employeeProfile.create({
       data: {
         name,
@@ -69,9 +69,8 @@ export async function POST(req: NextRequest) {
       },
     });
     return NextResponse.json({ employee }, { status: 201 });
-  } catch (err) {
+    } catch (err) {
     console.error("[POST /api/employees]", err);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
-  }
-}
-
+    }
+    });

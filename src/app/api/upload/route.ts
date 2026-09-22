@@ -3,9 +3,10 @@ import { getCurrentUser } from "@/lib/dal";
 import { s3Client, BUCKET_NAME } from "@/lib/s3";
 import { PutObjectCommand } from "@aws-sdk/client-s3";
 import { prisma } from "@/lib/prisma";
+import { withLogging } from "../../../lib/api-logger";
 
-export async function POST(request: NextRequest) {
-  try {
+export let POST = withLogging(async function(request: NextRequest) {
+    try {
     const user = await getCurrentUser();
     if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -40,9 +41,8 @@ export async function POST(request: NextRequest) {
     });
 
     return NextResponse.json({ url });
-  } catch (error) {
+    } catch (error) {
     console.error("Upload error:", error);
     return NextResponse.json({ error: "Failed to upload file" }, { status: 500 });
-  }
-}
-
+    }
+    });

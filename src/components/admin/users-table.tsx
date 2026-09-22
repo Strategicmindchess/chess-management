@@ -1,8 +1,7 @@
 "use client";
 
-import { useState, useTransition, useRef } from "react";
+import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { Ban, CheckCircle2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -18,6 +17,7 @@ import {
 } from "@/components/ui/table";
 import { ROLE_LABEL } from "@/lib/constants";
 import type { Role } from "@/lib/enums";
+import { Loader2 } from "lucide-react";
 
 export interface UserRow {
   id: string;
@@ -46,7 +46,7 @@ export function UsersTable({
 }) {
   const router = useRouter();
   const [editingUser, setEditingUser] = useState<UserRow | null>(null);
-
+  const [navigatingId, setNavigatingId] = useState<string | null>(null);
   const [searchValue, setSearchValue] = useState(searchParams?.query || "");
   const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -59,11 +59,16 @@ export function UsersTable({
     );
   }
 
+  const handleRowClick = (user: UserRow) => {
+    setNavigatingId(user.id);
+    router.push(`/admin/users/${user.id}`);
+  };
+
   return (
     <div className="flex flex-col min-h-[640px] justify-between">
       <div className="space-y-3 p-5">
         <div className="flex items-center gap-2 max-w-sm mb-2">
-          <form 
+          <form
             onSubmit={(e) => {
               e.preventDefault();
               const formData = new FormData(e.currentTarget);
@@ -79,7 +84,7 @@ export function UsersTable({
               type="text"
               name="query"
               placeholder="Search by name or email..."
-              className="flex h-10 w-full rounded-md border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/50 px-3 py-2 text-sm ring-offset-white dark:ring-offset-slate-900 file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-slate-500 dark:placeholder:text-slate-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:text-slate-100"
+              className="flex h-10 w-full rounded-md border border-slate-700 bg-slate-900/50 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 disabled:cursor-not-allowed disabled:opacity-50"
               value={searchValue}
               onChange={(e) => {
                 setSearchValue(e.target.value);
@@ -95,59 +100,77 @@ export function UsersTable({
             <Button type="submit" variant="secondary">Search</Button>
           </form>
         </div>
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto rounded-xl border border-slate-700/50">
           <Table>
             <TableHead>
               <tr>
-              <TableHeaderCell>Name</TableHeaderCell>
-              <TableHeaderCell>Email</TableHeaderCell>
-              <TableHeaderCell>Phone</TableHeaderCell>
-              <TableHeaderCell>Role</TableHeaderCell>
-              <TableHeaderCell>City</TableHeaderCell>
-              <TableHeaderCell>Chess.com</TableHeaderCell>
-              <TableHeaderCell>Lichess</TableHeaderCell>
-              <TableHeaderCell>Status</TableHeaderCell>
-              <TableHeaderCell className="text-right">Actions</TableHeaderCell>
-            </tr>
-          </TableHead>
-          <TableBody>
-            {users.map((user) => (
-              <TableRow 
-                key={user.id} 
-                className="cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors"
-                onClick={() => router.push(`/admin/users/${user.id}`)}
-              >
-                <TableCell className="font-medium text-slate-900 dark:text-slate-100">
-                  {user.name}
-                </TableCell>
-                <TableCell>{user.email}</TableCell>
-                <TableCell>{user.phone || "—"}</TableCell>
-                <TableCell>
-                  <Badge variant="brand">{ROLE_LABEL[user.role]}</Badge>
-                </TableCell>
-                <TableCell>{user.city || "—"}</TableCell>
-                <TableCell>{user.chessComRating ?? "—"}</TableCell>
-                <TableCell>{user.lichessRating ?? "—"}</TableCell>
-                <TableCell>
-                  <Badge variant={user.isActive ? "success" : "neutral"}>
-                    {user.isActive ? "Active" : "Inactive"}
-                  </Badge>
-                </TableCell>
-                <TableCell className="text-right">
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setEditingUser(user);
-                    }}
-                  >
-                    Edit
-                  </Button>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
+                <TableHeaderCell>Name</TableHeaderCell>
+                <TableHeaderCell>Email</TableHeaderCell>
+                <TableHeaderCell>Phone</TableHeaderCell>
+                <TableHeaderCell>Role</TableHeaderCell>
+                <TableHeaderCell>City</TableHeaderCell>
+                <TableHeaderCell>Chess.com</TableHeaderCell>
+                <TableHeaderCell>Lichess</TableHeaderCell>
+                <TableHeaderCell>Status</TableHeaderCell>
+                <TableHeaderCell className="text-right">Actions</TableHeaderCell>
+              </tr>
+            </TableHead>
+            <TableBody>
+              {users.map((user) => (
+                <TableRow
+                  key={user.id}
+                  className="cursor-pointer transition-colors group"
+                  onClick={() => handleRowClick(user)}
+                >
+                  {/* Name with loading spinner */}
+                  <TableCell>
+                    <div className="flex items-center gap-2">
+                      {navigatingId === user.id ? (
+                        <Loader2 className="h-4 w-4 animate-spin text-brand-400 shrink-0" />
+                      ) : (
+                        <span className="h-4 w-4 shrink-0" />
+                      )}
+                      <span className="font-semibold text-white group-hover:text-brand-400 transition-colors">
+                        {user.name}
+                      </span>
+                    </div>
+                  </TableCell>
+                  <TableCell className="text-slate-300">{user.email}</TableCell>
+                  <TableCell className="text-slate-400">{user.phone || "—"}</TableCell>
+                  <TableCell>
+                    <Badge variant="brand">{ROLE_LABEL[user.role]}</Badge>
+                  </TableCell>
+                  <TableCell className="text-slate-300">{user.city || "—"}</TableCell>
+                  <TableCell className="text-slate-300 font-mono text-xs">
+                    {user.chessComRating ? (
+                      <span className="text-emerald-400 font-semibold">{user.chessComRating}</span>
+                    ) : "—"}
+                  </TableCell>
+                  <TableCell className="text-slate-300 font-mono text-xs">
+                    {user.lichessRating ? (
+                      <span className="text-blue-400 font-semibold">{user.lichessRating}</span>
+                    ) : "—"}
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant={user.isActive ? "success" : "neutral"}>
+                      {user.isActive ? "Active" : "Inactive"}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setEditingUser(user);
+                      }}
+                    >
+                      Edit
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
           </Table>
         </div>
       </div>
@@ -161,13 +184,12 @@ export function UsersTable({
           />
         </div>
       )}
-      
-      <UserDetailDialog 
-        user={editingUser} 
-        open={!!editingUser} 
-        onClose={() => setEditingUser(null)} 
+
+      <UserDetailDialog
+        user={editingUser}
+        open={!!editingUser}
+        onClose={() => setEditingUser(null)}
       />
     </div>
   );
 }
-

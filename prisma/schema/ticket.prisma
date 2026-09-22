@@ -6,15 +6,15 @@ model Ticket {
   category         TicketCategory
   /// Student who created this ticket (null if created by a coach)
   createdById      String?
-  /// Coach who created this ticket (null if created by a student)
-  coachCreatedById String?
   assignedToId     String?
   createdAt        DateTime        @default(now())
   updatedAt        DateTime        @updatedAt
+  /// Coach who created this ticket (null if created by a student)
+  coachCreatedById String?
   replies          TicketReply[]
   assignedTo       User?           @relation("AssignedTickets", fields: [assignedToId], references: [id])
-  createdBy        StudentProfile? @relation("CreatedTickets", fields: [createdById], references: [id])
   coachCreatedBy   CoachProfile?   @relation("CoachCreatedTickets", fields: [coachCreatedById], references: [id])
+  createdBy        StudentProfile? @relation("CreatedTickets", fields: [createdById], references: [id])
 
   @@map("tickets")
 }

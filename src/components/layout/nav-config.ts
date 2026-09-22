@@ -1,4 +1,4 @@
-import { CalendarDays, LayoutDashboard, Users, IndianRupee, ClipboardCheck, Trophy, Activity, Wallet, Briefcase, MessageSquare } from "lucide-react";
+import { CalendarDays, LayoutDashboard, Users, IndianRupee, ClipboardCheck, Trophy, Activity, Wallet, Briefcase, MessageSquare, Gift } from "lucide-react";
 
 
 import { Role } from "@/lib/enums";
@@ -22,6 +22,8 @@ export const NAV_ITEMS: Record<Role, NavItem[]> = {
     { href: "/admin/payouts", label: "Payouts", icon: IndianRupee },
     { href: "/admin/employees", label: "Employees", icon: Briefcase },
     { href: "/admin/fees", label: "Student Ledger", icon: Wallet },
+    { href: "/admin/feedback", label: "Student Feedback", icon: MessageSquare },
+    { href: "/admin/chocolate", label: "Chocolate Rewards", icon: Gift },
 
     //{ href: "/admin/materials", label: "Class Materials", icon: ClipboardCheck },
   ],
@@ -34,6 +36,7 @@ export const NAV_ITEMS: Record<Role, NavItem[]> = {
     { href: "/teacher/availability", label: "Availability", icon: CalendarDays },
     { href: "/teacher/payouts", label: "Payouts", icon: LayoutDashboard },
     { href: "/teacher/materials", label: "Class Materials", icon: ClipboardCheck },
+    { href: "/teacher/chocolate", label: "Chocolate Challenge", icon: Gift },
     { href: "/teacher/tickets", label: "Support Tickets", icon: MessageSquare },
 
   ],

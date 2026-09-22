@@ -3,13 +3,14 @@ import { requireRole } from "@/lib/dal";
 import { Role } from "@/lib/enums";
 import { prisma } from "@/lib/prisma";
 import { getLeaderboard } from "@/actions/leaderboard/leaderboard-actions";
+import { getCurrentPeriod } from "@/lib/leaderboard-period";
+import { withLogging } from "../../../../lib/api-logger";
 
 export const dynamic = "force-dynamic";
+export let GET = withLogging(async function(req: NextRequest) {
+    const user = await requireRole([Role.TEACHER]);
 
-export async function GET(req: NextRequest) {
-  const user = await requireRole([Role.TEACHER]);
-
-  try {
+    try {
     const { searchParams } = new URL(req.url);
     const period = searchParams.get("period") === "WEEKLY" ? "WEEKLY" : "MONTHLY";
 
@@ -55,17 +56,8 @@ export async function GET(req: NextRequest) {
 
     const leaderboardData = await getLeaderboard(period);
 
-    const now = new Date();
-    const periodStart = period === "MONTHLY" 
-      ? new Date(now.getFullYear(), now.getMonth(), 1).toISOString()
-      : (() => {
-          const d = new Date();
-          const dayOfWeek = d.getUTCDay();
-          const diffToMonday = d.getUTCDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1);
-          const ws = new Date(d.setUTCDate(diffToMonday));
-          ws.setUTCHours(0, 0, 0, 0);
-          return ws.toISOString();
-        })();
+    const { periodStart: pStartObj } = getCurrentPeriod(period);
+    const periodStart = pStartObj.toISOString();
 
     const existingFeedbacks = await prisma.coachFeedback.findMany({
       where: {
@@ -75,7 +67,7 @@ export async function GET(req: NextRequest) {
         studentProfileId: { in: myStudentIds },
       },
     });
-    
+
     const feedbackMap = Object.fromEntries(
       existingFeedbacks.map((f) => [f.studentProfileId, f])
     );
@@ -87,11 +79,12 @@ export async function GET(req: NextRequest) {
       feedbackMap,
       periodStart,
     });
-  } catch (err: any) {
+    } catch (err: any) {
+    // Re-throw Next.js redirect errors — they must not be swallowed
+    if (err?.digest?.startsWith?.("NEXT_REDIRECT")) throw err;
     return NextResponse.json(
       { error: err.message || "Failed to fetch teacher leaderboard" },
       { status: 500 }
     );
-  }
-}
-
+    }
+    });

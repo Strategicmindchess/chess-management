@@ -5,11 +5,11 @@ import { logger } from '@/lib/logger';
 import { JOB_NAMES } from '@/lib/leaderboard-config';
 import { startOfWeek, endOfWeek, startOfMonth, endOfMonth } from 'date-fns';
 import { toDate } from 'date-fns-tz';
+import { withLogging } from "../../../../lib/api-logger";
 
 const TIMEZONE = 'Asia/Kolkata';
-
-export async function GET(req: Request) {
-  try {
+export let GET = withLogging(async function(req: Request) {
+    try {
     // 1. Queue fetch jobs for ALL students for WEEKLY and MONTHLY periods
     const activeStudents = await prisma.user.findMany({
       where: { role: 'STUDENT', isActive: true },
@@ -17,7 +17,7 @@ export async function GET(req: Request) {
     });
 
     const now = toDate(new Date(), { timeZone: TIMEZONE });
-    
+
     const wStart = startOfWeek(now, { weekStartsOn: 1 }).toISOString();
     const wEnd = endOfWeek(now, { weekStartsOn: 1 }).toISOString();
     const mStart = startOfMonth(now).toISOString();
@@ -63,9 +63,8 @@ export async function GET(req: Request) {
     logger.info(`[Cron:Daily] Queued log cleanup job`);
 
     return NextResponse.json({ success: true, queuedFetches: fetchJobs.length });
-  } catch (error: any) {
-    logger.error('[Cron:Daily] Failed to queue daily jobs', { error: error.message });
+    } catch (error: any) {
+    logger.error({ error: error.message }, '[Cron:Daily] Failed to queue daily jobs');
     return NextResponse.json({ error: error.message }, { status: 500 });
-  }
-}
-
+    }
+    });

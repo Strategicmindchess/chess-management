@@ -1,26 +1,59 @@
-import { config } from 'dotenv';
-config();
+import "dotenv/config";
 import { prisma } from '../src/lib/prisma';
 
 async function main() {
-  const instanceId = 'cmsydki3s001k18k2mug0szri';
-  const classInstance = await prisma.classInstance.findUnique({
-    where: { id: instanceId }
-  });
+  const batchCode = "IND-AA2-26";
   
-  console.log("== CLASS INSTANCE (Aug 18) ==");
-  console.log("Status:", classInstance?.status);
-  console.log("ClassLog ID:", classInstance?.classLogId);
-  console.log("Lecture Name:", classInstance?.lectureName);
-
-  const logs = await prisma.classLog.findMany({
-    where: { batchId: 'cms7rjgbr000404l2sufg7emg', topicCovered: { contains: 'Lecture 13' } }
+  const batch = await prisma.batch.findUnique({
+    where: { code: batchCode },
+    include: {
+      students: {
+        include: {
+          student: {
+            include: { user: true }
+          }
+        }
+      }
+    }
   });
 
-  console.log("\n== PREVIOUS CLASS LOGS FOR 'Lecture 13' ==");
-  logs.forEach(log => {
-    console.log(`- Date: ${log.date.toISOString()} | Topic: ${log.topicCovered}`);
+  if (!batch) {
+    console.log("Batch not found.");
+    return;
+  }
+  
+  console.log(`Batch: ${batch.name} (${batch.code})`);
+  console.log(`Enrolled students: ${batch.students.length}`);
+
+  const classLogs = await prisma.classLog.findMany({
+    where: {
+      batchId: batch.id,
+      date: {
+        gte: new Date("2026-09-12T00:00:00Z"),
+        lte: new Date("2026-09-14T23:59:59Z")
+      }
+    },
+    include: {
+      classFeedbacks: {
+        include: {
+          student: { include: { user: true }}
+        }
+      }
+    }
   });
+
+  if (classLogs.length === 0) {
+    console.log("No class log found around 13 Sep 2026");
+    return;
+  }
+
+  for (const log of classLogs) {
+    console.log(`ClassLog ID: ${log.id} on Date: ${log.date.toISOString()}`);
+    console.log(`Feedbacks submitted: ${log.classFeedbacks.length}`);
+    for (const f of log.classFeedbacks) {
+      console.log(`- Feedback by ${f.student.user.name} (${f.student.user.email})`);
+    }
+  }
 }
 
-main().finally(() => prisma.$disconnect());
+main().catch(console.error).finally(() => prisma.$disconnect());

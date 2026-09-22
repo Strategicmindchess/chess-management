@@ -4,13 +4,13 @@ model Batch {
   name           String
   code           String            @unique
   meetLink       String
+  type           BatchType         @default(GROUP_SESSION)
   isActive       Boolean           @default(true)
   createdAt      DateTime          @default(now())
   updatedAt      DateTime          @updatedAt
   coachProfileId String?
   payoutRate     Int               @default(0)
   startDate      DateTime?
-  type           BatchType         @default(GROUP_SESSION)
   level          BatchLevel?
   /// 1-based: the session number the syllabus starts from for this batch
   startSession   Int?              @default(1)
@@ -25,26 +25,44 @@ model Batch {
 }
 
 model ClassInstance {
-  id            String      @id @default(cuid())
-  batchId       String
-  date          DateTime
-  startTime     String
-  endTime       String
-  status        ClassStatus @default(SCHEDULED)
-  classLogId    String?     @unique
-  createdAt     DateTime    @default(now())
-  updatedAt     DateTime    @updatedAt
-  lectureName   String?
+  id                 String                   @id @default(cuid())
+  batchId            String
+  date               DateTime
+  startTime          String
+  endTime            String
+  status             ClassStatus              @default(SCHEDULED)
+  classLogId         String?                  @unique
+  createdAt          DateTime                 @default(now())
+  updatedAt          DateTime                 @updatedAt
+  lectureName        String?
   /// 1-based session number matching the syllabus (e.g. 4 = "Lecture 4")
-  sessionNumber Int?
+  sessionNumber      Int?
   /// Set when teacher marks class as held — anchor for the 24-hour assignment release timer
-  completedAt   DateTime?
-  batch         Batch       @relation(fields: [batchId], references: [id], onDelete: Cascade)
-  classLog      ClassLog?   @relation(fields: [classLogId], references: [id])
+  completedAt        DateTime?
+  /// Set when teacher clicks Start Batch to record actual join time
+  startedAt          DateTime?
+  batch              Batch                    @relation(fields: [batchId], references: [id], onDelete: Cascade)
+  classLog           ClassLog?                @relation(fields: [classLogId], references: [id])
+  joinEvents         ClassJoinEvent[]
   rescheduleRequests CoachRescheduleRequest[]
 
   @@index([batchId, date])
   @@map("class_instances")
+}
+
+/// Records every time a coach clicks "Join" for a specific class instance
+model ClassJoinEvent {
+  id              String        @id @default(cuid())
+  classInstanceId String
+  coachProfileId  String
+  joinedAt        DateTime      @default(now())
+  source          String        @default("JOIN_BUTTON")
+  classInstance   ClassInstance @relation(fields: [classInstanceId], references: [id], onDelete: Cascade)
+  coachProfile    CoachProfile  @relation(fields: [coachProfileId], references: [id], onDelete: Cascade)
+
+  @@index([classInstanceId])
+  @@index([coachProfileId])
+  @@map("class_join_events")
 }
 
 model BatchSchedule {
@@ -86,38 +104,36 @@ model CoachAvailability {
 }
 
 model ClassLog {
-  id             String   @id @default(cuid())
-  batchId        String
-  coachProfileId String
-  date           DateTime
-  topicCovered   String
-  durationMins   Int
-  payoutAmount   Int      @default(0)
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
-
-  /// When coach clicked Join — used to calculate late-join penalty
-  coachJoinedAt      DateTime?
-  /// When coach clicked Mark Held — used for attendance delay penalty (24h rule)
-  attendanceMarkedAt DateTime?
-  /// Total penalty amount deducted from this class's payout
-  penaltyAmount        Int       @default(0)
-  /// If admin waived the penalty for this class
-  penaltyWaived        Boolean   @default(false)
+  id                   String             @id @default(cuid())
+  batchId              String
+  coachProfileId       String
+  date                 DateTime
+  topicCovered         String
+  durationMins         Int
+  payoutAmount         Int                @default(0)
+  createdAt            DateTime           @default(now())
+  updatedAt            DateTime           @updatedAt
   /// Set to true if an admin manually edits the penalty amount (worker will ignore this log)
-  adminPenaltyOverride Boolean   @default(false)
+  adminPenaltyOverride Boolean            @default(false)
+  /// When coach clicked Mark Held — used for attendance delay penalty (24h rule)
+  attendanceMarkedAt   DateTime?
+  /// When coach clicked Join — used to calculate late-join penalty
+  coachJoinedAt        DateTime?
   /// True if a phone usage penalty was applied to this class (used for historical tracking)
-  hasPhonePenalty      Boolean   @default(false)
+  hasPhonePenalty      Boolean            @default(false)
+  /// Total penalty amount deducted from this class's payout
+  penaltyAmount        Int                @default(0)
   /// Timestamp when the background worker finalized the penalty. (null = pending)
   penaltyCalculatedAt  DateTime?
   /// Admin note when waiving or manually applying penalty
   penaltyNote          String?
-
-  attendance     AttendanceRecord[]
-  classFeedbacks ClassFeedback[]
-  classInstance  ClassInstance?
-  batch          Batch              @relation(fields: [batchId], references: [id], onDelete: Cascade)
-  coach          CoachProfile       @relation(fields: [coachProfileId], references: [id], onDelete: Cascade)
+  /// If admin waived the penalty for this class
+  penaltyWaived        Boolean            @default(false)
+  attendance           AttendanceRecord[]
+  classFeedbacks       ClassFeedback[]
+  classInstance        ClassInstance?
+  batch                Batch              @relation(fields: [batchId], references: [id], onDelete: Cascade)
+  coach                CoachProfile       @relation(fields: [coachProfileId], references: [id], onDelete: Cascade)
 
   @@map("class_logs")
 }
@@ -150,8 +166,10 @@ model CoachPayoutRate {
   id             String       @id @default(cuid())
   coachProfileId String
   level          BatchLevel
-  durationMins   Int /// 30 | 40 | 45 | 50 | 60
-  ratePerSession Int /// ₹ amount
+  /// 30 | 40 | 45 | 50 | 60
+  durationMins   Int
+  /// ₹ amount
+  ratePerSession Int
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
   coach          CoachProfile @relation(fields: [coachProfileId], references: [id], onDelete: Cascade)
@@ -164,20 +182,17 @@ model CoachPayoutRate {
 model PayoutAdjustment {
   id             String         @id @default(cuid())
   coachProfileId String
-  month          String /// "2026-08"
+  /// "2026-08"
+  month          String
   type           AdjustmentType
-  amount         Int /// positive = add, negative = deduct
-  reason         String /// Short note from admin
+  /// positive = add, negative = deduct
+  amount         Int
+  /// Short note from admin
+  reason         String
   createdAt      DateTime       @default(now())
   coach          CoachProfile   @relation(fields: [coachProfileId], references: [id], onDelete: Cascade)
 
   @@map("payout_adjustments")
-}
-
-enum AdjustmentType {
-  BONUS
-  INCENTIVE
-  DEDUCTION
 }
 
 model AttendanceRecord {
@@ -190,6 +205,46 @@ model AttendanceRecord {
 
   @@unique([classLogId, studentProfileId])
   @@map("attendance_records")
+}
+
+/// Coach submits to request a class reschedule.
+/// First 2 approved per coach per month: no penalty.
+/// 3rd+ approved: admin may store a penalty amount (shown in management dashboard, stored in DB).
+model CoachRescheduleRequest {
+  id                 String                  @id @default(cuid())
+  classInstanceId    String
+  coachProfileId     String
+  reason             String
+  proposedDate       DateTime
+  proposedStartTime  String
+  proposedEndTime    String
+  status             RescheduleRequestStatus @default(PENDING)
+  /// Admin who reviewed this request
+  reviewedById       String?
+  reviewedAt         DateTime?
+  rejectionReason    String?
+  /// Penalty amount stored in DB (shown in management session, not auto-deducted)
+  penaltyAmount      Int                     @default(0)
+  penaltyReason      String?
+  /// If admin assigns a different coach instead of rescheduling
+  replacementCoachId String?
+  createdAt          DateTime                @default(now())
+  updatedAt          DateTime                @updatedAt
+  classInstance      ClassInstance           @relation(fields: [classInstanceId], references: [id], onDelete: Cascade)
+  coach              CoachProfile            @relation("CoachRescheduleRequests", fields: [coachProfileId], references: [id], onDelete: Cascade)
+  replacementCoach   CoachProfile?           @relation("ReplacementCoachRequests", fields: [replacementCoachId], references: [id])
+  reviewedBy         User?                   @relation("AdminRescheduleReviews", fields: [reviewedById], references: [id])
+
+  @@index([coachProfileId, status])
+  @@index([classInstanceId])
+  @@index([status, createdAt])
+  @@map("coach_reschedule_requests")
+}
+
+enum AdjustmentType {
+  BONUS
+  INCENTIVE
+  DEDUCTION
 }
 
 enum AttendanceStatus {
@@ -242,47 +297,6 @@ enum BatchLevel {
   ADVANCE_1
   ADVANCE_2
   ELITE
-}
-
-// ── Coach Rescheduling Request ─────────────────────────────────────────
-
-/// Coach submits to request a class reschedule.
-/// First 2 approved per coach per month: no penalty.
-/// 3rd+ approved: admin may store a penalty amount (shown in management dashboard, stored in DB).
-model CoachRescheduleRequest {
-  id              String                  @id @default(cuid())
-  classInstanceId String
-  coachProfileId  String
-  reason          String
-  proposedDate    DateTime
-  proposedStartTime String
-  proposedEndTime   String
-  status          RescheduleRequestStatus @default(PENDING)
-
-  /// Admin who reviewed this request
-  reviewedById   String?
-  reviewedAt     DateTime?
-  rejectionReason String?
-
-  /// Penalty amount stored in DB (shown in management session, not auto-deducted)
-  penaltyAmount  Int     @default(0)
-  penaltyReason  String?
-
-  /// If admin assigns a different coach instead of rescheduling
-  replacementCoachId String?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  classInstance    ClassInstance  @relation(fields: [classInstanceId], references: [id], onDelete: Cascade)
-  coach            CoachProfile   @relation("CoachRescheduleRequests", fields: [coachProfileId], references: [id], onDelete: Cascade)
-  reviewedBy       User?          @relation("AdminRescheduleReviews", fields: [reviewedById], references: [id])
-  replacementCoach CoachProfile?  @relation("ReplacementCoachRequests", fields: [replacementCoachId], references: [id])
-
-  @@index([coachProfileId, status])
-  @@index([classInstanceId])
-  @@index([status, createdAt])
-  @@map("coach_reschedule_requests")
 }
 
 enum RescheduleRequestStatus {

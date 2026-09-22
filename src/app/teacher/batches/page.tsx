@@ -40,8 +40,8 @@ export default async function TeacherBatchesPage() {
       {/* Today's Batches Section */}
       <div className="space-y-6">
         <div>
-          <h1 className="text-xl font-semibold text-slate-900">Today's Batches</h1>
-          <p className="text-sm text-slate-500">
+          <h1 className="text-xl font-semibold text-white">Today's Batches</h1>
+          <p className="text-sm text-slate-400">
             View your assigned classes for today, access meet links, and manage your students.
           </p>
         </div>
@@ -66,7 +66,7 @@ export default async function TeacherBatchesPage() {
       </div>
 
       {/* Upcoming Batches Section */}
-      <div className="bg-slate-950 rounded-2xl p-6 md:p-8 space-y-6 shadow-lg border border-slate-900">
+      <div className="bg-[#111723]/80 rounded-2xl p-6 md:p-8 space-y-6 shadow-lg border border-slate-700/50">
         <div>
           <h2 className="text-xl font-semibold text-white">Upcoming Batches (Next 3 Days)</h2>
           <p className="text-sm text-slate-400">
@@ -75,7 +75,7 @@ export default async function TeacherBatchesPage() {
         </div>
 
         {upcomingInstances.length === 0 ? (
-          <div className="bg-slate-900/50 rounded-xl p-8 text-center border border-slate-800">
+          <div className="bg-[#1a1f2e]/50 rounded-xl p-8 text-center border border-slate-700/50">
             <h3 className="text-slate-200 font-medium mb-1">No upcoming classes</h3>
             <p className="text-slate-400 text-sm">You don't have any classes scheduled for the next 3 days.</p>
           </div>

@@ -68,30 +68,30 @@ export function AttendanceViewerDialog({ batchId, batchName }: AttendanceViewerP
               <Loader2 className="h-6 w-6 animate-spin text-slate-400" />
             </div>
           ) : logs.length === 0 ? (
-            <div className="text-center py-8 text-sm text-slate-500">
+            <div className="text-center py-8 text-sm text-slate-500 dark:text-slate-400">
               No class logs have been recorded for this batch yet.
             </div>
           ) : (
             <div className="max-h-[500px] overflow-y-auto space-y-4 pr-2">
               {logs.map((log) => (
-                <div key={log.id} className="rounded-lg border border-slate-200 p-4 space-y-3 bg-white">
+                <div key={log.id} className="rounded-lg border border-slate-200 dark:border-slate-700 p-4 space-y-3 bg-white dark:bg-[#252d3d]">
                   <div className="flex flex-wrap justify-between items-start gap-2">
                     <div>
-                      <p className="font-semibold text-slate-900">
+                      <p className="font-semibold text-slate-900 dark:text-slate-100">
                         {new Date(log.date).toLocaleString([], { dateStyle: "long", timeStyle: "short" })}
                       </p>
-                      <p className="text-sm text-slate-600 font-medium mt-1">
-                        Topic: <span className="text-slate-800">{log.topicCovered}</span>
+                      <p className="text-sm text-slate-600 dark:text-slate-400 font-medium mt-1">
+                        Topic: <span className="text-slate-800 dark:text-slate-200">{log.topicCovered}</span>
                       </p>
                     </div>
                     <div className="text-right flex flex-col items-end gap-1">
                       <Badge variant="neutral">{log.durationMins} mins</Badge>
-                      <p className="text-xs text-slate-500">Coach: {log.coach.user.name}</p>
+                      <p className="text-xs text-slate-500 dark:text-slate-400">Coach: {log.coach.user.name}</p>
                     </div>
                   </div>
                   
-                  <div className="bg-slate-50 rounded-md p-3 border border-slate-100">
-                    <p className="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">
+                  <div className="bg-slate-50 dark:bg-slate-800/50 rounded-md p-3 border border-slate-100 dark:border-slate-700/50">
+                    <p className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">
                       Student Attendance
                     </p>
                     {log.attendance.length === 0 ? (
@@ -100,7 +100,7 @@ export function AttendanceViewerDialog({ batchId, batchName }: AttendanceViewerP
                       <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                         {log.attendance.map((att, i) => (
                           <li key={i} className="flex items-center justify-between text-sm">
-                            <span className="text-slate-700">{att.student.user.name}</span>
+                            <span className="text-slate-700 dark:text-slate-300">{att.student.user.name}</span>
                             <Badge variant={att.status === AttendanceStatus.PRESENT ? "success" : "danger"}>
                               {att.status === AttendanceStatus.PRESENT ? "Present" : "Absent"}
                             </Badge>

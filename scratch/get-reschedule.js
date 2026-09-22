@@ -1,0 +1,1 @@
+const { PrismaClient } = require('@prisma/client'); const prisma = new PrismaClient(); async function run() { const req = await prisma.coachRescheduleRequest.findFirst({ where: { status: 'APPROVED' }, orderBy: { reviewedAt: 'desc' }, include: { classInstance: true } }); console.log(JSON.stringify(req, null, 2)); await prisma.$disconnect(); } run();

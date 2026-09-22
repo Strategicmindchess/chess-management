@@ -76,14 +76,10 @@ export async function getLeaderboard(
     };
   }
 
-  // Strict Redis-only mode for UI! We DO NOT hit DB if missing.
-  // The worker runs generateLeaderboardCache to populate it.
-  console.log(`[Leaderboard] Strict cache miss for ${cacheKey}. Triggering background generation but returning empty for now.`);
+  // If cache miss, generate it inline and return the result
+  console.log(`[Leaderboard] Cache miss for ${cacheKey}. Generating from DB...`);
   
-  // Non-blocking trigger just in case
-  generateLeaderboardCache(periodType, start).catch(console.error);
-
-  return { entries: [], calculatedAt: null, puzzleSolverAward: null };
+  return await generateLeaderboardCache(periodType, start);
 }
 
 /** 

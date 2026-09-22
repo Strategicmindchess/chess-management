@@ -446,5 +446,60 @@ export async function deleteBatch(batchId: string) {
   }
 }
 
+/**
+ * Fetch all students taught by the current coach
+ */
+export async function getCoachStudents(): Promise<any> {
+  try {
+    const user = await getCurrentUser();
+    if (!user || user.role !== 'TEACHER') {
+      return { success: false, error: 'Unauthorized' };
+    }
 
+    const coach = await prisma.coachProfile.findUnique({
+      where: { userId: user.id },
+    });
 
+    if (!coach) return { success: false, error: 'Coach profile not found' };
+
+    const batches = await prisma.batch.findMany({
+      where: { coachProfileId: coach.id, isActive: true },
+      include: {
+        students: {
+          include: {
+            student: {
+              include: {
+                user: { select: { name: true, email: true, phone: true } },
+              }
+            }
+          }
+        }
+      }
+    });
+
+    // Extract unique students
+    const studentMap = new Map();
+    for (const batch of batches) {
+      for (const bs of batch.students) {
+        if (!studentMap.has(bs.studentProfileId)) {
+          studentMap.set(bs.studentProfileId, {
+            id: bs.studentProfileId,
+            name: bs.student.user.name,
+            email: bs.student.user.email,
+            phone: bs.student.user.phone,
+            chessComId: bs.student.chessComId,
+            lichessId: bs.student.lichessId,
+            batches: [batch.name]
+          });
+        } else {
+          studentMap.get(bs.studentProfileId).batches.push(batch.name);
+        }
+      }
+    }
+
+    return { success: true, students: Array.from(studentMap.values()) };
+  } catch (error: any) {
+    console.error('Failed to fetch students:', error);
+    return { success: false, error: 'Failed to fetch students' };
+  }
+}

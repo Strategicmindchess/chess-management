@@ -3,14 +3,9 @@
 import { useTransition, useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import Image from "next/image";
-import { LogOut, User, Moon, Sun } from "lucide-react";
+import { LogOut, User, Moon, Sun, Menu } from "lucide-react";
 import { logout } from "@/actions/auth/logout";
-import { Button } from "@/components/ui/button";
 import type { Role } from "@/lib/enums";
-import { NAV_ITEMS } from "./nav-config";
-import { AdminTicketsDialog } from "@/components/tickets/admin-tickets-dialog";
-import { MessageSquare } from "lucide-react";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { useTheme } from "@/components/theme-provider";
 
@@ -19,17 +14,16 @@ export function Topbar({
   userEmail,
   roleLabel,
   role,
+  onMenuClick,
 }: {
   userName: string;
   userEmail: string;
   roleLabel: string;
   role: Role;
+  onMenuClick?: () => void;
 }) {
-  const router = useRouter();
   const [isPending, startTransition] = useTransition();
-  const navItems = NAV_ITEMS[role];
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [isTicketsOpen, setIsTicketsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const { theme, toggleTheme } = useTheme();
 
@@ -51,60 +45,57 @@ export function Topbar({
     .toUpperCase();
 
   return (
-    <header className="sticky top-0 z-30 flex h-20 items-center justify-between gap-4 border-b border-slate-200 dark:border-slate-800/50 bg-white/80 dark:bg-[#11141c]/40 px-4 dark:backdrop-blur-3xl backdrop-blur-xl sm:px-6">
+    <header className="sticky top-0 z-30 flex h-16 items-center justify-between gap-4 border-b border-slate-200 dark:border-slate-800/50 bg-white/80 dark:bg-[#11141c]/70 px-4 backdrop-blur-xl sm:px-6">
+      {/* Left — hamburger (mobile only) */}
       <div className="flex items-center gap-3 lg:hidden">
-        <Image src="/image.png" alt="SMC Logo" width={100} height={32} className="h-8 w-auto object-contain dark:brightness-200" />
-        <select
-          aria-label="Navigate"
-          className="rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white px-2 py-1.5 text-sm"
-          onChange={(event) => {
-            if (event.target.value) router.push(event.target.value);
-          }}
-          defaultValue=""
+        <button
+          onClick={onMenuClick}
+          className="flex h-9 w-9 items-center justify-center rounded-lg text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800 transition-colors"
+          aria-label="Open sidebar"
         >
-          <option value="" disabled>
-            Navigate…
-          </option>
-          {navItems.map((item) => (
-            <option key={item.href} value={item.href}>
-              {item.label}
-            </option>
-          ))}
-        </select>
+          <Menu className="h-5 w-5" />
+        </button>
       </div>
-      <div className="hidden lg:block" />
-      <div className="flex items-center gap-3 relative" ref={dropdownRef}>
-        {/* Notification Bell — top header, all roles */}
-        <NotificationBell />
 
-        {/* Dark / Light mode toggle */}
+      {/* Desktop spacer */}
+      <div className="hidden lg:block" />
+
+      {/* Right actions */}
+      <div className="flex items-center gap-2 relative" ref={dropdownRef}>
+        {/* Theme toggle */}
         <button
           onClick={toggleTheme}
-          className="flex h-9 w-9 items-center justify-center rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-          title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+          className="flex h-9 w-9 items-center justify-center rounded-full text-slate-500 hover:bg-slate-100 hover:text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 transition-colors dark:text-slate-400 dark:hover:bg-[#242938] dark:hover:text-white"
+          aria-label="Toggle Dark Mode"
         >
-          {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+          {theme === "dark" ? <Sun className="h-[18px] w-[18px]" /> : <Moon className="h-[18px] w-[18px]" />}
         </button>
 
+        {/* Notification Bell */}
+        <NotificationBell />
+
+        {/* User info (desktop) */}
         <div className="hidden text-right sm:block">
           <p className="text-sm font-medium text-slate-900 dark:text-white">{userName}</p>
           <p className="text-xs text-slate-500 dark:text-slate-400">{roleLabel}</p>
         </div>
-        
+
+        {/* Avatar / dropdown trigger */}
         <button
           onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-          className="flex h-10 w-10 items-center justify-center rounded-full bg-brand-100 text-sm font-medium text-brand-700 hover:bg-brand-200 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 transition-colors"
+          className="flex h-9 w-9 items-center justify-center rounded-full bg-brand-100 text-sm font-semibold text-brand-700 hover:bg-brand-200 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 transition-colors dark:bg-brand-900/40 dark:text-brand-300 dark:hover:bg-brand-900/60"
         >
           {initials}
         </button>
 
+        {/* Dropdown menu */}
         {isDropdownOpen && (
-          <div className="absolute right-0 top-12 mt-2 w-56 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-50 dark:bg-[#1a1f2e] dark:ring-[#2a3040]">
-            <div className="px-4 py-2 border-b border-slate-100 dark:border-[#2a3040]">
-              <p className="text-sm font-medium text-slate-900 truncate dark:text-slate-100">{userName}</p>
+          <div className="absolute right-0 top-11 mt-1 w-56 origin-top-right rounded-xl bg-white py-1 shadow-xl ring-1 ring-black/5 focus:outline-none z-50 dark:bg-[#1a1f2e] dark:ring-[#2a3040]">
+            <div className="px-4 py-3 border-b border-slate-100 dark:border-[#2a3040]">
+              <p className="text-sm font-semibold text-slate-900 truncate dark:text-slate-100">{userName}</p>
               <p className="text-xs text-slate-500 truncate dark:text-slate-400">{userEmail}</p>
             </div>
-            
+
             <Link
               href="/account/profile"
               onClick={() => setIsDropdownOpen(false)}
@@ -140,4 +131,3 @@ export function Topbar({
     </header>
   );
 }
-

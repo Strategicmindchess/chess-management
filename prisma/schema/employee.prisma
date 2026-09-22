@@ -2,27 +2,29 @@
 /// Used for non-teaching staff with fixed salary / per-project payment
 /// userId is optional — employees don't need a platform login
 model EmployeeProfile {
-  id             String       @id @default(cuid())
-  userId         String?      @unique /// Optional — if they have a platform account
-  name           String /// Employee full name
+  id             String               @id @default(cuid())
+  /// Optional — if they have a platform account
+  userId         String?              @unique
+  /// Employee full name
+  name           String
   phone          String?
   email          String?
-  jobRole        String /// e.g. "Operations Manager", "Content Writer"
-  employeeType   EmployeeType @default(FULL_TIME)
-  employmentMode EmployeeMode @default(EMPLOYEE)
+  /// e.g. "Operations Manager", "Content Writer"
+  jobRole        String
+  employeeType   EmployeeType         @default(FULL_TIME)
+  employmentMode EmployeeMode         @default(EMPLOYEE)
   /// Fixed monthly salary (for EMPLOYEE type)
-  fixedSalary    Float        @default(0)
+  fixedSalary    Float                @default(0)
   /// Per-project / per-task rate (for FREELANCER type)
-  projectRate    Float        @default(0)
-  tdsApplicable  Boolean      @default(false)
+  projectRate    Float                @default(0)
+  tdsApplicable  Boolean              @default(false)
   joiningDate    DateTime?
-  isActive       Boolean      @default(true)
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
-
-  user       User?                @relation(fields: [userId], references: [id], onDelete: SetNull)
-  attendance EmployeeAttendance[]
-  incentives EmployeeIncentive[]
+  isActive       Boolean              @default(true)
+  createdAt      DateTime             @default(now())
+  updatedAt      DateTime             @updatedAt
+  attendance     EmployeeAttendance[]
+  incentives     EmployeeIncentive[]
+  user           User?                @relation(fields: [userId], references: [id])
 
   @@map("employee_profiles")
 }
@@ -31,19 +33,22 @@ model EmployeeProfile {
 model EmployeeAttendance {
   id                String           @id @default(cuid())
   employeeProfileId String
-  date              DateTime /// The date of attendance (date only, time 00:00)
+  /// The date of attendance (date only, time 00:00)
+  date              DateTime
   status            AttendanceStatus @default(PRESENT)
-  checkInTime       String? /// HH:mm format
-  checkOutTime      String? /// HH:mm format
-  workingHours      Float? /// Auto-calculated or manual
+  /// HH:mm format
+  checkInTime       String?
+  /// HH:mm format
+  checkOutTime      String?
+  /// Auto-calculated or manual
+  workingHours      Float?
   isOvertime        Boolean          @default(false)
   overtimeHours     Float?
   overtimeBonus     Float            @default(0)
   notes             String?
   createdAt         DateTime         @default(now())
   updatedAt         DateTime         @updatedAt
-
-  employee EmployeeProfile @relation(fields: [employeeProfileId], references: [id], onDelete: Cascade)
+  employee          EmployeeProfile  @relation(fields: [employeeProfileId], references: [id], onDelete: Cascade)
 
   @@unique([employeeProfileId, date])
   @@map("employee_attendance")
@@ -51,15 +56,15 @@ model EmployeeAttendance {
 
 /// Manual incentives / deductions / bonuses for employees
 model EmployeeIncentive {
-  id                String        @id @default(cuid())
+  id                String          @id @default(cuid())
   employeeProfileId String
-  month             String /// "2026-08"
+  /// "2026-08"
+  month             String
   type              IncentiveType
   amount            Float
   reason            String
-  createdAt         DateTime      @default(now())
-
-  employee EmployeeProfile @relation(fields: [employeeProfileId], references: [id], onDelete: Cascade)
+  createdAt         DateTime        @default(now())
+  employee          EmployeeProfile @relation(fields: [employeeProfileId], references: [id], onDelete: Cascade)
 
   @@map("employee_incentives")
 }

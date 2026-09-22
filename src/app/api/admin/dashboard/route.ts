@@ -3,13 +3,13 @@ import { requireRole } from "@/lib/dal";
 import { Role } from "@/lib/enums";
 import { getAdminDashboardStats } from "@/actions/dashboard-actions";
 import { getAssignmentReport } from "@/actions/assignment-actions";
+import { withLogging } from "../../../../lib/api-logger";
 
 export const dynamic = "force-dynamic";
+export let GET = withLogging(async function(req: NextRequest) {
+    await requireRole([Role.ADMIN]);
 
-export async function GET(req: NextRequest) {
-  await requireRole([Role.ADMIN]);
-  
-  try {
+    try {
     const [stats, reportDataResponse] = await Promise.all([
       getAdminDashboardStats(),
       getAssignmentReport(),
@@ -24,11 +24,10 @@ export async function GET(req: NextRequest) {
       stats,
       summary
     });
-  } catch (err: any) {
+    } catch (err: any) {
     return NextResponse.json(
       { error: err.message || "Failed to fetch admin dashboard stats" },
       { status: 500 }
     );
-  }
-}
-
+    }
+    });

@@ -1,10 +1,12 @@
 import { requireRole } from "@/lib/dal";
 import { Role } from "@/lib/enums";
 import { getAssignmentReport } from "@/actions/assignment-actions";
-import { Users, CheckCircle2, AlertCircle, FileText, CalendarDays, BookOpen, Clock, Activity, Flag, Puzzle, ArrowRight, PlayCircle, PlusCircle } from "lucide-react";
+import { Users, CheckCircle2, AlertCircle, FileText, CalendarDays, BookOpen, Clock, Activity, Flag, Puzzle, ArrowRight, PlayCircle, PlusCircle, ShieldAlert, Gift } from "lucide-react";
 import Link from "next/link";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
+import { Suspense } from "react";
+import { TodayBatches, TodayBatchesSkeleton } from "./today-batches";
 
 export const dynamic = "force-dynamic";
 
@@ -70,30 +72,30 @@ export default async function TeacherDashboardPage() {
           <p className="text-3xl font-bold text-white">{summary.completedAll}</p>
         </div>
 
-        {/* Assignments Missing */}
-        <div className="group relative rounded-2xl bg-[#211416]/80 backdrop-blur-xl border border-rose-500/20 p-5 overflow-hidden hover:border-rose-500/50 transition-colors shadow-[0_4px_20px_rgba(0,0,0,0.3)]">
+        {/* Assignments Missing — links to assignment report */}
+        <Link href="/teacher/assignment-report" className="group relative rounded-2xl bg-[#211416]/80 backdrop-blur-xl border border-rose-500/20 p-5 overflow-hidden hover:border-rose-500/50 transition-colors shadow-[0_4px_20px_rgba(0,0,0,0.3)] block">
           <div className="absolute top-0 right-0 w-32 h-32 bg-rose-500/10 rounded-full blur-[30px] -mr-10 -mt-10 pointer-events-none" />
           <div className="flex items-center justify-between mb-4">
             <div className="w-10 h-10 rounded-xl bg-rose-500/20 flex items-center justify-center border border-rose-500/30 shadow-[0_0_15px_rgba(244,63,94,0.2)]">
               <AlertCircle className="w-5 h-5 text-rose-400" />
             </div>
-            <ArrowRight className="w-4 h-4 text-slate-500 group-hover:text-white transition-colors" />
+            <ArrowRight className="w-4 h-4 text-slate-500 group-hover:text-rose-400 transition-colors" />
           </div>
           <p className="text-sm text-slate-400 font-medium mb-1">Assignments Missing</p>
           <p className="text-3xl font-bold text-white">{summary.missing}</p>
-        </div>
+        </Link>
 
-        {/* Compliance & Penalties */}
-        <Link href="/teacher/availability" className="group relative rounded-2xl bg-[#111723]/80 backdrop-blur-xl border border-blue-500/20 p-5 overflow-hidden hover:border-blue-500/50 transition-colors shadow-[0_4px_20px_rgba(0,0,0,0.3)] block">
+        {/* Compliance & Penalties — opens policy page (not availability) */}
+        <Link href="/teacher/policy" className="group relative rounded-2xl bg-[#111723]/80 backdrop-blur-xl border border-blue-500/20 p-5 overflow-hidden hover:border-blue-500/50 transition-colors shadow-[0_4px_20px_rgba(0,0,0,0.3)] block">
           <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 rounded-full blur-[30px] -mr-10 -mt-10 pointer-events-none" />
           <div className="flex items-center justify-between mb-4">
             <div className="w-10 h-10 rounded-xl bg-blue-500/20 flex items-center justify-center border border-blue-500/30 shadow-[0_0_15px_rgba(59,130,246,0.2)]">
-              <FileText className="w-5 h-5 text-blue-400" />
+              <ShieldAlert className="w-5 h-5 text-blue-400" />
             </div>
             <ArrowRight className="w-4 h-4 text-blue-400 group-hover:text-blue-300 transition-colors" />
           </div>
-          <p className="text-sm text-slate-400 font-medium mb-1">Compliance & Penalties</p>
-          <p className="text-blue-400 text-sm font-medium hover:underline">View Policy</p>
+          <p className="text-sm text-slate-400 font-medium mb-1">Compliance &amp; Penalties</p>
+          <p className="text-blue-400 text-sm font-medium">View Policy →</p>
         </Link>
       </div>
 
@@ -113,10 +115,12 @@ export default async function TeacherDashboardPage() {
               <p className="text-sm text-slate-500 mt-1">Follow this structure in every SMC class for maximum impact.</p>
             </div>
           </div>
-          <Button variant="secondary" className="bg-amber-500/10 text-amber-400 border-amber-500/30 hover:bg-amber-500/20 hidden sm:flex">
-            <BookOpen className="w-4 h-4 mr-2" />
-            View Full Guide <ArrowRight className="w-4 h-4 ml-1" />
-          </Button>
+          <Link href="/teacher/guide" className="hidden sm:block">
+            <Button variant="secondary" className="bg-amber-500/10 text-amber-400 border-amber-500/30 hover:bg-amber-500/20">
+              <BookOpen className="w-4 h-4 mr-2" />
+              View Full Guide <ArrowRight className="w-4 h-4 ml-1" />
+            </Button>
+          </Link>
         </div>
 
         {/* Timeline Flow */}
@@ -195,54 +199,10 @@ export default async function TeacherDashboardPage() {
       {/* Bottom Row */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         
-        {/* Today's Batches placeholder */}
-        <div className="group rounded-2xl bg-[#1a142c]/90 backdrop-blur-xl border border-purple-500/20 p-6 flex flex-col relative overflow-hidden shadow-[0_4px_20px_rgba(0,0,0,0.3)] hover:border-purple-500/50 transition-colors">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-purple-500/10 rounded-full blur-[30px] -mr-10 -mt-10 pointer-events-none" />
-          <div className="flex items-center justify-between mb-6 relative z-10">
-            <div className="flex items-center gap-2">
-              <CalendarDays className="w-5 h-5 text-brand-400" />
-              <h2 className="text-lg font-bold text-white">Today's Batches</h2>
-            </div>
-            <Link href="/teacher/batches" className="text-sm text-brand-400 hover:text-brand-300 flex items-center gap-1 font-medium">
-              View All <ArrowRight className="w-4 h-4" />
-            </Link>
-          </div>
-          
-          <div className="space-y-3 flex-1">
-            <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              <div className="flex items-center gap-3">
-                <div className="px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-400 text-xs font-bold border border-emerald-500/30">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block mr-1.5 animate-pulse" />
-                  Live
-                </div>
-                <div>
-                  <p className="text-xs text-slate-400 mb-0.5">4:00 PM – 5:00 PM</p>
-                  <p className="text-white font-medium">SMC Core 2 (Batch A)</p>
-                  <p className="text-xs text-slate-500 mt-1 flex items-center gap-1"><Users className="w-3 h-3" /> 8 Students</p>
-                </div>
-              </div>
-              <Button className="bg-amber-400 hover:bg-amber-500 text-amber-950 font-bold w-full sm:w-auto shadow-[0_0_15px_rgba(251,191,36,0.3)]">
-                Join Class <ArrowRight className="w-4 h-4 ml-2" />
-              </Button>
-            </div>
-            
-            <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              <div className="flex items-center gap-3">
-                <div className="px-3 py-1 rounded-full bg-slate-800 text-slate-300 text-xs font-bold border border-slate-700">
-                  Upcoming
-                </div>
-                <div>
-                  <p className="text-xs text-slate-400 mb-0.5">6:00 PM – 7:00 PM</p>
-                  <p className="text-white font-medium">SMC Core 1 (Batch B)</p>
-                  <p className="text-xs text-slate-500 mt-1 flex items-center gap-1"><Users className="w-3 h-3" /> 12 Students</p>
-                </div>
-              </div>
-              <Button variant="secondary" className="bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700 hover:text-white w-full sm:w-auto">
-                View Details
-              </Button>
-            </div>
-          </div>
-        </div>
+        {/* Today's Batches (dynamic data with loading state) */}
+        <Suspense fallback={<TodayBatchesSkeleton />}>
+          <TodayBatches coachUserId={user.id} />
+        </Suspense>
 
         {/* Quick Actions */}
         <div className="group rounded-2xl bg-[#0f2a24]/90 backdrop-blur-xl border border-teal-500/20 p-6 flex flex-col relative overflow-hidden shadow-[0_4px_20px_rgba(0,0,0,0.3)] hover:border-teal-500/50 transition-colors">
@@ -286,6 +246,27 @@ export default async function TeacherDashboardPage() {
         </div>
 
       </div>
+
+      {/* Chocolate Challenge — Quick Link card */}
+      <Link
+        href="/teacher/chocolate"
+        className="group relative rounded-2xl bg-gradient-to-br from-[#1a1311]/90 to-[#1a1f2e]/80 backdrop-blur-xl border border-amber-500/30 p-6 flex items-center gap-5 overflow-hidden shadow-[0_4px_20px_rgba(0,0,0,0.3)] hover:border-amber-500/60 transition-all hover:shadow-[0_0_40px_rgba(245,158,11,0.12)]"
+      >
+        <div className="absolute top-0 right-0 w-48 h-48 bg-amber-500/5 rounded-full blur-[60px] -mr-10 -mt-10 pointer-events-none" />
+        <div className="w-14 h-14 rounded-2xl bg-amber-500/20 flex items-center justify-center border border-amber-500/30 shrink-0 shadow-[0_0_20px_rgba(245,158,11,0.15)] group-hover:shadow-[0_0_30px_rgba(245,158,11,0.3)] transition-shadow">
+          <span className="text-2xl">🍫</span>
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-xs font-bold text-amber-400/70 uppercase tracking-widest mb-1">Monthly Challenge</p>
+          <h2 className="text-xl font-bold text-white">Chocolate Challenge</h2>
+          <p className="text-sm text-slate-400 mt-1">
+            Award +5 / −2 marks to students for class question answers.
+          </p>
+        </div>
+        <div className="w-10 h-10 rounded-full bg-amber-500/10 border border-amber-500/20 flex items-center justify-center shrink-0 group-hover:bg-amber-500 group-hover:border-amber-400 transition-all">
+          <ArrowRight className="w-5 h-5 text-amber-400 group-hover:text-white transition-colors" />
+        </div>
+      </Link>
     </div>
   );
 }

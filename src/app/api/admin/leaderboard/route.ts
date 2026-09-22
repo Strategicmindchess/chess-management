@@ -3,14 +3,15 @@ import { requireRole } from "@/lib/dal";
 import { Role } from "@/lib/enums";
 import { prisma } from "@/lib/prisma";
 import { getLeaderboard } from "@/actions/leaderboard/leaderboard-actions";
+import { getCurrentPeriod } from "@/lib/leaderboard-period";
 import { getAllStudentsWithChessStatus } from "@/actions/leaderboard/account-actions";
+import { withLogging } from "../../../../lib/api-logger";
 
 export const dynamic = "force-dynamic";
+export let GET = withLogging(async function(req: NextRequest) {
+    await requireRole([Role.ADMIN]);
 
-export async function GET(req: NextRequest) {
-  await requireRole([Role.ADMIN]);
-  
-  try {
+    try {
     const { searchParams } = new URL(req.url);
     const periodType = searchParams.get("period") === "WEEKLY" ? "WEEKLY" : "MONTHLY";
 
@@ -32,17 +33,8 @@ export async function GET(req: NextRequest) {
       getAllStudentsWithChessStatus(),
     ]);
 
-    const now = new Date();
-    const periodStart = periodType === 'MONTHLY' 
-      ? new Date(now.getFullYear(), now.getMonth(), 1).toISOString()
-      : (() => {
-          const d = new Date();
-          const dayOfWeek = d.getUTCDay();
-          const diffToMonday = d.getUTCDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1);
-          const ws = new Date(d.setUTCDate(diffToMonday));
-          ws.setUTCHours(0, 0, 0, 0);
-          return ws.toISOString();
-        })();
+    const { periodStart: pStartObj } = getCurrentPeriod(periodType);
+    const periodStart = pStartObj.toISOString();
 
     return NextResponse.json({
       leaderboardData,
@@ -52,11 +44,10 @@ export async function GET(req: NextRequest) {
       studentsWithStatus,
       periodStart,
     });
-  } catch (err: any) {
+    } catch (err: any) {
     return NextResponse.json(
       { error: err.message || "Failed to fetch admin leaderboard" },
       { status: 500 }
     );
-  }
-}
-
+    }
+    });

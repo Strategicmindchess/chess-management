@@ -13,6 +13,8 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { toZonedTime } from 'date-fns-tz';
+import { format } from 'date-fns';
 import { HOUR } from './helpers';
 
 vi.mock('ioredis', () => {
@@ -49,8 +51,12 @@ const JOB = { id: 'j', name: JOB_NAMES.PROCESS_PENALTIES, data: {} } as any;
 
 function makeLog100h(overrides: Record<string, any> = {}) {
   const completedAt = new Date(NOW - 100 * HOUR); // 100h old → hard cutoff
-  // startTime in UTC HH:MM so engine computes classScheduledStart == completedAt → 0 late join
-  const startTimeStr = completedAt.toISOString().slice(11, 16);
+  // FIX: extract startTime in IST (not UTC) so the worker's fromZonedTime() call
+  // reconstructs classScheduledStart == completedAt exactly → 0 minutes late → ₹0 late join.
+  // Old code used toISOString().slice(11,16) (UTC HH:MM) which shifted the computed
+  // schedule back by 5h30m, making the coach appear 330 minutes late (+₹500 ghost penalty).
+  const istDate = toZonedTime(completedAt, 'Asia/Kolkata');
+  const startTimeStr = format(istDate, 'HH:mm'); // IST HH:MM — matches DB storage
   return {
     id: 'log-consensus',
     coachProfileId: 'coach-1',

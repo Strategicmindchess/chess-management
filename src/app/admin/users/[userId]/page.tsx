@@ -9,83 +9,116 @@ import { EditUserButton } from "./edit-user-button";
 import { CoachPayoutSettings } from "@/components/admin/coach-payout-settings";
 import { format } from "date-fns";
 
-import { unstable_cache } from "next/cache";
+const getUserProfileData = async (userId: string) => {
+  const baseUser = await prisma.user.findUnique({
+    where: { id: userId },
+    include: {
+      studentProfile: true,
+      coachProfile: true,
+    }
+  });
 
-const getUserProfileData = unstable_cache(
-  async (userId: string) => {
-    const baseUser = await prisma.user.findUnique({
-      where: { id: userId },
-      include: {
-        studentProfile: true,
-        coachProfile: true,
-      }
+  if (!baseUser) return null;
+
+  let studentProfile = baseUser.studentProfile as any;
+  let coachProfile = baseUser.coachProfile as any;
+
+  if (baseUser.role === Role.STUDENT && baseUser.studentProfile) {
+    const [enrollments, attendanceRecords] = await Promise.all([
+      prisma.batchStudent.findMany({
+        where: { studentProfileId: baseUser.studentProfile.id },
+        include: { batch: { include: { coach: { include: { user: true } } } } }
+      }),
+      prisma.attendanceRecord.findMany({
+        where: { studentProfileId: baseUser.studentProfile.id },
+        include: { classLog: { include: { batch: true } } },
+        orderBy: { classLog: { date: "desc" } },
+      })
+    ]);
+    studentProfile = { ...baseUser.studentProfile, enrollments, attendanceRecords };
+  }
+
+  let penalizedClassLogs: any[] = [];
+
+  if (baseUser.role === Role.TEACHER && baseUser.coachProfile) {
+    const [batches, classLogs, payoutRates, payoutAdjustments, penalized] = await Promise.all([
+      prisma.batch.findMany({ where: { coachProfileId: baseUser.coachProfile.id } }),
+      prisma.classLog.findMany({
+        where: { coachProfileId: baseUser.coachProfile.id },
+        orderBy: { date: "desc" },
+        take: 50,
+        include: { batch: true },
+      }),
+      prisma.coachPayoutRate.findMany({
+        where: { coachProfileId: baseUser.coachProfile.id },
+        orderBy: [{ level: "asc" }, { durationMins: "asc" }]
+      }),
+      prisma.payoutAdjustment.findMany({
+        where: { coachProfileId: baseUser.coachProfile.id },
+        orderBy: { month: "desc" }
+      }),
+      prisma.classLog.findMany({
+        where: { 
+          coachProfileId: baseUser.coachProfile.id,
+          penaltyAmount: { gt: 0 } 
+        },
+        orderBy: { date: 'desc' },
+        include: { batch: true }
+      })
+    ]);
+
+    penalizedClassLogs = penalized;
+
+    // Group logs by month
+    const classesByMonth = classLogs.reduce((acc: any, log: any) => {
+      const d = new Date(log.date);
+      const monthKey = format(d, "MMM yyyy");
+      if (!acc[monthKey]) acc[monthKey] = [];
+      acc[monthKey].push(log);
+      return acc;
+    }, {});
+
+    // Calculate total payouts per month
+    const payoutsByMonth = Object.entries(classesByMonth).map(([month, logs]) => {
+      const monthLogs = logs as any[];
+      let gross = 0;
+      let deductions = 0;
+
+      monthLogs.forEach(log => {
+        gross += log.payoutAmount;
+        if (log.penaltyAmount > 0 && !log.penaltyWaived) {
+          deductions += log.penaltyAmount;
+        }
+      });
+
+      const adjs = payoutAdjustments.filter(a => {
+        const d = new Date(month);
+        return a.month === format(d, "yyyy-MM");
+      });
+
+      const totalAdditions = adjs.filter(a => a.type === "BONUS" || a.type === "INCENTIVE").reduce((sum, a) => sum + a.amount, 0);
+      const totalDeductions = adjs.filter(a => a.type === "DEDUCTION").reduce((sum, a) => sum + a.amount, 0);
+
+      gross += totalAdditions;
+      deductions += totalDeductions;
+
+      const tds = baseUser.coachProfile?.tdsApplicable ? Math.round(gross * 0.10) : 0;
+      const net = gross - deductions - tds;
+
+      return { month, gross, deductions, tds, net, classesHeld: monthLogs.length };
     });
+    coachProfile = { ...baseUser.coachProfile, batches, classLogs, payoutRates, payoutAdjustments, payoutsByMonth };
+  }
 
-    if (!baseUser) return null;
-
-    let studentProfile = baseUser.studentProfile as any;
-    let coachProfile = baseUser.coachProfile as any;
-
-    if (baseUser.role === Role.STUDENT && baseUser.studentProfile) {
-      const [enrollments, attendanceRecords] = await Promise.all([
-        prisma.batchStudent.findMany({
-          where: { studentProfileId: baseUser.studentProfile.id },
-          include: { batch: { include: { coach: { include: { user: true } } } } }
-        }),
-        prisma.attendanceRecord.findMany({
-          where: { studentProfileId: baseUser.studentProfile.id },
-          include: { classLog: { include: { batch: true } } },
-          orderBy: { classLog: { date: "desc" } },
-        })
-      ]);
-      studentProfile = { ...baseUser.studentProfile, enrollments, attendanceRecords };
-    }
-
-    let penalizedClassLogs: any[] = [];
-
-    if (baseUser.role === Role.TEACHER && baseUser.coachProfile) {
-      const [batches, classLogs, payoutRates, payoutAdjustments, penalized] = await Promise.all([
-        prisma.batch.findMany({ where: { coachProfileId: baseUser.coachProfile.id } }),
-        prisma.classLog.findMany({
-          where: { coachProfileId: baseUser.coachProfile.id },
-          orderBy: { date: "desc" },
-          take: 50,
-          include: { batch: true },
-        }),
-        prisma.coachPayoutRate.findMany({
-          where: { coachProfileId: baseUser.coachProfile.id },
-          orderBy: [{ level: "asc" }, { durationMins: "asc" }]
-        }),
-        prisma.payoutAdjustment.findMany({
-          where: { coachProfileId: baseUser.coachProfile.id },
-          orderBy: { createdAt: "desc" },
-          take: 10,
-        }),
-        prisma.classLog.findMany({
-          where: { 
-            coachProfileId: baseUser.coachProfile.id,
-            penaltyAmount: { gt: 0 } 
-          },
-          orderBy: { date: 'desc' },
-          include: { batch: true }
-        })
-      ]);
-      coachProfile = { ...baseUser.coachProfile, batches, classLogs, payoutRates, payoutAdjustments };
-      penalizedClassLogs = penalized;
-    }
-
-    return {
-      user: {
-        ...baseUser,
-        studentProfile,
-        coachProfile
-      },
-      penalizedClassLogs
-    };
-  },
-  ['admin-user-profile'],
-  { tags: ['admin-user-profile'], revalidate: 3600 }
-);
+  return {
+    user: {
+      ...baseUser,
+      studentProfile,
+      coachProfile
+    },
+    penalizedClassLogs
+  };
+};
 
 export default async function UserProfilePage({
   params,

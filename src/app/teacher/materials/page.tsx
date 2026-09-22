@@ -11,8 +11,8 @@ export default async function TeacherMaterialsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-xl font-semibold text-slate-900">Class Materials</h1>
-        <p className="text-sm text-slate-500">
+        <h1 className="text-xl font-semibold text-slate-900 dark:text-white">Class Materials</h1>
+        <p className="text-sm text-slate-500 dark:text-slate-400">
           Browse and download class PGNs, assignments, and test links.
         </p>
       </div>

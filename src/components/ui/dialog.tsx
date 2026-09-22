@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -15,6 +16,12 @@ interface DialogProps {
 }
 
 export function Dialog({ open, onClose, title, description, children, className, hideCloseButton }: DialogProps) {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   useEffect(() => {
     if (!open) return;
 
@@ -29,22 +36,23 @@ export function Dialog({ open, onClose, title, description, children, className,
       document.removeEventListener('keydown', handleKeyDown);
       document.body.style.overflow = '';
     };
-  }, [open, onClose]);
+  }, [open, onClose, hideCloseButton]);
 
-  if (!open) return null;
+  if (!open || !mounted) return null;
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto p-4 sm:items-center">
+  return createPortal(
+    <div className="fixed inset-0 z-[100] flex items-start justify-center overflow-y-auto p-4 sm:items-center">
       <div
         className="fixed inset-0 bg-slate-900/50"
         aria-hidden="true"
+        onClick={onClose}
       />
       <div
         role="dialog"
         aria-modal="true"
         aria-labelledby="dialog-title"
         className={cn(
-          'relative z-10 my-8 max-h-[85vh] w-full max-w-lg overflow-y-auto rounded-xl bg-white shadow-xl dark:bg-[#11141c]/95 dark:backdrop-blur-xl dark:border dark:border-slate-800 dark:shadow-[0_4px_20px_rgba(0,0,0,0.5)]',
+          'relative z-10 my-8 max-h-[85vh] w-full max-w-lg overflow-y-auto rounded-xl bg-white shadow-xl dark:bg-[#1e2436] dark:backdrop-blur-xl dark:border dark:border-slate-700 dark:shadow-[0_4px_20px_rgba(0,0,0,0.5)]',
           className,
         )}
       >
@@ -67,6 +75,7 @@ export function Dialog({ open, onClose, title, description, children, className,
         </div>
         <div className="p-6">{children}</div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

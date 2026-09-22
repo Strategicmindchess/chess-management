@@ -70,7 +70,18 @@ export async function submitClassLog(input: SubmitClassLogInput) {
     }
 
     await prisma.$transaction(async (tx) => {
-      // Create the class log                        
+      // Create the class log     
+      const firstJoinEvent = await tx.classJoinEvent.findFirst({
+    where: {
+      classInstanceId: classInstance.id,
+      coachProfileId: coachProfile.id,
+    },
+    orderBy: { joinedAt: "asc" },
+    select: { joinedAt: true },
+  });         
+  if (!firstJoinEvent) {
+  throw new Error("Coach must join the class before marking attendance");
+}          
       const classLog = await tx.classLog.create({
         data: {
           batchId: batch.id,
@@ -80,7 +91,7 @@ export async function submitClassLog(input: SubmitClassLogInput) {
           durationMins: data.durationMins,
           payoutAmount: batch.payoutRate, // Snapshot of current rate
           attendanceMarkedAt: new Date(), // FIX: Ensure this is explicitly saved
-          coachJoinedAt: new Date(),      // FIX: Ensure this is saved so they aren't marked as never joined
+          coachJoinedAt: firstJoinEvent.joinedAt, 
         },
       });
 
@@ -231,4 +242,3 @@ export async function getBatchClassLogs(batchId: string) {
     return { success: false, error: err.message || "Failed to fetch class logs" };
   }
 }
-

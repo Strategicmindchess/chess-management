@@ -10,6 +10,14 @@ const nextConfig: NextConfig = {
       allowedOrigins: ["k3nlklnm-3000.inc1.devtunnels.ms", "localhost:3000"],
     },
   },
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "t3.storageapi.dev",
+      },
+    ],
+  },
 };
 
 export default nextConfig;

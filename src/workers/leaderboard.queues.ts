@@ -30,8 +30,8 @@ export const chessFetchQueue = new Queue<ChessFetchJobData>(QUEUE_NAMES.CHESS_FE
   defaultJobOptions: {
     attempts: 10,
     backoff: { type: 'exponential', delay: 60_000 },
-    removeOnComplete: { age: 86400, count: 500 },
-    removeOnFail: { age: 86400, count: 500 },
+    removeOnComplete: { age: 3600, count: 100 },  // Keep 1h or 100 jobs
+    removeOnFail:     { age: 86400, count: 50 },  // Keep 24h or 50 failed
   },
 });
 
@@ -40,8 +40,8 @@ export const leaderboardCalcQueue = new Queue<LeaderboardCalcJobData>(QUEUE_NAME
   defaultJobOptions: {
     attempts: 2,
     backoff: { type: 'fixed', delay: 10_000 },
-    removeOnComplete: { age: 86400, count: 500 },
-    removeOnFail: { age: 86400, count: 500 },
+    removeOnComplete: { age: 3600, count: 20 },   // Keep 1h or 20 jobs
+    removeOnFail:     { age: 86400, count: 20 },
   },
 });
 
@@ -65,8 +65,8 @@ export const attendanceSummaryQueue = new Queue<AttendanceSummaryJobData>(QUEUE_
   defaultJobOptions: {
     attempts: 2,
     backoff: { type: 'fixed', delay: 5_000 },
-    removeOnComplete: 50,
-    removeOnFail: 100,
+    removeOnComplete: 20,
+    removeOnFail: 20,
   },
 });
 
@@ -81,8 +81,8 @@ export const assignmentSummaryQueue = new Queue<AssignmentSummaryJobData>(QUEUE_
   defaultJobOptions: {
     attempts: 2,
     backoff: { type: 'fixed', delay: 5_000 },
-    removeOnComplete: 50,
-    removeOnFail: 100,
+    removeOnComplete: 20,
+    removeOnFail: 20,
   },
 });
 

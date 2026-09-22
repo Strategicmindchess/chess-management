@@ -70,16 +70,16 @@ export default async function TeacherPayoutsPage({
   }
   const batchBreakdown = Array.from(batchMap.values()).sort((a, b) => b.payout - a.payout);
 
-  const ADJ_COLORS: Record<string, string> = { BONUS: "text-emerald-600", INCENTIVE: "text-blue-600", DEDUCTION: "text-rose-600" };
+  const ADJ_COLORS: Record<string, string> = { BONUS: "text-emerald-400", INCENTIVE: "text-blue-400", DEDUCTION: "text-rose-400" };
 
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-xl font-semibold text-slate-900">Payouts & History</h1>
-          <p className="text-sm text-slate-500">
+          <h1 className="text-xl font-semibold text-white">Payouts & History</h1>
+          <p className="text-sm text-slate-400">
             Your earnings breakdown for the selected month.
-            {coachProfile.tdsApplicable && <span className="ml-2 text-amber-600 font-medium">TDS 10% applicable</span>}
+            {coachProfile.tdsApplicable && <span className="ml-2 text-amber-500 font-medium">TDS 10% applicable</span>}
           </p>
         </div>
         <MonthPicker />
@@ -89,197 +89,191 @@ export default async function TeacherPayoutsPage({
       <div className="grid gap-4 md:grid-cols-4">
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-slate-500">Gross Earned</CardTitle>
+            <CardTitle className="text-sm font-medium text-slate-400">Gross Earned</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-slate-900">₹{grossEarned.toLocaleString()}</div>
+            <div className="text-2xl font-bold text-white">₹{grossEarned.toLocaleString()}</div>
           </CardContent>
         </Card>
         {totalPenalties > 0 && (
-          <Card className="border-rose-200">
+          <Card className="border-rose-800/50">
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-rose-500">Penalties</CardTitle>
+              <CardTitle className="text-sm font-medium text-rose-400">Penalties</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-rose-600">−₹{totalPenalties.toLocaleString()}</div>
+              <div className="text-2xl font-bold text-rose-500">−₹{totalPenalties.toLocaleString()}</div>
             </CardContent>
           </Card>
         )}
         {tdsAmount > 0 && (
-          <Card className="border-amber-200">
+          <Card className="border-amber-800/50">
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-amber-600">TDS (10%)</CardTitle>
+              <CardTitle className="text-sm font-medium text-amber-500">TDS (10%)</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-amber-600">−₹{tdsAmount.toLocaleString()}</div>
+              <div className="text-2xl font-bold text-amber-500">−₹{tdsAmount.toLocaleString()}</div>
             </CardContent>
           </Card>
         )}
-        <Card className="border-emerald-200 bg-emerald-50/30">
+        <Card className="border-emerald-800/50 bg-emerald-900/20">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-emerald-600">Net Payout</CardTitle>
+            <CardTitle className="text-sm font-medium text-emerald-400">Net Payout</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-emerald-700">₹{netPayout.toLocaleString()}</div>
+            <div className="text-2xl font-bold text-emerald-400">₹{netPayout.toLocaleString()}</div>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-slate-500">Classes Held</CardTitle>
+            <CardTitle className="text-sm font-medium text-slate-400">Classes Held</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-slate-900">{totalClasses}</div>
+            <div className="text-2xl font-bold text-white">{totalClasses}</div>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-slate-500">Hours Taught</CardTitle>
+            <CardTitle className="text-sm font-medium text-slate-400">Hours Taught</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-slate-900">{(totalMinutes / 60).toFixed(1)}</div>
+            <div className="text-2xl font-bold text-white">{(totalMinutes / 60).toFixed(1)}</div>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-slate-500">Batches</CardTitle>
+            <CardTitle className="text-sm font-medium text-slate-400">Batches</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-slate-900">{totalBatchesTaught}</div>
+            <div className="text-2xl font-bold text-white">{totalBatchesTaught}</div>
           </CardContent>
         </Card>
       </div>
 
       {/* Net Payout breakdown */}
       <Card>
-        <div className="p-5 border-b border-slate-100">
-          <h2 className="text-base font-semibold text-slate-900">Payout Calculation</h2>
+        <div className="p-5 border-b border-slate-700/50">
+          <h2 className="text-base font-semibold text-white">Payout Calculation</h2>
         </div>
         <div className="p-5 space-y-3 text-sm">
-          <div className="flex justify-between text-slate-700">
+          <div className="flex justify-between text-slate-300">
             <span>Gross ({totalClasses} classes)</span>
-            <span className="font-semibold">₹{grossEarned.toLocaleString()}</span>
+            <span className="font-semibold text-white">₹{grossEarned.toLocaleString()}</span>
           </div>
           {totalPenalties > 0 && (
-            <div className="flex justify-between text-rose-600">
-              <span>Penalties deducted</span>
+            <div className="flex justify-between text-rose-400">
+              <span>Penalties (deducted)</span>
               <span className="font-semibold">−₹{totalPenalties.toLocaleString()}</span>
             </div>
           )}
-          {totalAdjustments !== 0 && (
-            <div className={`flex justify-between ${totalAdjustments >= 0 ? "text-emerald-600" : "text-rose-600"}`}>
-              <span>Adjustments</span>
-              <span className="font-semibold">{totalAdjustments >= 0 ? "+" : ""}₹{totalAdjustments.toLocaleString()}</span>
+          {coachProfile.payoutAdjustments.filter((a: any) => a.month === monthString).map((adj: any) => (
+            <div key={adj.id} className={`flex justify-between ${ADJ_COLORS[adj.type] || "text-slate-400"}`}>
+              <span>{adj.type === "DEDUCTION" ? "Deduction" : "Bonus"}: {adj.reason}</span>
+              <span className="font-semibold">
+                {adj.type === "DEDUCTION" ? "−" : "+"}₹{adj.amount.toLocaleString()}
+              </span>
             </div>
-          )}
+          ))}
           {tdsAmount > 0 && (
-            <div className="flex justify-between text-amber-600">
-              <span>TDS deducted (10%)</span>
+            <div className="flex justify-between text-amber-500">
+              <span>TDS (10%)</span>
               <span className="font-semibold">−₹{tdsAmount.toLocaleString()}</span>
             </div>
           )}
-          <div className="flex justify-between text-slate-900 font-bold border-t border-slate-200 pt-3">
-            <span>Net Payout</span>
-            <span className="text-emerald-700 text-lg">₹{netPayout.toLocaleString()}</span>
+          <div className="flex justify-between text-emerald-400 text-base pt-3 border-t border-slate-700/50 mt-3 font-bold">
+            <span>Net Transferrable</span>
+            <span>₹{netPayout.toLocaleString()}</span>
           </div>
         </div>
       </Card>
 
-      {/* Adjustments */}
-      {coachProfile.payoutAdjustments.length > 0 && (
-        <Card>
-          <div className="p-5 border-b border-slate-100">
-            <h2 className="text-base font-semibold text-slate-900">Adjustments this Month</h2>
-          </div>
-          <div className="divide-y divide-slate-100">
-            {coachProfile.payoutAdjustments.map(adj => (
-              <div key={adj.id} className="p-4 flex justify-between items-start">
-                <div>
-                  <span className={`text-xs font-semibold uppercase ${ADJ_COLORS[adj.type] ?? "text-slate-600"}`}>{adj.type}</span>
-                  <p className="text-sm text-slate-600 mt-0.5">{adj.reason}</p>
-                </div>
-                <span className={`font-semibold ${adj.amount >= 0 ? "text-emerald-600" : "text-rose-600"}`}>
-                  {adj.amount >= 0 ? "+" : ""}₹{adj.amount.toLocaleString()}
-                </span>
-              </div>
-            ))}
-          </div>
-        </Card>
-      )}
-
-      {/* Batch-wise breakdown */}
-      {batchBreakdown.length > 0 && (
-        <Card>
-          <div className="p-5 border-b border-slate-100">
-            <h2 className="text-base font-semibold text-slate-900">Batch-wise Breakdown</h2>
-          </div>
-          <div className="divide-y divide-slate-100">
-            {batchBreakdown.map(b => (
-              <div key={b.code} className="p-4 flex justify-between items-center">
-                <div>
-                  <div className="flex items-center gap-2">
-                    <p className="font-medium text-slate-800">{b.name}</p>
-                    <Badge variant="neutral">{b.code}</Badge>
-                  </div>
-                  <p className="text-xs text-slate-500 mt-0.5">{b.sessions} sessions</p>
-                </div>
-                <div className="text-right">
-                  <p className="font-semibold text-slate-700">₹{b.payout.toLocaleString()}</p>
-                  {b.penalties > 0 && <p className="text-xs text-rose-500">−₹{b.penalties} penalty</p>}
-                </div>
-              </div>
-            ))}
-          </div>
-        </Card>
-      )}
-
       {/* Class History */}
       <Card>
-        <div className="p-5 border-b border-slate-100">
-          <h2 className="text-base font-semibold text-slate-900">Class History</h2>
+        <div className="p-5 border-b border-slate-700/50 flex justify-between items-center">
+          <h2 className="text-base font-semibold text-white">Class History</h2>
+          <Badge variant="neutral">{filteredLogs.length} Sessions</Badge>
         </div>
-        {filteredLogs.length === 0 ? (
-          <EmptyState
-            title="No payout history"
-            description="You haven't logged any classes for this month yet."
-          />
-        ) : (
-          <div className="divide-y divide-slate-100">
-            {filteredLogs.map((log) => (
-              <div key={log.id} className="p-4 sm:p-5 hover:bg-slate-50 transition-colors">
-                <div className="flex flex-col sm:flex-row justify-between gap-3">
+        <div className="p-0">
+          {filteredLogs.length === 0 ? (
+            <div className="p-8 text-center text-slate-500 text-sm">
+              No classes logged for this month.
+            </div>
+          ) : (
+            <div className="divide-y divide-slate-800/60">
+              {filteredLogs.map(log => (
+                <div key={log.id} className="p-4 hover:bg-slate-800/30 transition-colors flex justify-between items-center">
                   <div>
-                    <div className="flex items-center gap-2 mb-1">
-                      <h3 className="font-semibold text-slate-900">{log.batch.name}</h3>
-                      <Badge variant="neutral">{log.batch.code}</Badge>
+                    <div className="font-medium text-white flex items-center gap-2">
+                      {log.batch.name}
+                      <span className="text-xs bg-slate-800 text-slate-300 px-1.5 py-0.5 rounded border border-slate-700">{log.batch.code}</span>
                     </div>
-                    <p className="text-sm text-slate-600 mb-1.5">
-                      Topic: <span className="font-medium text-slate-800">{log.topicCovered}</span>
-                    </p>
-                    <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-500">
-                      <span>{new Date(log.date).toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "short", year: "numeric" })}</span>
-                      <span>•</span>
-                      <span>{log.durationMins} mins</span>
-                      <span>•</span>
-                      <span>{log.attendance.length} students marked</span>
+                    <div className="text-sm text-slate-400 mt-0.5">
+                      {new Date(log.date).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })}
+                      {" • "}
+                      {log.durationMins} mins
                     </div>
                   </div>
-                  <div className="flex items-start gap-2">
-                    <Badge variant="success" className="text-sm px-3 py-1">
-                      +₹{log.payoutAmount}
-                    </Badge>
-                    {(log.penaltyAmount ?? 0) > 0 && (
-                      <Badge variant={log.penaltyWaived ? "neutral" : "danger"} className="text-sm px-3 py-1">
-                        {log.penaltyWaived ? "Waived" : `−₹${log.penaltyAmount}`}
-                      </Badge>
-                    )}
+                  <div className="text-right">
+                    <div className="font-semibold text-white">₹{log.payoutAmount.toLocaleString()}</div>
+                    {log.penaltyAmount && log.penaltyAmount > 0 ? (
+                      <div className={`flex flex-col items-end gap-0.5 mt-0.5 ${log.penaltyWaived ? "text-slate-400 line-through" : "text-rose-400"}`}>
+                        <div className="text-xs font-medium">−₹{log.penaltyAmount} penalty</div>
+                        {log.penaltyNote && (
+                          <div 
+                            className="text-[11px] opacity-80 max-w-[200px] sm:max-w-[300px] text-right truncate" 
+                            title={log.penaltyNote}
+                          >
+                            {log.penaltyNote}
+                          </div>
+                        )}
+                      </div>
+                    ) : null}
                   </div>
                 </div>
-              </div>
-            ))}
-          </div>
-        )}
+              ))}
+            </div>
+          )}
+        </div>
+      </Card>
+
+      {/* Batch Breakdown Table */}
+      <Card>
+        <div className="p-5 border-b border-slate-700/50">
+          <h2 className="text-base font-semibold text-white">Batch-wise Earnings</h2>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm text-left">
+            <thead className="bg-slate-800/50 text-slate-300">
+              <tr>
+                <th className="px-4 py-3 font-medium">Batch</th>
+                <th className="px-4 py-3 font-medium text-center">Sessions</th>
+                <th className="px-4 py-3 font-medium text-right">Penalties</th>
+                <th className="px-4 py-3 font-medium text-right">Earnings</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-800/60">
+              {batchBreakdown.length === 0 ? (
+                <tr>
+                  <td colSpan={4} className="px-4 py-8 text-center text-slate-500">No data available.</td>
+                </tr>
+              ) : (
+                batchBreakdown.map(b => (
+                  <tr key={b.code} className="hover:bg-slate-800/30">
+                    <td className="px-4 py-3">
+                      <div className="font-medium text-white">{b.name}</div>
+                      <div className="text-xs text-slate-400">{b.code}</div>
+                    </td>
+                    <td className="px-4 py-3 text-center text-slate-300">{b.sessions}</td>
+                    <td className="px-4 py-3 text-right">
+                      {b.penalties > 0 ? <span className="text-rose-400">−₹{b.penalties}</span> : <span className="text-slate-500">—</span>}
+                    </td>
+                    <td className="px-4 py-3 text-right font-medium text-white">₹{b.payout.toLocaleString()}</td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
       </Card>
     </div>
   );
 }
-

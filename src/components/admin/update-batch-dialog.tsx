@@ -132,7 +132,7 @@ export function UpdateBatchDialog({
         <form onSubmit={handleSubmit} className="space-y-6">
           
           <div className="space-y-4">
-            <h3 className="text-sm font-medium text-slate-900 border-b pb-2">Batch Details</h3>
+            <h3 className="text-sm font-medium text-slate-900 dark:text-slate-100 border-b border-slate-200 dark:border-slate-800 pb-2">Batch Details</h3>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="name">Batch Name <span className="text-red-500 ml-0.5">*</span></Label>
@@ -204,8 +204,8 @@ export function UpdateBatchDialog({
                   max="300"
                   defaultValue="0"
                 />
-                <p className="text-xs text-slate-500 mt-1">
-                  Currently: <strong className="text-slate-700">{batch.scheduledInstances} scheduled</strong>, <strong className="text-slate-700">{batch.completedInstances} completed</strong> sessions.
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                  Currently: <strong className="text-slate-700 dark:text-slate-300">{batch.scheduledInstances} scheduled</strong>, <strong className="text-slate-700 dark:text-slate-300">{batch.completedInstances} completed</strong> sessions.
                 </p>
               </div>
             </div>
@@ -260,7 +260,7 @@ export function UpdateBatchDialog({
           </div>
 
           <div className="space-y-4 pt-2">
-            <h3 className="text-sm font-medium text-slate-900 border-b pb-2">Assign Coach</h3>
+            <h3 className="text-sm font-medium text-slate-900 dark:text-slate-100 border-b border-slate-200 dark:border-slate-800 pb-2">Assign Coach</h3>
             <div className="space-y-2">
               <Select
                 value={coachId}
@@ -277,8 +277,8 @@ export function UpdateBatchDialog({
           </div>
 
           <div className="space-y-4 pt-2">
-            <div className="flex items-center justify-between border-b pb-2">
-              <h3 className="text-sm font-medium text-slate-900">
+            <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-2">
+              <h3 className="text-sm font-medium text-slate-900 dark:text-slate-100">
                 Manage Students ({selectedStudents.size} selected)
               </h3>
               <Input
@@ -289,9 +289,9 @@ export function UpdateBatchDialog({
               />
             </div>
             
-            <div className="max-h-[200px] overflow-y-auto rounded-md border border-slate-200 divide-y divide-slate-100">
+            <div className="max-h-[200px] overflow-y-auto rounded-md border border-slate-200 dark:border-slate-700 divide-y divide-slate-100 dark:divide-slate-700">
               {filteredStudents.length === 0 ? (
-                <div className="p-4 text-center text-sm text-slate-500">
+                <div className="p-4 text-center text-sm text-slate-500 dark:text-slate-400">
                   {searchQuery ? "No matching students found." : "No students available."}
                 </div>
               ) : (
@@ -300,14 +300,14 @@ export function UpdateBatchDialog({
                 return (
                   <div 
                     key={student.id} 
-                    className={`flex items-center justify-between p-3 hover:bg-slate-50 cursor-pointer transition-colors ${isSelected ? 'bg-brand-50 hover:bg-brand-50' : ''}`}
+                    className={`flex items-center justify-between p-3 hover:bg-slate-50 dark:hover:bg-slate-800/50 cursor-pointer transition-colors ${isSelected ? 'bg-brand-50 hover:bg-brand-50 dark:bg-brand-950/30 dark:hover:bg-brand-950/50' : ''}`}
                     onClick={() => toggleStudent(student.id)}
                   >
                     <div>
-                      <p className={`text-sm font-medium ${isSelected ? 'text-brand-900' : 'text-slate-900'}`}>{student.name}</p>
-                      <p className={`text-xs ${isSelected ? 'text-brand-700' : 'text-slate-500'}`}>{student.email}</p>
+                      <p className={`text-sm font-medium ${isSelected ? 'text-brand-900 dark:text-brand-300' : 'text-slate-900 dark:text-slate-200'}`}>{student.name}</p>
+                      <p className={`text-xs ${isSelected ? 'text-brand-700 dark:text-brand-400' : 'text-slate-500 dark:text-slate-400'}`}>{student.email}</p>
                     </div>
-                    <div className={`h-5 w-5 rounded-full border flex items-center justify-center ${isSelected ? 'bg-brand-600 border-brand-600 text-white' : 'border-slate-300'}`}>
+                    <div className={`h-5 w-5 rounded-full border flex items-center justify-center ${isSelected ? 'bg-brand-600 border-brand-600 text-white' : 'border-slate-300 dark:border-slate-600'}`}>
                       {isSelected && (
                         <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
                           <path d="M10 3L4.5 8.5L2 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
@@ -322,13 +322,13 @@ export function UpdateBatchDialog({
 
           {error && <p className="text-sm font-medium text-red-600">{error}</p>}
 
-          <div className="flex justify-between gap-3 pt-4 border-t border-slate-100">
+          <div className="flex justify-between gap-3 pt-4 border-t border-slate-100 dark:border-slate-800">
             <Button
               type="button"
               variant="ghost"
               onClick={handleDelete}
               disabled={isPending}
-              className="text-red-600 hover:text-red-700 hover:bg-red-50"
+              className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950/50"
             >
               Delete Batch
             </Button>

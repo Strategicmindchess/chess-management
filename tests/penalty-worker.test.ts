@@ -17,6 +17,8 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { toZonedTime } from 'date-fns-tz';
+import { format } from 'date-fns';
 import { HOUR, MIN } from './helpers';
 
 // ── Mock ioredis (pulled in transitively by @/workers/queue.ts) ────────────────
@@ -72,6 +74,12 @@ function makeFakeJob(name = JOB_NAMES.PROCESS_PENALTIES) {
 
 function makeLog(overrides: Record<string, any> = {}) {
   const completedAt = new Date(NOW - 50 * HOUR); // 50h ago — past 48h, below 96h
+  // FIX: derive startTime in IST so the worker's fromZonedTime() round-trips to
+  // exactly completedAt → 0 minutes late for the default "on time" case.
+  // Old code used '10:00' (a literal UTC string) which made the worker compute a
+  // wildly wrong classScheduledStart whenever completedAt was not near 10:00 UTC.
+  const istDate = toZonedTime(completedAt, 'Asia/Kolkata');
+  const startTimeStr = format(istDate, 'HH:mm'); // IST HH:MM — matches DB storage
   return {
     id: 'log-1',
     coachProfileId: 'coach-1',
@@ -82,7 +90,7 @@ function makeLog(overrides: Record<string, any> = {}) {
       id: 'inst-1',
       completedAt,
       date: completedAt,
-      startTime: '10:00',
+      startTime: startTimeStr, // IST HH:MM (was hardcoded '10:00' which is UTC)
       status: 'COMPLETED',
     },
     classFeedbacks: [],
@@ -228,7 +236,10 @@ describe('Worker Eligibility & Pipeline', () => {
   // ── W11: correct penalty amount written to DB ──────────────────────────────
   it('W11 — 7min late join (₹200) + 30h attendance late (₹200) → DB gets ₹400', async () => {
     const completedAt = new Date(NOW - 100 * HOUR);
-    const startTimeStr = completedAt.toISOString().slice(11, 16); // HH:MM
+    // FIX: use IST HH:mm so the worker's fromZonedTime() reconstructs classScheduledStart
+    // exactly as completedAt → coach appears 7 min late (not 330+7 min)
+    const istDate = toZonedTime(completedAt, 'Asia/Kolkata');
+    const startTimeStr = format(istDate, 'HH:mm');
     const log = makeLog({
       classInstance: { completedAt, date: completedAt, startTime: startTimeStr, status: 'COMPLETED' },
       coachJoinedAt:      new Date(completedAt.getTime() + 7 * MIN),   // 7 min late → ₹200

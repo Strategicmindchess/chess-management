@@ -46,8 +46,8 @@ export default async function TeacherAttendancePage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-xl font-semibold text-slate-900">Today's Attendance</h1>
-        <p className="text-sm text-slate-500">
+        <h1 className="text-xl font-semibold text-white">Today's Attendance</h1>
+        <p className="text-sm text-slate-400">
           Mark attendance for classes held today. You can only submit attendance after the class finishes.
         </p>
       </div>
@@ -67,15 +67,15 @@ export default async function TeacherAttendancePage() {
               <Card key={instance.id} className="flex flex-col h-full">
                 <CardContent className="p-5 flex flex-col h-full">
                   <div className="flex justify-between items-start mb-2">
-                    <h2 className="text-lg font-bold text-slate-900">{batch.name}</h2>
+                    <h2 className="text-lg font-bold text-white">{batch.name}</h2>
                     <Badge variant="neutral">{batch.code}</Badge>
                   </div>
                   
-                  <div className="text-sm text-slate-600 mb-6 flex-grow">
-                    <p className="font-medium text-slate-800">Class Session</p>
+                  <div className="text-sm text-slate-400 mb-6 flex-grow">
+                    <p className="font-medium text-slate-200">Class Session</p>
                     {/* @ts-ignore */}
                     {instance.lectureName && (
-                      <p className="text-brand-700 font-semibold mt-1 mb-1">
+                      <p className="text-brand-400 font-semibold mt-1 mb-1">
                         {/* @ts-ignore */}
                         📖 {instance.lectureName}
                       </p>

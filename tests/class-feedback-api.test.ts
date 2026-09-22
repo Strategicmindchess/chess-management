@@ -40,7 +40,15 @@ vi.mock('@/lib/prisma', () => ({
     },
     studentProfile: {
       findUnique: vi.fn(),
-    }
+    },
+    // The POST route also calls prisma.attendanceRecord.findMany for the attendance-alert
+    // notification logic. Without this mock it crashes with "Cannot read properties of undefined".
+    attendanceRecord: {
+      findMany: vi.fn(),
+    },
+    classLog: {
+      findUnique: vi.fn(),
+    },
   },
 }));
 
@@ -72,10 +80,17 @@ describe('POST /api/class-feedback', () => {
   it('F1 — valid student feedback → 200 with feedback object', async () => {
     mockRequireRole.mockResolvedValue({ id: 'user-1' }); // student role allowed
     (prisma.studentProfile.findUnique as any).mockResolvedValue({ id: 'student-1' });
+    (prisma.classLog.findUnique as any).mockResolvedValue({
+      batch: { students: [{ studentProfileId: 'student-1' }] }
+    });
+    
     const created = { id: 'fb-1', ...VALID_BODY, studentProfileId: 'student-1', submittedAt: new Date() };
     (prisma.classFeedback.create as any).mockResolvedValue(created);
+    // The route's attendance-alert branch calls prisma.attendanceRecord.findMany — return empty
+    // array so .length doesn't crash and the attendance threshold check is skipped.
+    (prisma.attendanceRecord as any).findMany.mockResolvedValue([]);
 
-    const res = await POST(makeRequest('POST', VALID_BODY));
+    const res = await POST(makeRequest('POST', VALID_BODY), {} as any);
     const json = await res.json();
 
     expect(res.status).toBe(200);
@@ -87,10 +102,14 @@ describe('POST /api/class-feedback', () => {
   it('F2 — duplicate feedback (P2002) → 409', async () => {
     mockRequireRole.mockResolvedValue({ id: 'user-1' });
     (prisma.studentProfile.findUnique as any).mockResolvedValue({ id: 'student-1' });
+    (prisma.classLog.findUnique as any).mockResolvedValue({
+      batch: { students: [{ studentProfileId: 'student-1' }] }
+    });
+
     const dupError = Object.assign(new Error('Unique constraint'), { code: 'P2002' });
     (prisma.classFeedback.create as any).mockRejectedValue(dupError);
 
-    const res = await POST(makeRequest('POST', VALID_BODY));
+    const res = await POST(makeRequest('POST', VALID_BODY), {} as any);
     const json = await res.json();
 
     expect(res.status).toBe(409);
@@ -101,7 +120,7 @@ describe('POST /api/class-feedback', () => {
   it('F3 — non-student role → 403 Forbidden', async () => {
     mockRequireRole.mockRejectedValue(new Error('Forbidden'));
 
-    const res = await POST(makeRequest('POST', VALID_BODY));
+    const res = await POST(makeRequest('POST', VALID_BODY), {} as any);
 
     expect(res.status).toBe(403);
   });
@@ -112,7 +131,7 @@ describe('POST /api/class-feedback', () => {
     (prisma.studentProfile.findUnique as any).mockResolvedValue({ id: 'student-1' });
 
     const body = {}; // no classLogId
-    const res = await POST(makeRequest('POST', body));
+    const res = await POST(makeRequest('POST', body), {} as any);
     const json = await res.json();
 
     expect(res.status).toBe(400);
@@ -129,9 +148,20 @@ describe('POST /api/class-feedback', () => {
       headers: { 'Content-Type': 'application/json' },
       body: 'not-json{{{',
     });
-    const res = await POST(req);
+    const res = await POST(req, {} as any);
 
     expect(res.status).toBe(400);
+  });
+
+  it('Student → non-enrolled class → rejected', async () => {
+    mockRequireRole.mockResolvedValue({ id: 'user-1' });
+    (prisma.studentProfile.findUnique as any).mockResolvedValue({ id: 'student-1' });
+    (prisma.classLog.findUnique as any).mockResolvedValue({
+      batch: { students: [{ studentProfileId: 'student-2' }] } // different student enrolled
+    });
+
+    const res = await POST(makeRequest('POST', VALID_BODY), {} as any);
+    expect(res.status).toBe(403);
   });
 });
 
@@ -145,7 +175,7 @@ describe('GET /api/class-feedback', () => {
     (prisma.classFeedback.findMany as any).mockResolvedValue(feedbacks);
 
     const req = new NextRequest('http://localhost/api/class-feedback?classLogId=log-1', { method: 'GET' });
-    const res = await GET(req);
+    const res = await GET(req, {} as any);
     const json = await res.json();
 
     expect(res.status).toBe(200);
@@ -157,8 +187,36 @@ describe('GET /api/class-feedback', () => {
     mockRequireRole.mockRejectedValue(new Error('Forbidden'));
 
     const req = new NextRequest('http://localhost/api/class-feedback?classLogId=log-1', { method: 'GET' });
-    const res = await GET(req);
+    const res = await GET(req, {} as any);
 
+    expect(res.status).toBe(403);
+  });
+  
+  it('Admin → any classLog → 200', async () => {
+    mockRequireRole.mockResolvedValue({ id: 'admin-1', role: 'ADMIN' });
+    (prisma.classFeedback.findMany as any).mockResolvedValue([]);
+
+    const req = new NextRequest('http://localhost/api/class-feedback?classLogId=log-999', { method: 'GET' });
+    const res = await GET(req, {} as any);
+    expect(res.status).toBe(200);
+  });
+
+  it('Teacher → own class → 200', async () => {
+    mockRequireRole.mockResolvedValue({ id: 'coach-user-1', role: 'TEACHER' });
+    (prisma.classLog.findUnique as any).mockResolvedValue({ coach: { userId: 'coach-user-1' } });
+    (prisma.classFeedback.findMany as any).mockResolvedValue([]);
+
+    const req = new NextRequest('http://localhost/api/class-feedback?classLogId=my-log', { method: 'GET' });
+    const res = await GET(req, {} as any);
+    expect(res.status).toBe(200);
+  });
+
+  it('Teacher → another coachs class → 403', async () => {
+    mockRequireRole.mockResolvedValue({ id: 'coach-user-1', role: 'TEACHER' });
+    (prisma.classLog.findUnique as any).mockResolvedValue({ coach: { userId: 'coach-user-999' } }); // Different user
+
+    const req = new NextRequest('http://localhost/api/class-feedback?classLogId=other-log', { method: 'GET' });
+    const res = await GET(req, {} as any);
     expect(res.status).toBe(403);
   });
 });

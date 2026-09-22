@@ -2,13 +2,13 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireRole } from "@/lib/dal";
 import { Role } from "@/lib/enums";
+import { withLogging } from "../../../../../lib/api-logger";
 
 export const dynamic = "force-dynamic";
+export let GET = withLogging(async function() {
+    await requireRole([Role.ADMIN]);
 
-export async function GET() {
-  await requireRole([Role.ADMIN]);
-  
-  try {
+    try {
     const [coachesData, studentsData] = await Promise.all([
       prisma.coachProfile.findMany({
         where: { user: { isActive: true, emailVerified: true } },
@@ -50,10 +50,10 @@ export async function GET() {
       { coaches, students },
       { headers: { "Cache-Control": "public, s-maxage=60, stale-while-revalidate=300" } }
     );
-  } catch (err: any) {
+    } catch (err: any) {
     return NextResponse.json(
       { error: err.message || "Failed to fetch batch options" },
       { status: 500 }
     );
-  }
-}
+    }
+    });

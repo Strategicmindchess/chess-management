@@ -3,51 +3,51 @@ import { requireRole } from "@/lib/dal";
 import { prisma } from "@/lib/prisma";
 import { Role } from "@/lib/enums";
 import { startOfMonth, endOfMonth, parseISO, format } from "date-fns";
+import { withLogging } from "../../../../../lib/api-logger";
 
 type Params = { params: Promise<{ employeeId: string }> };
 
 // ─── GET /api/employees/[employeeId]/attendance?month=2026-08 ─────────────────
-export async function GET(req: NextRequest, { params }: Params) {
-  try {
+// ─── POST /api/employees/[employeeId]/attendance — upsert a day ───────────────
+export let GET = withLogging(async function(req: NextRequest, { params }: Params) {
+    try {
     await requireRole([Role.ADMIN]);
-  } catch {
+    } catch {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-  }
+    }
 
-  const { employeeId } = await params;
-  const { searchParams } = new URL(req.url);
-  const monthStr = searchParams.get("month") || format(new Date(), "yyyy-MM");
+    const { employeeId } = await params;
+    const { searchParams } = new URL(req.url);
+    const monthStr = searchParams.get("month") || format(new Date(), "yyyy-MM");
 
-  const date = parseISO(monthStr);
-  const records = await prisma.employeeAttendance.findMany({
+    const date = parseISO(monthStr);
+    const records = await prisma.employeeAttendance.findMany({
     where: {
       employeeProfileId: employeeId,
       date: { gte: startOfMonth(date), lte: endOfMonth(date) },
     },
     orderBy: { date: "asc" },
-  });
+    });
 
-  return NextResponse.json({ records });
-}
-
-// ─── POST /api/employees/[employeeId]/attendance — upsert a day ───────────────
-export async function POST(req: NextRequest, { params }: Params) {
-  try {
+    return NextResponse.json({ records });
+    });
+export let POST = withLogging(async function(req: NextRequest, { params }: Params) {
+    try {
     await requireRole([Role.ADMIN]);
-  } catch {
+    } catch {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-  }
+    }
 
-  const { employeeId } = await params;
-  let body: Record<string, unknown>;
-  try { body = await req.json(); } catch {
+    const { employeeId } = await params;
+    let body: Record<string, unknown>;
+    try { body = await req.json(); } catch {
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
-  }
+    }
 
-  const {
+    const {
     date, status, checkInTime, checkOutTime,
     workingHours, isOvertime, overtimeHours, overtimeBonus, notes,
-  } = body as {
+    } = body as {
     date: string;
     status?: "PRESENT" | "ABSENT" | "HALF_DAY" | "LEAVE" | "HOLIDAY";
     checkInTime?: string;
@@ -57,21 +57,21 @@ export async function POST(req: NextRequest, { params }: Params) {
     overtimeHours?: number;
     overtimeBonus?: number;
     notes?: string;
-  };
+    };
 
-  if (!date) return NextResponse.json({ error: "date is required" }, { status: 400 });
+    if (!date) return NextResponse.json({ error: "date is required" }, { status: 400 });
 
-  // Auto-calculate working hours if check-in/out provided
-  let calcWorkingHours = workingHours;
-  if (!calcWorkingHours && checkInTime && checkOutTime) {
+    // Auto-calculate working hours if check-in/out provided
+    let calcWorkingHours = workingHours;
+    if (!calcWorkingHours && checkInTime && checkOutTime) {
     const [inH, inM] = checkInTime.split(":").map(Number);
     const [outH, outM] = checkOutTime.split(":").map(Number);
     calcWorkingHours = Math.max(0, (outH * 60 + outM - (inH * 60 + inM)) / 60);
-  }
+    }
 
-  const dayDate = new Date(date + "T00:00:00.000Z");
+    const dayDate = new Date(date + "T00:00:00.000Z");
 
-  try {
+    try {
     const record = await prisma.employeeAttendance.upsert({
       where: { employeeProfileId_date: { employeeProfileId: employeeId, date: dayDate } },
       update: {
@@ -98,8 +98,8 @@ export async function POST(req: NextRequest, { params }: Params) {
       },
     });
     return NextResponse.json({ record });
-  } catch (err) {
+    } catch (err) {
     console.error("[POST /api/employees/[employeeId]/attendance]", err);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
-  }
-}
+    }
+    });

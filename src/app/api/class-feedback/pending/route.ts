@@ -2,13 +2,14 @@ import { NextRequest, NextResponse } from "next/server";
 import { requireRole } from "@/lib/dal";
 import { prisma } from "@/lib/prisma";
 import { Role } from "@/lib/enums";
+import { withLogging } from "../../../../lib/api-logger";
 
 // ─── GET /api/class-feedback/pending ─────────────────────────────────────────
 // Student gets their pending class feedbacks
-export async function GET(req: NextRequest) {
-  const user = await requireRole([Role.STUDENT]);
+export let GET = withLogging(async function(req: NextRequest) {
+    try {
+    const user = await requireRole([Role.STUDENT]);
 
-  try {
     const studentProfile = await prisma.studentProfile.findUnique({
       where: { userId: user.id },
     });
@@ -75,12 +76,11 @@ export async function GET(req: NextRequest) {
     });
 
     return NextResponse.json({ pendingClassLogs });
-  } catch (error: any) {
+    } catch (error: any) {
     if (error?.message === "Forbidden" || error?.digest === "NEXT_REDIRECT") {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
     console.error("[GET /api/class-feedback/pending]", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
-  }
-}
-
+    }
+    });

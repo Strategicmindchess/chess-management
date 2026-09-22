@@ -4,13 +4,14 @@ import { Role } from "@/lib/enums";
 import { prisma } from "@/lib/prisma";
 import { getLeaderboard, getStudentCoachFeedback } from "@/actions/leaderboard/leaderboard-actions";
 import { getMyRefreshStatus } from "@/actions/leaderboard/fetch-actions";
+import { getCurrentPeriod } from "@/lib/leaderboard-period";
+import { withLogging } from "../../../../lib/api-logger";
 
 export const dynamic = "force-dynamic";
+export let GET = withLogging(async function(req: NextRequest) {
+    const user = await requireRole([Role.STUDENT]);
 
-export async function GET(req: NextRequest) {
-  const user = await requireRole([Role.STUDENT]);
-
-  try {
+    try {
     const [studentProfile, monthlyData, weeklyData, refreshStatus, coachFeedback] = await Promise.all([
       prisma.studentProfile.findUnique({
         where: { userId: user.id },
@@ -25,7 +26,7 @@ export async function GET(req: NextRequest) {
       getLeaderboard('MONTHLY'),
       getLeaderboard('WEEKLY'),
       getMyRefreshStatus(),
-      getStudentCoachFeedback('MONTHLY', new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString())
+      getStudentCoachFeedback('MONTHLY', getCurrentPeriod('MONTHLY').periodStart.toISOString())
     ]);
 
     if (!studentProfile) {
@@ -47,11 +48,10 @@ export async function GET(req: NextRequest) {
       coachFeedback,
       puzzleSolverAward,
     });
-  } catch (err: any) {
+    } catch (err: any) {
     return NextResponse.json(
       { error: err.message || "Failed to fetch student leaderboard" },
       { status: 500 }
     );
-  }
-}
-
+    }
+    });

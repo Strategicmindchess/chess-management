@@ -180,7 +180,7 @@ function StudentRow({ student }: { student: Student }) {
           {result && (
             <div className={`flex items-center gap-2 text-xs p-2 rounded-lg ${result.success ? 'bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800/30 text-emerald-700 dark:text-emerald-400' : 'bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800/30 text-red-700 dark:text-red-400'}`}>
               {result.success ? <CheckCircle className="w-3.5 h-3.5" /> : <XCircle className="w-3.5 h-3.5" />}
-              {result.success ? 'Chess account linked! Fetch job queued.' : result.error}
+              {result.success ? 'Chess account linked! Use Admin Controls to fetch data.' : result.error}
             </div>
           )}
 

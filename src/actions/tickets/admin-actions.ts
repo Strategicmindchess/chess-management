@@ -6,17 +6,14 @@ import { Role, TicketStatus, NotificationType, NotifPriority } from "@/generated
 import { revalidatePath } from "next/cache";
 import { createNotification } from "@/lib/notifications";
 
-export async function getAdminTickets(cursor?: string, creatorType: "student" | "coach" | "all" = "all") {
+export async function getAdminTickets(cursor?: string, creatorType: "student" | "coach" | "all" = "all", statusFilter: "PENDING" | "RESOLVED" = "PENDING") {
   await requireRole([Role.ADMIN]);
 
   const take = 20;
 
-  const whereClause =
-    creatorType === "student"
-      ? { status: "PENDING" as const, coachCreatedById: null }
-      : creatorType === "coach"
-      ? { status: "PENDING" as const, coachCreatedById: { not: null } }
-      : { status: "PENDING" as const };
+  const whereClause: any = { status: statusFilter };
+  if (creatorType === "student") whereClause.coachCreatedById = null;
+  if (creatorType === "coach") whereClause.coachCreatedById = { not: null };
 
   const tickets = await prisma.ticket.findMany({
     take,

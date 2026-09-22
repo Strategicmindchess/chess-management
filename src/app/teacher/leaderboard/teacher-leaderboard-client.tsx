@@ -34,11 +34,11 @@ export function TeacherLeaderboardClient() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold tracking-tight text-slate-900 flex items-center gap-2">
+        <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2">
           <Trophy className="w-7 h-7 text-amber-500" />
           Student Leaderboard
         </h1>
-        <p className="text-sm text-slate-500 mt-1">
+        <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
           View your students&apos; leaderboard rankings and submit monthly feedback scores.
         </p>
       </div>
@@ -63,16 +63,16 @@ export function TeacherLeaderboardClient() {
         <div className="lg:col-span-2 space-y-4">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div className="flex items-center gap-2">
-              <Users className="w-5 h-5 text-brand-600" />
-              <h2 className="text-sm font-bold text-slate-800">
+              <Users className="w-5 h-5 text-brand-600 dark:text-brand-400" />
+              <h2 className="text-sm font-bold text-slate-800 dark:text-slate-200">
                 Global {periodType === 'WEEKLY' ? 'Weekly' : 'Monthly'} Rankings
               </h2>
             </div>
             
             <div className="flex items-center gap-3">
-              <div className="flex items-center bg-slate-100 rounded-lg p-1">
-                <Link href="?period=MONTHLY" className={`px-3 py-1 text-xs rounded-md font-medium transition-colors ${periodType === 'MONTHLY' ? 'bg-white shadow text-brand-700' : 'text-slate-500 hover:text-slate-700'}`}>Monthly</Link>
-                <Link href="?period=WEEKLY" className={`px-3 py-1 text-xs rounded-md font-medium transition-colors ${periodType === 'WEEKLY' ? 'bg-white shadow text-brand-700' : 'text-slate-500 hover:text-slate-700'}`}>Weekly</Link>
+              <div className="flex items-center bg-slate-100 dark:bg-slate-800/50 rounded-lg p-1">
+                <Link href="?period=MONTHLY" className={`px-3 py-1 text-xs rounded-md font-medium transition-colors ${periodType === 'MONTHLY' ? 'bg-white dark:bg-slate-700 shadow text-brand-700 dark:text-brand-400' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'}`}>Monthly</Link>
+                <Link href="?period=WEEKLY" className={`px-3 py-1 text-xs rounded-md font-medium transition-colors ${periodType === 'WEEKLY' ? 'bg-white dark:bg-slate-700 shadow text-brand-700 dark:text-brand-400' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'}`}>Weekly</Link>
               </div>
               <TeacherFeedbackManager
                 students={myStudents}
@@ -86,10 +86,10 @@ export function TeacherLeaderboardClient() {
           <LeaderboardTable entries={myEntries} highlightStudentIds={new Set(myStudentIds)} hideOtherUsernames={true} />
 
           {myEntries.length === 0 && (
-            <div className="text-center py-8 bg-slate-50 rounded-xl border border-slate-200">
-              <Trophy className="w-10 h-10 text-slate-300 mx-auto mb-2" />
-              <p className="text-sm text-slate-500">No leaderboard data for your students yet.</p>
-              <p className="text-xs text-slate-400 mt-1">
+            <div className="text-center py-8 bg-slate-50 dark:bg-[#1a1f2e] rounded-xl border border-slate-200 dark:border-slate-700/50">
+              <Trophy className="w-10 h-10 text-slate-300 dark:text-slate-600 mx-auto mb-2" />
+              <p className="text-sm text-slate-500 dark:text-slate-400">No leaderboard data for your students yet.</p>
+              <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">
                 Students need to link their chess accounts and refresh their data.
               </p>
             </div>

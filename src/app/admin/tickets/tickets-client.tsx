@@ -44,13 +44,14 @@ export function AdminTicketsClient({
   const [replyContent, setReplyContent] = useState("");
   const [isPending, startTransition] = useTransition();
   const [creatorFilter, setCreatorFilter] = useState<CreatorType>("all");
+  const [statusFilter, setStatusFilter] = useState<"PENDING" | "RESOLVED">("PENDING");
 
   const activeTicket = tickets.find(t => t.id === activeTicketId);
 
-  const fetchTickets = async (currentCursor?: string, type: CreatorType = creatorFilter) => {
+  const fetchTickets = async (currentCursor?: string, type: CreatorType = creatorFilter, status: "PENDING" | "RESOLVED" = statusFilter) => {
     setIsLoading(true);
     try {
-      const { tickets: newTickets, nextCursor } = await getAdminTickets(currentCursor, type);
+      const { tickets: newTickets, nextCursor } = await getAdminTickets(currentCursor, type, status);
       if (currentCursor) {
         setTickets(prev => [...prev, ...newTickets as any]);
       } else {
@@ -67,7 +68,12 @@ export function AdminTicketsClient({
 
   const switchFilter = (type: CreatorType) => {
     setCreatorFilter(type);
-    fetchTickets(undefined, type);
+    fetchTickets(undefined, type, statusFilter);
+  };
+
+  const switchStatus = (status: "PENDING" | "RESOLVED") => {
+    setStatusFilter(status);
+    fetchTickets(undefined, creatorFilter, status);
   };
 
   const handleReply = () => {
@@ -76,7 +82,7 @@ export function AdminTicketsClient({
       const result = await replyToTicket(activeTicketId, replyContent);
       if (result.success) {
         setReplyContent("");
-        fetchTickets(undefined, creatorFilter);
+        fetchTickets(undefined, creatorFilter, statusFilter);
       }
     });
   };
@@ -108,10 +114,26 @@ export function AdminTicketsClient({
   return (
     <div className="space-y-4">
       {/* Filter tabs */}
-      <div className="flex gap-2">
-        {TAB("all", "All")}
-        {TAB("student", "Students")}
-        {TAB("coach", "Coaches")}
+      <div className="flex gap-2 justify-between items-center">
+        <div className="flex gap-2">
+          {TAB("all", "All")}
+          {TAB("student", "Students")}
+          {TAB("coach", "Coaches")}
+        </div>
+        <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-lg">
+          <button
+            onClick={() => switchStatus("PENDING")}
+            className={`px-3 py-1 text-sm font-medium rounded-md transition-colors ${statusFilter === "PENDING" ? "bg-white dark:bg-slate-700 shadow-sm text-slate-900 dark:text-white" : "text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200"}`}
+          >
+            Pending
+          </button>
+          <button
+            onClick={() => switchStatus("RESOLVED")}
+            className={`px-3 py-1 text-sm font-medium rounded-md transition-colors ${statusFilter === "RESOLVED" ? "bg-white dark:bg-slate-700 shadow-sm text-slate-900 dark:text-white" : "text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200"}`}
+          >
+            Resolved
+          </button>
+        </div>
       </div>
 
       <div className="relative overflow-hidden flex h-[680px] border border-slate-200 dark:border-rose-500/20 rounded-xl bg-white dark:bg-[#2a0f18]/90 dark:backdrop-blur-xl shadow-sm dark:shadow-[0_4px_20px_rgba(244,63,94,0.15)] group hover:dark:border-rose-500/50 transition-colors">
@@ -152,7 +174,7 @@ export function AdminTicketsClient({
 
             {tickets.length === 0 && !isLoading && (
               <div className="text-center text-slate-500 text-sm mt-10">
-                No pending tickets. All caught up! 🎉
+                {statusFilter === "PENDING" ? "No pending tickets. All caught up! 🎉" : "No resolved tickets."}
               </div>
             )}
 
@@ -189,15 +211,17 @@ export function AdminTicketsClient({
                     {activeTicket.category.replace(/_/g, " ")} · {new Date(activeTicket.createdAt).toLocaleDateString()}
                   </p>
                 </div>
-                <Button
-                  variant="secondary"
-                  className="text-green-700 border-green-200 bg-green-50 hover:bg-green-100 hover:text-green-800"
-                  onClick={() => handleResolve(activeTicket.id)}
-                  disabled={isPending}
-                >
-                  <CheckCircle className="w-4 h-4 mr-2" />
-                  Mark Resolved
-                </Button>
+                {statusFilter === "PENDING" && (
+                  <Button
+                    variant="secondary"
+                    className="text-green-700 border-green-200 bg-green-50 hover:bg-green-100 hover:text-green-800"
+                    onClick={() => handleResolve(activeTicket.id)}
+                    disabled={isPending}
+                  >
+                    <CheckCircle className="w-4 h-4 mr-2" />
+                    Mark Resolved
+                  </Button>
+                )}
               </div>
 
               <div className="flex-1 overflow-y-auto p-6 space-y-5 bg-slate-50/50 dark:bg-transparent">
@@ -225,25 +249,27 @@ export function AdminTicketsClient({
               </div>
 
               {/* Reply box */}
-              <div className="p-5 border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-transparent">
-                <div className="flex gap-3">
-                  <textarea
-                    value={replyContent}
-                    onChange={e => setReplyContent(e.target.value)}
-                    placeholder="Type your reply..."
-                    className="flex-1 resize-none rounded-xl border border-slate-300 p-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 shadow-sm"
-                    rows={3}
-                  />
-                  <Button
-                    className="self-end px-6"
-                    onClick={handleReply}
-                    disabled={isPending || !replyContent.trim()}
-                  >
-                    <Send className="w-4 h-4 mr-2" />
-                    Reply
-                  </Button>
+              {statusFilter === "PENDING" && (
+                <div className="p-5 border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-transparent">
+                  <div className="flex gap-3">
+                    <textarea
+                      value={replyContent}
+                      onChange={e => setReplyContent(e.target.value)}
+                      placeholder="Type your reply..."
+                      className="flex-1 resize-none rounded-xl border border-slate-300 p-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 shadow-sm"
+                      rows={3}
+                    />
+                    <Button
+                      className="self-end px-6"
+                      onClick={handleReply}
+                      disabled={isPending || !replyContent.trim()}
+                    >
+                      <Send className="w-4 h-4 mr-2" />
+                      Reply
+                    </Button>
+                  </div>
                 </div>
-              </div>
+              )}
             </>
           ) : (
             <div className="flex-1 flex flex-col items-center justify-center text-slate-400 bg-slate-50/50 dark:bg-transparent">

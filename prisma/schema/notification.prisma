@@ -9,18 +9,14 @@ model Notification {
   message     String
   isRead      Boolean          @default(false)
   priority    NotifPriority    @default(NORMAL)
-
   /// Idempotency key — safe to call createNotification() multiple times for same event.
   /// Format: "<TYPE>:<referenceId>:<recipientId>"
-  eventKey String @unique
-
+  eventKey    String           @unique
   /// Optional deep-link for navigation (e.g. "/admin/fees?studentId=...")
-  href String?
-
-  createdAt DateTime  @default(now())
-  readAt    DateTime?
-
-  recipient User @relation("UserNotifications", fields: [recipientId], references: [id], onDelete: Cascade)
+  href        String?
+  createdAt   DateTime         @default(now())
+  readAt      DateTime?
+  recipient   User             @relation("UserNotifications", fields: [recipientId], references: [id], onDelete: Cascade)
 
   @@index([recipientId, isRead])
   @@index([recipientId, createdAt])

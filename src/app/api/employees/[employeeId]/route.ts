@@ -2,24 +2,26 @@ import { NextRequest, NextResponse } from "next/server";
 import { requireRole } from "@/lib/dal";
 import { prisma } from "@/lib/prisma";
 import { Role } from "@/lib/enums";
+import { withLogging } from "../../../../lib/api-logger";
 
 type Params = { params: Promise<{ employeeId: string }> };
 
 // ─── PATCH /api/employees/[employeeId] — update employee details ───────────────
-export async function PATCH(req: NextRequest, { params }: Params) {
-  try {
+// ─── DELETE /api/employees/[employeeId] — soft delete (deactivate) ────────────
+export let PATCH = withLogging(async function(req: NextRequest, { params }: Params) {
+    try {
     await requireRole([Role.ADMIN]);
-  } catch {
+    } catch {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-  }
+    }
 
-  const { employeeId } = await params;
-  let body: Record<string, unknown>;
-  try { body = await req.json(); } catch {
+    const { employeeId } = await params;
+    let body: Record<string, unknown>;
+    try { body = await req.json(); } catch {
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
-  }
+    }
 
-  try {
+    try {
     const updated = await prisma.employeeProfile.update({
       where: { id: employeeId },
       data: {
@@ -37,29 +39,27 @@ export async function PATCH(req: NextRequest, { params }: Params) {
       },
     });
     return NextResponse.json({ employee: updated });
-  } catch (err) {
+    } catch (err) {
     console.error("[PATCH /api/employees/[employeeId]]", err);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
-  }
-}
-
-// ─── DELETE /api/employees/[employeeId] — soft delete (deactivate) ────────────
-export async function DELETE(_req: NextRequest, { params }: Params) {
-  try {
+    }
+    });
+export let DELETE = withLogging(async function(_req: NextRequest, { params }: Params) {
+    try {
     await requireRole([Role.ADMIN]);
-  } catch {
+    } catch {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-  }
+    }
 
-  const { employeeId } = await params;
-  try {
+    const { employeeId } = await params;
+    try {
     await prisma.employeeProfile.update({
       where: { id: employeeId },
       data: { isActive: false },
     });
     return NextResponse.json({ success: true });
-  } catch (err) {
+    } catch (err) {
     console.error("[DELETE /api/employees/[employeeId]]", err);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
-  }
-}
+    }
+    });

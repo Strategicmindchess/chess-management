@@ -39,8 +39,26 @@ export async function proxy(request: NextRequest) {
   const accessCookie = request.cookies.get(ACCESS_TOKEN_COOKIE)?.value;
   const refreshCookie = request.cookies.get(REFRESH_TOKEN_COOKIE)?.value;
 
+  // Add x-request-id and log incoming request
+  const requestId = request.headers.get('x-request-id') || crypto.randomUUID();
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set('x-request-id', requestId);
+  requestHeaders.set('x-invoke-path', pathname);
+
+  // Import logger and log incoming request
+  const { logger } = await import('@/lib/logger');
+  logger.info({
+    requestId,
+    method: request.method,
+    route: pathname,
+  }, 'Incoming request');
+
   let session = await verifyAccessToken(accessCookie);
-  const response = NextResponse.next();
+  const response = NextResponse.next({
+    request: {
+      headers: requestHeaders,
+    }
+  });
 
   if (!session && refreshCookie) {
     const refreshed = await verifyRefreshToken(refreshCookie);

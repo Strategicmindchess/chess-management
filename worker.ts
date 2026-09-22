@@ -18,7 +18,7 @@ loadEnvConfig(process.cwd());
 // ── Logger must be imported after env is loaded ───────────────────────────────
 import { logger } from './src/lib/logger';
 
-logger.info('Worker process starting...', { pid: process.pid, node: process.version });
+logger.info({ pid: process.pid, node: process.version }, 'Worker process starting...');
 
 // ── Start all workers ─────────────────────────────────────────────────────────
 
@@ -59,9 +59,9 @@ Promise.all([
   }),
 ])
   .then(async () => {
-    logger.info('All BullMQ workers running — listening for jobs', {
+    logger.info({
       queues: ['batch-queue', 'chess-fetch-queue', 'leaderboard-calc-queue', 'log-cleanup-queue', 'attendance-summary-queue', 'assignment-summary-queue', 'penalty-queue'],
-    });
+    }, 'All BullMQ workers running — listening for jobs');
 
     // Register daily repeatable job for penalty processing (runs every 24 hours at 02:00 UTC)
     try {
@@ -74,7 +74,7 @@ Promise.all([
       );
       logger.info('Penalty repeatable job registered (daily at 02:00 UTC)');
     } catch (err) {
-      logger.warn('Failed to register penalty repeatable job', { error: String(err) });
+      logger.warn({ error: String(err) }, 'Failed to register penalty repeatable job');
     }
 
     // Log queue depths every 5 minutes
@@ -86,14 +86,14 @@ Promise.all([
           leaderboardCalcQueue.getJobCounts(),
           penaltyQueue.getJobCounts(),
         ]);
-        logger.info('Queue health', { chessFetch: fetchCounts, leaderboardCalc: calcCounts, penalty: penaltyCounts });
+        logger.info({ chessFetch: fetchCounts, leaderboardCalc: calcCounts, penalty: penaltyCounts }, 'Queue health');
       } catch (err) {
-        logger.warn('Health check failed', { error: String(err) });
+        logger.warn({ error: String(err) }, 'Health check failed');
       }
     }, 5 * 60 * 1_000);
   })
   .catch((err: Error) => {
-    logger.error('Failed to start one or more workers', { error: err.message, stack: err.stack });
+    logger.error({ error: err.message, stack: err.stack }, 'Failed to start one or more workers');
     process.exit(1);
   });
 
@@ -123,7 +123,7 @@ async function shutdown(signal: string) {
     logger.info('All workers closed cleanly.');
     process.exit(0);
   } catch (err) {
-    logger.error('Error during shutdown', { error: String(err) });
+    logger.error({ error: String(err) }, 'Error during shutdown');
     process.exit(1);
   }
 }

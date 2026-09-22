@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { requireRole } from "@/lib/dal";
 import { prisma } from "@/lib/prisma";
 import { Role } from "@/lib/enums";
+import { withLogging } from "../../../../../lib/api-logger";
 
 type Params = { params: Promise<{ configId: string }> };
 
@@ -9,31 +10,35 @@ type Params = { params: Promise<{ configId: string }> };
 // Adds a new FeeCycle to an existing StudentFeeConfig.
 // Body for MONTHLY:     { dueDate?, classes?, amount }
 // Body for BATCH_BASED: { batchCode?, batchName?, amount }
-export async function POST(req: NextRequest, { params }: Params) {
-  try {
+// ─── PATCH /api/fees/[configId]/cycles?cycleId=… ─────────────────────────────
+// Updates a specific FeeCycle. Accepts cycleId via query param.
+// ─── DELETE /api/fees/[configId]/cycles?cycleId=… ────────────────────────────
+// Deletes a specific FeeCycle by cycleId query param.
+export let POST = withLogging(async function(req: NextRequest, { params }: Params) {
+    try {
     await requireRole([Role.ADMIN]);
-  } catch {
+    } catch {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-  }
+    }
 
-  const { configId } = await params;
+    const { configId } = await params;
 
-  let body: {
+    let body: {
     dueDate?: string | null;
     classes?: number | null;
     amount?: number;
     batchCode?: string | null;
     batchName?: string | null;
     notes?: string | null;
-  };
+    };
 
-  try {
+    try {
     body = await req.json();
-  } catch {
+    } catch {
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
-  }
+    }
 
-  try {
+    try {
     const cycle = await prisma.feeCycle.create({
       data: {
         feeConfigId: configId,
@@ -48,29 +53,26 @@ export async function POST(req: NextRequest, { params }: Params) {
     });
 
     return NextResponse.json({ cycle }, { status: 201 });
-  } catch (err) {
+    } catch (err) {
     console.error("[POST /api/fees/[configId]/cycles]", err);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
-  }
-}
-
-// ─── PATCH /api/fees/[configId]/cycles?cycleId=… ─────────────────────────────
-// Updates a specific FeeCycle. Accepts cycleId via query param.
-export async function PATCH(req: NextRequest, { params }: Params) {
-  try {
+    }
+    });
+export let PATCH = withLogging(async function(req: NextRequest, { params }: Params) {
+    try {
     await requireRole([Role.ADMIN]);
-  } catch {
+    } catch {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-  }
+    }
 
-  const { configId } = await params;
-  const cycleId = req.nextUrl.searchParams.get("cycleId");
+    const { configId } = await params;
+    const cycleId = req.nextUrl.searchParams.get("cycleId");
 
-  if (!cycleId) {
+    if (!cycleId) {
     return NextResponse.json({ error: "cycleId query param is required" }, { status: 400 });
-  }
+    }
 
-  let body: {
+    let body: {
     status?: string;
     paidDate?: string | null;
     dueDate?: string | null;
@@ -80,15 +82,15 @@ export async function PATCH(req: NextRequest, { params }: Params) {
     batchName?: string | null;
     notes?: string | null;
     isHidden?: boolean;
-  };
+    };
 
-  try {
+    try {
     body = await req.json();
-  } catch {
+    } catch {
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
-  }
+    }
 
-  try {
+    try {
     const cycle = await prisma.feeCycle.update({
       where: { id: cycleId, feeConfigId: configId },
       data: {
@@ -105,33 +107,30 @@ export async function PATCH(req: NextRequest, { params }: Params) {
     });
 
     return NextResponse.json({ cycle });
-  } catch (err) {
+    } catch (err) {
     console.error("[PATCH /api/fees/[configId]/cycles]", err);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
-  }
-}
-
-// ─── DELETE /api/fees/[configId]/cycles?cycleId=… ────────────────────────────
-// Deletes a specific FeeCycle by cycleId query param.
-export async function DELETE(req: NextRequest, { params }: Params) {
-  try {
+    }
+    });
+export let DELETE = withLogging(async function(req: NextRequest, { params }: Params) {
+    try {
     await requireRole([Role.ADMIN]);
-  } catch {
+    } catch {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-  }
+    }
 
-  const { configId } = await params;
-  const cycleId = req.nextUrl.searchParams.get("cycleId");
+    const { configId } = await params;
+    const cycleId = req.nextUrl.searchParams.get("cycleId");
 
-  if (!cycleId) {
+    if (!cycleId) {
     return NextResponse.json({ error: "cycleId query param is required" }, { status: 400 });
-  }
+    }
 
-  try {
+    try {
     await prisma.feeCycle.delete({ where: { id: cycleId, feeConfigId: configId } });
     return NextResponse.json({ success: true });
-  } catch (err) {
+    } catch (err) {
     console.error("[DELETE /api/fees/[configId]/cycles]", err);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
-  }
-}
+    }
+    });

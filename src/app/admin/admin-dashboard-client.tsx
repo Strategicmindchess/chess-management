@@ -94,7 +94,7 @@ export function AdminDashboardClient({ userName }: { userName: string }) {
       {/* Top Stats Row */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Active Students */}
-        <div className="group relative rounded-2xl bg-[#1a142c]/90 backdrop-blur-xl border border-purple-500/20 p-5 overflow-hidden hover:border-purple-500/50 transition-colors shadow-[0_4px_20px_rgba(0,0,0,0.3)]">
+        <Link href="/admin/users" className="block group relative rounded-2xl bg-[#1a142c]/90 backdrop-blur-xl border border-purple-500/20 p-5 overflow-hidden hover:border-purple-500/50 transition-colors shadow-[0_4px_20px_rgba(0,0,0,0.3)]">
           <div className="absolute top-0 right-0 w-32 h-32 bg-purple-500/10 rounded-full blur-[30px] -mr-10 -mt-10 pointer-events-none" />
           <div className="flex items-center justify-between mb-4 relative z-10">
             <div className="w-10 h-10 rounded-xl bg-purple-500/20 flex items-center justify-center border border-purple-500/30">
@@ -109,10 +109,10 @@ export function AdminDashboardClient({ userName }: { userName: string }) {
             <p className="text-3xl font-bold text-white">{studentCount}</p>
             <span className="px-2 py-1 bg-emerald-500/20 text-emerald-400 text-xs font-bold rounded-md border border-emerald-500/30 mb-1">↑ +12%</span>
           </div>
-        </div>
+        </Link>
 
         {/* Active Coaches */}
-        <div className="group relative rounded-2xl bg-[#0f2a24]/90 backdrop-blur-xl border border-teal-500/20 p-5 overflow-hidden hover:border-teal-500/50 transition-colors shadow-[0_4px_20px_rgba(0,0,0,0.3)]">
+        <Link href="/admin/users" className="block group relative rounded-2xl bg-[#0f2a24]/90 backdrop-blur-xl border border-teal-500/20 p-5 overflow-hidden hover:border-teal-500/50 transition-colors shadow-[0_4px_20px_rgba(0,0,0,0.3)]">
           <div className="absolute top-0 right-0 w-32 h-32 bg-teal-500/10 rounded-full blur-[30px] -mr-10 -mt-10 pointer-events-none" />
           <div className="flex items-center justify-between mb-4 relative z-10">
             <div className="w-10 h-10 rounded-xl bg-teal-500/20 flex items-center justify-center border border-teal-500/30">
@@ -127,10 +127,10 @@ export function AdminDashboardClient({ userName }: { userName: string }) {
             <p className="text-3xl font-bold text-white">{coachCount}</p>
             <span className="px-2 py-1 bg-emerald-500/20 text-emerald-400 text-xs font-bold rounded-md border border-emerald-500/30 mb-1">↑ +8%</span>
           </div>
-        </div>
+        </Link>
 
         {/* Active Batches */}
-        <div className="group relative rounded-2xl bg-[#2a1c0f]/90 backdrop-blur-xl border border-amber-500/20 p-5 overflow-hidden hover:border-amber-500/50 transition-colors shadow-[0_4px_20px_rgba(0,0,0,0.3)]">
+        <Link href="/admin/batches" className="block group relative rounded-2xl bg-[#2a1c0f]/90 backdrop-blur-xl border border-amber-500/20 p-5 overflow-hidden hover:border-amber-500/50 transition-colors shadow-[0_4px_20px_rgba(0,0,0,0.3)]">
           <div className="absolute top-0 right-0 w-32 h-32 bg-amber-500/10 rounded-full blur-[30px] -mr-10 -mt-10 pointer-events-none" />
           <div className="flex items-center justify-between mb-4 relative z-10">
             <div className="w-10 h-10 rounded-xl bg-amber-500/20 flex items-center justify-center border border-amber-500/30">
@@ -145,10 +145,10 @@ export function AdminDashboardClient({ userName }: { userName: string }) {
             <p className="text-3xl font-bold text-white">{activeBatchCount}</p>
             <span className="px-2 py-1 bg-emerald-500/20 text-emerald-400 text-xs font-bold rounded-md border border-emerald-500/30 mb-1">↑ +5%</span>
           </div>
-        </div>
+        </Link>
 
         {/* Staff Members */}
-        <div className="group relative rounded-2xl bg-[#2a0f18]/90 backdrop-blur-xl border border-pink-500/20 p-5 overflow-hidden hover:border-pink-500/50 transition-colors shadow-[0_4px_20px_rgba(0,0,0,0.3)]">
+        <Link href="/admin/employees" className="block group relative rounded-2xl bg-[#2a0f18]/90 backdrop-blur-xl border border-pink-500/20 p-5 overflow-hidden hover:border-pink-500/50 transition-colors shadow-[0_4px_20px_rgba(0,0,0,0.3)]">
           <div className="absolute top-0 right-0 w-32 h-32 bg-pink-500/10 rounded-full blur-[30px] -mr-10 -mt-10 pointer-events-none" />
           <div className="flex items-center justify-between mb-4 relative z-10">
             <div className="w-10 h-10 rounded-xl bg-pink-500/20 flex items-center justify-center border border-pink-500/30">
@@ -163,7 +163,7 @@ export function AdminDashboardClient({ userName }: { userName: string }) {
             <p className="text-3xl font-bold text-white">{employeeCount}</p>
             <span className="px-2 py-1 bg-emerald-500/20 text-emerald-400 text-xs font-bold rounded-md border border-emerald-500/30 mb-1">↑ +0%</span>
           </div>
-        </div>
+        </Link>
       </div>
 
       {/* Middle Row */}
@@ -183,7 +183,7 @@ export function AdminDashboardClient({ userName }: { userName: string }) {
           </div>
           
           <div className="flex-1 divide-y divide-slate-800/50">
-            <div className="p-4 hover:bg-slate-800/20 transition-colors flex items-center justify-between group cursor-pointer">
+            <Link href="/admin/attendance" className="block p-4 hover:bg-slate-800/20 transition-colors flex items-center justify-between group cursor-pointer">
               <div className="flex items-center gap-4">
                 <div className="w-10 h-10 rounded-lg bg-indigo-500/10 flex items-center justify-center border border-indigo-500/20">
                   <Clock className="w-5 h-5 text-indigo-400" />
@@ -197,9 +197,9 @@ export function AdminDashboardClient({ userName }: { userName: string }) {
                 <span className="text-white font-bold text-lg">{todayClassCount}</span>
                 <ArrowRight className="w-4 h-4 text-slate-600 group-hover:text-slate-400" />
               </div>
-            </div>
+            </Link>
 
-            <div className="p-4 hover:bg-slate-800/20 transition-colors flex items-center justify-between group cursor-pointer">
+            <Link href="/admin/tickets" className="block p-4 hover:bg-slate-800/20 transition-colors flex items-center justify-between group cursor-pointer">
               <div className="flex items-center gap-4">
                 <div className="w-10 h-10 rounded-lg bg-emerald-500/10 flex items-center justify-center border border-emerald-500/20">
                   <MessageSquare className="w-5 h-5 text-emerald-400" />
@@ -213,9 +213,9 @@ export function AdminDashboardClient({ userName }: { userName: string }) {
                 <span className="text-white font-bold text-lg">{totalTickets}</span>
                 <ArrowRight className="w-4 h-4 text-slate-600 group-hover:text-slate-400" />
               </div>
-            </div>
+            </Link>
 
-            <div className="p-4 hover:bg-slate-800/20 transition-colors flex items-center justify-between group cursor-pointer">
+            <Link href="/admin/fees" className="block p-4 hover:bg-slate-800/20 transition-colors flex items-center justify-between group cursor-pointer">
               <div className="flex items-center gap-4">
                 <div className="w-10 h-10 rounded-lg bg-rose-500/10 flex items-center justify-center border border-rose-500/20">
                   <AlertCircle className="w-5 h-5 text-rose-400" />
@@ -229,7 +229,7 @@ export function AdminDashboardClient({ userName }: { userName: string }) {
                 <span className="text-white font-bold text-lg">{pendingFees}</span>
                 <ArrowRight className="w-4 h-4 text-slate-600 group-hover:text-slate-400" />
               </div>
-            </div>
+            </Link>
           </div>
         </div>
 

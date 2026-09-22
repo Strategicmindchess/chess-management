@@ -28,8 +28,8 @@ interface Student {
 
 function StudentRow({ student, onLinked }: { student: Student; onLinked: () => void }) {
   const [showManual, setShowManual] = useState(false);
-  const [chessComUsername, setChessComUsername] = useState(student.legacyChessComId ?? '');
-  const [lichessUsername, setLichessUsername] = useState(student.legacyLichessId ?? '');
+  const [chessComUsername, setChessComUsername] = useState(student.chessAccount?.chessComUsername ?? student.legacyChessComId ?? '');
+  const [lichessUsername, setLichessUsername] = useState(student.chessAccount?.lichessUsername ?? student.legacyLichessId ?? '');
   const [isPending, startTransition] = useTransition();
   const [result, setResult] = useState<{ success: boolean; error?: string } | null>(null);
 
@@ -113,24 +113,32 @@ function StudentRow({ student, onLinked }: { student: Student; onLinked: () => v
               <span className="hidden sm:flex items-center gap-1 text-xs text-emerald-600 bg-emerald-50 border border-emerald-200 rounded-lg px-2 py-1">
                 <CheckCircle className="w-3 h-3" /> Linked
               </span>
+              <button onClick={() => setShowManual((v) => !v)} disabled={isPending}
+                className="p-1.5 text-slate-400 hover:text-brand-600 hover:bg-brand-50 rounded-lg transition-colors disabled:opacity-50"
+                title="Edit account">
+                <Link2 className="w-4 h-4" />
+              </button>
               <button onClick={handleUnlink} disabled={isPending}
                 className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50"
                 title="Unlink account">
                 <Link2Off className="w-4 h-4" />
               </button>
             </>
-          ) : student.hasLegacyData ? (
-            <button onClick={handleAutoLink} disabled={isPending}
-              className="flex items-center gap-1.5 text-xs px-3 py-1.5 bg-brand-600 text-white font-semibold rounded-lg hover:bg-brand-700 disabled:opacity-50 transition-colors">
-              {isPending ? <Loader2 className="w-3 h-3 animate-spin" /> : <Link2 className="w-3 h-3" />}
-              Link
-            </button>
           ) : (
-            <button onClick={() => setShowManual((v) => !v)} disabled={isPending}
-              className="flex items-center gap-1.5 text-xs px-3 py-1.5 bg-amber-50 text-amber-700 border border-amber-300 font-semibold rounded-lg hover:bg-amber-100 transition-colors">
-              Fill Details
-              {showManual ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
-            </button>
+            <div className="flex items-center gap-1.5">
+              {student.hasLegacyData && (
+                <button onClick={handleAutoLink} disabled={isPending}
+                  className="flex items-center gap-1.5 text-xs px-3 py-1.5 bg-brand-600 text-white font-semibold rounded-lg hover:bg-brand-700 disabled:opacity-50 transition-colors">
+                  {isPending ? <Loader2 className="w-3 h-3 animate-spin" /> : <Zap className="w-3 h-3" />}
+                  Auto-Link
+                </button>
+              )}
+              <button onClick={() => setShowManual((v) => !v)} disabled={isPending}
+                className="flex items-center gap-1.5 text-xs px-3 py-1.5 bg-amber-50 text-amber-700 border border-amber-300 font-semibold rounded-lg hover:bg-amber-100 transition-colors">
+                Manual Edit
+                {showManual ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+              </button>
+            </div>
           )}
         </div>
       </div>
@@ -141,7 +149,7 @@ function StudentRow({ student, onLinked }: { student: Student; onLinked: () => v
           result.success ? 'bg-emerald-50 border border-emerald-200 text-emerald-700' : 'bg-red-50 border border-red-200 text-red-700'
         }`}>
           {result.success ? <CheckCircle className="w-3 h-3" /> : <XCircle className="w-3 h-3" />}
-          {result.success ? 'Account linked! Fetch job queued.' : result.error}
+          {result.success ? 'Account linked! Use Admin Controls to fetch data.' : result.error}
         </div>
       )}
 

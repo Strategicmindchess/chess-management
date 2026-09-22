@@ -25,6 +25,8 @@ import { QUEUE_NAMES, JOB_NAMES } from '@/lib/leaderboard-config';
 import { prisma } from '@/lib/prisma';
 import { logger } from '@/lib/logger';
 import { calculatePenalty, type PenaltyEngineInput } from '@/lib/penalty-engine';
+import { toZonedTime, fromZonedTime } from 'date-fns-tz';
+import { formatInTimeZone } from 'date-fns-tz';
 
 // ─── Timing Constants ─────────────────────────────────────────────────────────
 const HOURS_48  = 48 * 60 * 60 * 1_000;
@@ -111,8 +113,12 @@ export async function processPendingPenalties(job: Job): Promise<void> {
         continue;
       }
 
-      const classDateStr = instance.date.toISOString().slice(0, 10);
-      const classScheduledStart = new Date(`${classDateStr}T${instance.startTime}:00.000Z`);
+      // Format instance.date in IST timezone so "2026-09-10T18:30:00Z" becomes "2026-09-11"
+      const TIME_ZONE = 'Asia/Kolkata';
+      const classDateStr = formatInTimeZone(instance.date, TIME_ZONE, 'yyyy-MM-dd');
+      
+      // Combine local date + local time and parse back as a UTC Date
+      const classScheduledStart = fromZonedTime(`${classDateStr} ${instance.startTime}`, TIME_ZONE);
 
       // Count historical phone penalties for this coach (past classes only)
       const historicalPhonePenaltyCount = await prisma.classLog.count({
@@ -130,7 +136,11 @@ export async function processPendingPenalties(job: Job): Promise<void> {
       const engineInput: PenaltyEngineInput = {
         coachJoinedAt: log.coachJoinedAt,
         classScheduledStart,
-        attendanceMarkedAt: log.attendanceMarkedAt ?? log.createdAt,
+        // FIX: pass null through when the coach never marked attendance.
+        // The old `?? log.createdAt` fallback silently set attendanceMarkedAt = createdAt
+        // (which equals completedAt), giving 0h delay → no penalty. The engine's
+        // "Attendance never marked → ₹200" branch was therefore unreachable.
+        attendanceMarkedAt: log.attendanceMarkedAt ?? null,
         classCompletedAt: completionTime,
         totalFeedbacksSubmitted,
         cameraOffReports,

@@ -1,13 +1,22 @@
-import { prisma } from '../src/lib/prisma'; // or where prisma is exported
+import 'dotenv/config';
+import { prisma } from '../src/lib/prisma';
 
 async function main() {
-  const entry = await prisma.leaderboardEntry.findFirst({
-    where: { student: { user: { name: 'Fiona Bhatt' } } },
-    include: { snapshot: true },
-    orderBy: { periodStart: 'desc' },
+  const logs = await prisma.classLog.findMany({
+    where: {
+      penaltyNote: {
+        contains: 'Late join'
+      }
+    },
+    select: { id: true, penaltyAmount: true, penaltyNote: true }
   });
+  console.log("Logs with 'Late join':", logs);
 
-  console.log(JSON.stringify(entry, null, 2));
+  const logsWithPenalty = await prisma.classLog.findMany({
+    where: { penaltyAmount: { gt: 0 } },
+    select: { id: true, penaltyAmount: true, penaltyNote: true }
+  });
+  console.log("Logs with penaltyAmount > 0:", logsWithPenalty);
 }
 
-main().catch(console.error).finally(() => prisma.$disconnect());
+main().finally(() => prisma.$disconnect());

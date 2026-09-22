@@ -1,45 +1,45 @@
 /// A platform user. `role` determines which dashboard and permissions apply.
 model User {
-  id                String           @id @default(cuid())
-  name              String
-  email             String           @unique
-  passwordHash      String?
-  role              Role
-  phone             String?
-  isActive          Boolean          @default(true)
-  createdAt         DateTime         @default(now())
-  updatedAt         DateTime         @updatedAt
-  emailVerified     Boolean          @default(false)
-  googleId          String?          @unique
-  profilePictureUrl String?
-  coachProfile      CoachProfile?
-  employeeProfile   EmployeeProfile?
-  otpCodes                  OtpCode[]
-  refreshTokens             RefreshToken[]
-  studentProfile            StudentProfile?
-  ticketReplies             TicketReply[]
-  assignedTickets           Ticket[]               @relation("AssignedTickets")
-  notifications             Notification[]         @relation("UserNotifications")
-  coachLeaderboardAwards    CoachLeaderboardEntry[] @relation("AdminLeaderboardAwards")
-  adminRescheduleReviews    CoachRescheduleRequest[] @relation("AdminRescheduleReviews")
+  id                     String                   @id @default(cuid())
+  name                   String
+  email                  String                   @unique
+  passwordHash           String?
+  role                   Role
+  phone                  String?
+  isActive               Boolean                  @default(true)
+  createdAt              DateTime                 @default(now())
+  updatedAt              DateTime                 @updatedAt
+  emailVerified          Boolean                  @default(false)
+  googleId               String?                  @unique
+  profilePictureUrl      String?
+  coachLeaderboardAwards CoachLeaderboardEntry[]  @relation("AdminLeaderboardAwards")
+  coachProfile           CoachProfile?
+  adminRescheduleReviews CoachRescheduleRequest[] @relation("AdminRescheduleReviews")
+  employeeProfile        EmployeeProfile?
+  notifications          Notification[]           @relation("UserNotifications")
+  otpCodes               OtpCode[]
+  refreshTokens          RefreshToken[]
+  studentProfile         StudentProfile?
+  ticketReplies          TicketReply[]
+  assignedTickets        Ticket[]                 @relation("AssignedTickets")
 
   @@map("users")
 }
 
 model StudentProfile {
-  id                    String                  @id @default(cuid())
-  userId                String                  @unique
+  id                    String                    @id @default(cuid())
+  userId                String                    @unique
   parentName            String?
   parentPhone           String?
   city                  String?
   chessComId            String?
-  chessComRating        Int?
   lichessId             String?
-  lichessRating         Int?
   joiningDate           DateTime?
   assignedCoachId       String?
-  createdAt             DateTime                @default(now())
-  updatedAt             DateTime                @updatedAt
+  createdAt             DateTime                  @default(now())
+  updatedAt             DateTime                  @updatedAt
+  chessComRating        Int?
+  lichessRating         Int?
   fideId                String?
   fideRating            Int?
   level                 StudentLevel?
@@ -47,59 +47,60 @@ model StudentProfile {
   chessAccount          ChessAccount?
   activitySnapshots     ChessActivitySnapshot[]
   chessApiFetchLogs     ChessApiFetchLog[]
-  coachFeedbackReceived CoachFeedback[]         @relation("StudentFeedback")
+  coachFeedbackReceived CoachFeedback[]           @relation("StudentFeedback")
   fairPlayViolations    FairPlayViolation[]
   leaderboardEntries    LeaderboardEntry[]
   leaderboardRewards    LeaderboardReward[]
   puzzleSolverAwards    PuzzleSolverAward[]
-  tournamentScores      TournamentScore[]       @relation("StudentTournament")
+  stats                 StudentChessStats?
+  syncRuns              StudentSyncRun[]
+  tournamentScores      TournamentScore[]         @relation("StudentTournament")
   attendanceRecords     AttendanceRecord[]
   enrollments           BatchStudent[]
+  chocolateEligibility  ChocolateEligibility[]    @relation("StudentChocolateEligibility")
+  chocolateQuestions    ChocolateQuestionRecord[] @relation("StudentChocolateQuestions")
+  classFeedbacks        ClassFeedback[]
   leaderboardAttendance LeaderboardAttendance[]
   assignments           StudentAssignment[]
-  syncRuns              StudentSyncRun[]
-  assignedCoach              CoachProfile?           @relation("StudentAssignedCoach", fields: [assignedCoachId], references: [id])
-  user                       User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  stats                      StudentChessStats?
-  createdTickets             Ticket[]                @relation("CreatedTickets")
-  feeConfig                  StudentFeeConfig?
-  classFeedbacks             ClassFeedback[]
-  chocolateQuestions         ChocolateQuestionRecord[] @relation("StudentChocolateQuestions")
-  chocolateEligibility       ChocolateEligibility[]  @relation("StudentChocolateEligibility")
+  feeConfig             StudentFeeConfig?
+  assignedCoach         CoachProfile?             @relation("StudentAssignedCoach", fields: [assignedCoachId], references: [id])
+  user                  User                      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdTickets        Ticket[]                  @relation("CreatedTickets")
 
   @@map("student_profiles")
 }
 
 model CoachProfile {
-  id                    String              @id @default(cuid())
-  userId                String              @unique
+  id                    String                    @id @default(cuid())
+  userId                String                    @unique
   bio                   String?
   experience            String?
   city                  String?
-  createdAt             DateTime            @default(now())
-  updatedAt             DateTime            @updatedAt
   chessComId            String?
-  chessComRating        Int?
   lichessId             String?
+  chessComRating        Int?
   lichessRating         Int?
-  /// TDS deduction applicable? Admin sets this.
-  tdsApplicable         Boolean             @default(false)
+  createdAt             DateTime                  @default(now())
+  updatedAt             DateTime                  @updatedAt
   /// Employment type — Coach | Employee | Freelancer
-  employmentType        EmploymentType      @default(COACH)
-  coachFeedbackGiven    CoachFeedback[]     @relation("CoachGivenFeedback")
-  tournamentScoresGiven TournamentScore[]   @relation("CoachTournament")
-  batches               Batch[]             @relation("BatchCoach")
-  classLogs             ClassLog[]
-  availabilities        CoachAvailability[] @relation("CoachAvailability")
-  user                  User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  assignedStudents      StudentProfile[]         @relation("StudentAssignedCoach")
-  payoutRates           CoachPayoutRate[]
-  payoutAdjustments     PayoutAdjustment[]
-  tickets               Ticket[]                 @relation("CoachCreatedTickets")
-  leaderboardEntries    CoachLeaderboardEntry[]  @relation("CoachLeaderboard")
+  employmentType        EmploymentType            @default(COACH)
+  /// TDS deduction applicable? Admin sets this.
+  tdsApplicable         Boolean                   @default(false)
+  coachFeedbackGiven    CoachFeedback[]           @relation("CoachGivenFeedback")
+  tournamentScoresGiven TournamentScore[]         @relation("CoachTournament")
+  batches               Batch[]                   @relation("BatchCoach")
   chocolateQuestions    ChocolateQuestionRecord[] @relation("CoachChocolateQuestions")
-  rescheduleRequests    CoachRescheduleRequest[] @relation("CoachRescheduleRequests")
-  replacementRequests   CoachRescheduleRequest[] @relation("ReplacementCoachRequests")
+  joinEvents            ClassJoinEvent[]
+  classLogs             ClassLog[]
+  availabilities        CoachAvailability[]       @relation("CoachAvailability")
+  leaderboardEntries    CoachLeaderboardEntry[]   @relation("CoachLeaderboard")
+  payoutRates           CoachPayoutRate[]
+  user                  User                      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  rescheduleRequests    CoachRescheduleRequest[]  @relation("CoachRescheduleRequests")
+  replacementRequests   CoachRescheduleRequest[]  @relation("ReplacementCoachRequests")
+  payoutAdjustments     PayoutAdjustment[]
+  assignedStudents      StudentProfile[]          @relation("StudentAssignedCoach")
+  tickets               Ticket[]                  @relation("CoachCreatedTickets")
 
   @@map("coach_profiles")
 }
