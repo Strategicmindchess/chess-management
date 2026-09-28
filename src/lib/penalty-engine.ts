@@ -15,10 +15,10 @@
 
 export const PENALTY_RULES = {
   LATE_JOIN_TIERS: [
-    { minMins: 0,  maxMins: 2,   amount: 0   },
-    { minMins: 2,  maxMins: 5,   amount: 100 },
-    { minMins: 5,  maxMins: 10,  amount: 200 },
-    { minMins: 10, maxMins: Infinity, amount: 500 },
+    { minMins: 0,  maxMins: 3,   amount: 0   },
+    { minMins: 3,  maxMins: 6,   amount: 100 },
+    { minMins: 6,  maxMins: 11,  amount: 200 },
+    { minMins: 11, maxMins: Infinity, amount: 500 },
   ],
   ATTENDANCE_DEADLINE_HOURS: 24,
   ATTENDANCE_DEADLINE_PENALTY: 200,

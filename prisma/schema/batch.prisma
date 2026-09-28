@@ -153,6 +153,8 @@ model ClassFeedback {
   conceptUnderstood   Boolean        @default(true)
   /// Overall coach performance score 1–10
   overallCoachScore   Int?
+  /// How late did the coach start the class? (ON_TIME, 1_TO_5_MIN, 5_TO_15_MIN, MORE_THAN_15_MIN)
+  coachLateDuration   String?
   submittedAt         DateTime       @default(now())
   classLog            ClassLog       @relation(fields: [classLogId], references: [id], onDelete: Cascade)
   student             StudentProfile @relation(fields: [studentProfileId], references: [id], onDelete: Cascade)

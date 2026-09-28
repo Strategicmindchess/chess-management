@@ -285,6 +285,7 @@ export default function FeedbackDashboardClient({
                         <TableHeaderCell>Student</TableHeaderCell>
                         <TableHeaderCell>Camera &gt;5m</TableHeaderCell>
                         <TableHeaderCell>Phone &gt;4x</TableHeaderCell>
+                        <TableHeaderCell>Coach Late?</TableHeaderCell>
                         <TableHeaderCell>Quality</TableHeaderCell>
                         <TableHeaderCell>Concept</TableHeaderCell>
                         <TableHeaderCell>Submitted At</TableHeaderCell>
@@ -298,7 +299,16 @@ export default function FeedbackDashboardClient({
                           </TableCell>
                           <TableCell>{f.cameraOffOver5Min ? "Yes" : "No"}</TableCell>
                           <TableCell>{f.phoneUsedOver4Times ? "Yes" : "No"}</TableCell>
-                          <TableCell>{f.classQualityScore || "-"}/10</TableCell>
+                          <TableCell>
+                            {f.coachLateDuration === "ON_TIME" ? "On Time" :
+                             f.coachLateDuration === "1_TO_5_MIN" ? "1-5 mins" :
+                             f.coachLateDuration === "5_TO_15_MIN" ? "5-15 mins" :
+                             f.coachLateDuration === "MORE_THAN_15_MIN" ? ">15 mins" :
+                             f.coachLateDuration || "N/A"}
+                          </TableCell>
+                          <TableCell>
+                            {f.classQualityScore ? `${f.classQualityScore}/10` : "N/A"}
+                          </TableCell>
                           <TableCell>{f.conceptUnderstood ? "Yes" : "No"}</TableCell>
                           <TableCell>
                             {format(new Date(f.submittedAt), "HH:mm")}

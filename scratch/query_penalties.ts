@@ -1,31 +1,53 @@
-import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient();
+import 'dotenv/config';
+import { prisma } from '../src/lib/prisma';
 
 async function main() {
-  const logs = await prisma.classLog.findMany({
-    where: {
-      penaltyAmount: 500
-    },
+  const targetId = 'cmu9z7ozp000104lbd3vzg2w3';
+  console.log(`Fetching details for ID: ${targetId}`);
+
+  // It could be a ClassJoinEvent ID or a ClassLog ID. Let's check both.
+  const joinEvent = await prisma.classJoinEvent.findUnique({
+    where: { id: targetId },
     include: {
-      classInstance: true
-    },
-    take: 10
+      classInstance: {
+        include: {
+          batch: true,
+          classLog: {
+            include: {
+              classFeedbacks: true,
+              coach: true,
+            }
+          }
+        }
+      },
+      coachProfile: true,
+    }
   });
 
-  for (const log of logs) {
-    console.log(`Log ID: ${log.id}`);
-    console.log(`Batch: ${log.batchId}`);
-    console.log(`Scheduled: ${log.classInstance?.date} ${log.classInstance?.startTime}`);
-    console.log(`Coach Joined At: ${log.coachJoinedAt}`);
-    console.log(`Penalty Amount: ${log.penaltyAmount}`);
-    console.log(`Penalty Note: ${log.penaltyNote}`);
-    console.log('---');
+  if (joinEvent) {
+    console.log("Found in ClassJoinEvent:");
+    console.dir(joinEvent, { depth: null });
+    return;
   }
+
+  const log = await prisma.classLog.findUnique({
+    where: { id: targetId },
+    include: {
+      classInstance: {
+        include: { batch: true, joinEvents: true }
+      },
+      coach: true,
+      classFeedbacks: true,
+    }
+  });
+
+  if (log) {
+    console.log("Found in ClassLog:");
+    console.dir(log, { depth: null });
+    return;
+  }
+
+  console.log("Not found in ClassJoinEvent or ClassLog.");
 }
 
-main()
-  .catch(e => console.error(e))
-  .finally(async () => {
-    await prisma.$disconnect();
-  });
+main().catch(console.error).finally(() => prisma.$disconnect());

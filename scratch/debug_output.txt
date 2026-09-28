@@ -1,0 +1,180 @@
+Fetching requested class logs...
+
+=== Debugging ClassLog ID: cmu4bbzn1000004lbr87bmgce ===
+Batch ID: cmsoykxom000004i5fxhp0ks9
+Raw DB Values:
+- instance.date (UTC string): 2026-09-16T00:00:00.000Z
+- instance.startTime: 20:45
+- log.coachJoinedAt (UTC string): 2026-09-16T15:15:39.307Z
+- log.attendanceMarkedAt (UTC string): 2026-09-16T16:26:20.069Z
+- log.penaltyNote: Manually cleared testing penalty
+
+Worker's Time Calculation:
+- classDateStr (IST formatted): 2026-09-16
+- classScheduledStart (UTC): 2026-09-16T15:15:00.000Z
+- lateMs: 39307
+- lateMinutes (Math.floor(lateMs / 60_000)): 0
+
+Engine Input:
+{
+  "coachJoinedAt": "2026-09-16T15:15:39.307Z",
+  "classScheduledStart": "2026-09-16T15:15:00.000Z",
+  "attendanceMarkedAt": "2026-09-16T16:26:20.069Z",
+  "classCompletedAt": "2026-09-16T16:26:20.305Z",
+  "totalFeedbacksSubmitted": 2,
+  "cameraOffReports": 0,
+  "phoneUsageReports": 0,
+  "historicalPhonePenaltyCount": 0,
+  "totalStudents": 2
+}
+
+Engine Output (Dry Run):
+{
+  "totalPenalty": 0,
+  "breakdown": [],
+  "hasPhonePenalty": false
+}
+
+=== Debugging ClassLog ID: cmu5qdabb000104lbcyte68wh ===
+Batch ID: cmsoykxom000004i5fxhp0ks9
+Raw DB Values:
+- instance.date (UTC string): 2026-09-16T18:30:00.000Z
+- instance.startTime: 20:45
+- log.coachJoinedAt (UTC string): 2026-09-17T16:14:42.515Z
+- log.attendanceMarkedAt (UTC string): 2026-09-17T16:15:00.981Z
+- log.penaltyNote: Late join: 59 min late (Γé╣500)
+
+Worker's Time Calculation:
+- classDateStr (IST formatted): 2026-09-17
+- classScheduledStart (UTC): 2026-09-17T15:15:00.000Z
+- lateMs: 3582515
+- lateMinutes (Math.floor(lateMs / 60_000)): 59
+
+Engine Input:
+{
+  "coachJoinedAt": "2026-09-17T16:14:42.515Z",
+  "classScheduledStart": "2026-09-17T15:15:00.000Z",
+  "attendanceMarkedAt": "2026-09-17T16:15:00.981Z",
+  "classCompletedAt": "2026-09-17T16:15:01.211Z",
+  "totalFeedbacksSubmitted": 2,
+  "cameraOffReports": 0,
+  "phoneUsageReports": 0,
+  "historicalPhonePenaltyCount": 0,
+  "totalStudents": 2
+}
+
+Engine Output (Dry Run):
+{
+  "totalPenalty": 500,
+  "breakdown": [
+    "Late join: 59 min late (Γé╣500)"
+  ],
+  "hasPhonePenalty": false
+}
+
+=== Debugging ClassLog ID: cmu8rv377000004jv50f6dzb6 ===
+Batch ID: cms2zgk0f000004kzh1ke024v
+Raw DB Values:
+- instance.date (UTC string): 2026-09-18T18:30:00.000Z
+- instance.startTime: 21:00
+- log.coachJoinedAt (UTC string): 2026-09-19T12:51:07.858Z
+- log.attendanceMarkedAt (UTC string): 2026-09-19T19:20:09.708Z
+- log.penaltyNote: no
+
+Worker's Time Calculation:
+- classDateStr (IST formatted): 2026-09-19
+- classScheduledStart (UTC): 2026-09-19T15:30:00.000Z
+- lateMs: -9532142
+- lateMinutes (Math.floor(lateMs / 60_000)): -159
+
+Engine Input:
+{
+  "coachJoinedAt": "2026-09-19T12:51:07.858Z",
+  "classScheduledStart": "2026-09-19T15:30:00.000Z",
+  "attendanceMarkedAt": "2026-09-19T19:20:09.708Z",
+  "classCompletedAt": "2026-09-19T19:20:09.953Z",
+  "totalFeedbacksSubmitted": 17,
+  "cameraOffReports": 0,
+  "phoneUsageReports": 0,
+  "historicalPhonePenaltyCount": 0,
+  "totalStudents": 18
+}
+
+Engine Output (Dry Run):
+{
+  "totalPenalty": 0,
+  "breakdown": [],
+  "hasPhonePenalty": false
+}
+
+=== Debugging ClassLog ID: cmu9rcom8000004jmihjr77p8 ===
+Batch ID: cmu882o2c000104l2xeeltiw6
+Raw DB Values:
+- instance.date (UTC string): 2026-09-18T18:30:00.000Z
+- instance.startTime: 19:30
+- log.coachJoinedAt (UTC string): 2026-09-19T14:29:48.802Z
+- log.attendanceMarkedAt (UTC string): 2026-09-20T11:53:37.176Z
+- log.penaltyNote: null
+
+Worker's Time Calculation:
+- classDateStr (IST formatted): 2026-09-19
+- classScheduledStart (UTC): 2026-09-19T14:00:00.000Z
+- lateMs: 1788802
+- lateMinutes (Math.floor(lateMs / 60_000)): 29
+
+Engine Input:
+{
+  "coachJoinedAt": "2026-09-19T14:29:48.802Z",
+  "classScheduledStart": "2026-09-19T14:00:00.000Z",
+  "attendanceMarkedAt": "2026-09-20T11:53:37.176Z",
+  "classCompletedAt": "2026-09-20T11:53:37.417Z",
+  "totalFeedbacksSubmitted": 3,
+  "cameraOffReports": 1,
+  "phoneUsageReports": 0,
+  "historicalPhonePenaltyCount": 0,
+  "totalStudents": 4
+}
+
+Engine Output (Dry Run):
+{
+  "totalPenalty": 500,
+  "breakdown": [
+    "Late join: 29 min late (Γé╣500)"
+  ],
+  "hasPhonePenalty": false
+}
+
+=== Debugging ClassLog ID: cmu9xndhg000004jqofj2n21y ===
+Batch ID: cmtmp7zds000005l4lym7iubw
+Raw DB Values:
+- instance.date (UTC string): 2026-09-19T18:30:00.000Z
+- instance.startTime: 19:00
+- log.coachJoinedAt (UTC string): 2026-09-20T13:18:06.787Z
+- log.attendanceMarkedAt (UTC string): 2026-09-20T14:49:53.661Z
+- log.penaltyNote: null
+
+Worker's Time Calculation:
+- classDateStr (IST formatted): 2026-09-20
+- classScheduledStart (UTC): 2026-09-20T13:30:00.000Z
+- lateMs: -713213
+- lateMinutes (Math.floor(lateMs / 60_000)): -12
+
+Engine Input:
+{
+  "coachJoinedAt": "2026-09-20T13:18:06.787Z",
+  "classScheduledStart": "2026-09-20T13:30:00.000Z",
+  "attendanceMarkedAt": "2026-09-20T14:49:53.661Z",
+  "classCompletedAt": "2026-09-20T14:49:53.898Z",
+  "totalFeedbacksSubmitted": 3,
+  "cameraOffReports": 0,
+  "phoneUsageReports": 0,
+  "historicalPhonePenaltyCount": 0,
+  "totalStudents": 6
+}
+
+Engine Output (Dry Run):
+{
+  "totalPenalty": 0,
+  "breakdown": [],
+  "hasPhonePenalty": false
+}
