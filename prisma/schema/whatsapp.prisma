@@ -1,0 +1,31 @@
+/// Admin-created holiday periods — drive holiday notifications
+model HolidayPeriod {
+  id          String   @id @default(cuid())
+  name        String                      /// "Gandhi Jayanti", "Diwali Break"
+  startDate   DateTime
+  endDate     DateTime
+  description String?
+  notified    Boolean  @default(false)    /// prevent re-sends on cron
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  createdById String                      /// Admin user ID
+  createdBy   User     @relation("HolidayCreator", fields: [createdById], references: [id])
+
+  @@map("holiday_periods")
+}
+
+/// Admin-created tournaments — track reminder sends per (tournament, recipient)
+model TournamentAnnouncement {
+  id               String   @id @default(cuid())
+  name             String
+  date             DateTime
+  time             String
+  tournamentType   String
+  registrationLink String?
+  customMessage    String?
+  createdAt        DateTime @default(now())
+  createdById      String
+  createdBy        User     @relation("TournamentCreator", fields: [createdById], references: [id])
+
+  @@map("tournament_announcements")
+}

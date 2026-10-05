@@ -22,6 +22,8 @@ model User {
   studentProfile         StudentProfile?
   ticketReplies          TicketReply[]
   assignedTickets        Ticket[]                 @relation("AssignedTickets")
+  holidayPeriods         HolidayPeriod[]          @relation("HolidayCreator")
+  tournamentAnnouncements TournamentAnnouncement[] @relation("TournamentCreator")
 
   @@map("users")
 }

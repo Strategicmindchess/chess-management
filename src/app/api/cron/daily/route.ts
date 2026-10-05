@@ -61,8 +61,28 @@ export let GET = withLogging(async function(req: Request) {
     // 2. Queue log cleanup
     await logCleanupQueue.add(JOB_NAMES.PURGE_OLD_LOGS, {});
     logger.info(`[Cron:Daily] Queued log cleanup job`);
+    // 3. Queue WhatsApp class reminders for tomorrow
+    const tomorrow = new Date(now);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    tomorrow.setHours(0, 0, 0, 0);
+    const tomorrowEnd = new Date(tomorrow);
+    tomorrowEnd.setHours(23, 59, 59, 999);
 
-    return NextResponse.json({ success: true, queuedFetches: fetchJobs.length });
+    const tomorrowClasses = await prisma.classInstance.findMany({
+      where: {
+        status: 'SCHEDULED',
+        date: { gte: tomorrow, lte: tomorrowEnd },
+      },
+      select: { id: true },
+    });
+
+    const { sendNotification } = await import('@/lib/whatsapp-notifications');
+    for (const ci of tomorrowClasses) {
+      await sendNotification({ type: 'CLASS_REMINDER', refId: ci.id });
+    }
+    logger.info(`[Cron:Daily] Queued ${tomorrowClasses.length} WhatsApp class reminders`);
+
+    return NextResponse.json({ success: true, queuedFetches: fetchJobs.length, classReminders: tomorrowClasses.length });
     } catch (error: any) {
     logger.error({ error: error.message }, '[Cron:Daily] Failed to queue daily jobs');
     return NextResponse.json({ error: error.message }, { status: 500 });

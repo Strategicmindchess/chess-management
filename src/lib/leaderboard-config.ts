@@ -98,6 +98,7 @@ export const QUEUE_NAMES = {
   ATTENDANCE_SUMMARY: `attendance-summary${envSuffix}`,
   ASSIGNMENT_SUMMARY: `assignment-summary${envSuffix}`,
   PENALTY: `penalty${envSuffix}`,
+  WHATSAPP: `whatsapp-queue${envSuffix}`,
 } as const;
 
 // ── Job names ────────────────────────────────────────────────────────────────
