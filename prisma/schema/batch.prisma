@@ -1,25 +1,26 @@
 /// A recurring class batch created by an Admin/Management user.
 model Batch {
-  id             String            @id @default(cuid())
-  name           String
-  code           String            @unique
-  meetLink       String
-  type           BatchType         @default(GROUP_SESSION)
-  isActive       Boolean           @default(true)
-  createdAt      DateTime          @default(now())
-  updatedAt      DateTime          @updatedAt
-  coachProfileId String?
-  payoutRate     Int               @default(0)
-  startDate      DateTime?
-  level          BatchLevel?
+  id              String            @id @default(cuid())
+  name            String
+  code            String            @unique
+  meetLink        String
+  type            BatchType         @default(GROUP_SESSION)
+  isActive        Boolean           @default(true)
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  coachProfileId  String?
+  payoutRate      Int               @default(0)
+  startDate       DateTime?
+  level           BatchLevel?
   /// 1-based: the session number the syllabus starts from for this batch
-  startSession   Int?              @default(1)
-  assignments    BatchAssignment[]
-  schedules      BatchSchedule[]
-  students       BatchStudent[]
-  coach          CoachProfile?     @relation("BatchCoach", fields: [coachProfileId], references: [id])
-  classInstances ClassInstance[]
-  classLogs      ClassLog[]
+  startSession    Int?              @default(1)
+  assignments     BatchAssignment[]
+  schedules       BatchSchedule[]
+  students        BatchStudent[]
+  coach           CoachProfile?     @relation("BatchCoach", fields: [coachProfileId], references: [id])
+  classInstances  ClassInstance[]
+  classLogs       ClassLog[]
+  classRecordings ClassRecording[]
 
   @@map("batches")
 }

@@ -1,0 +1,81 @@
+model Course {
+  id           String         @id @default(cuid())
+  title        String
+  description  String         @db.Text
+  thumbnailUrl String?
+  level        BatchLevel?
+  price        Int // Price in paise
+  isPublished  Boolean        @default(false)
+  createdById  String
+  createdBy    User           @relation("CourseCreator", fields: [createdById], references: [id])
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  lessons      CourseLesson[]
+  accesses     CourseAccess[]
+}
+
+enum LessonStatus {
+  UPLOADING
+  READY
+  FAILED
+}
+
+model CourseLesson {
+  id           String       @id @default(cuid())
+  courseId     String
+  course       Course       @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  title        String
+  description  String?      @db.Text
+  videoKey     String? // S3 bucket object key
+  lessonNumber Int
+  partNumber   Int          @default(1)
+  status       LessonStatus @default(UPLOADING)
+  isPreview    Boolean      @default(false)
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  @@unique([courseId, lessonNumber, partNumber])
+}
+
+model RevisionVideo {
+  id           String      @id @default(cuid())
+  title        String
+  description  String      @db.Text
+  thumbnailUrl String?
+  videoUrl     String // S3 bucket link
+  level        BatchLevel?
+  isPublished  Boolean     @default(false)
+  createdById  String
+  createdBy    User        @relation("RevisionCreator", fields: [createdById], references: [id])
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+}
+
+model ClassRecording {
+  id           String     @id @default(cuid())
+  title        String
+  description  String?    @db.Text
+  thumbnailUrl String?
+  recordingUrl String // S3 bucket link
+  level        BatchLevel
+  batchId      String?
+  batch        Batch?     @relation(fields: [batchId], references: [id])
+  classDate    DateTime?
+  uploadedById String
+  uploadedBy   User       @relation("RecordingUploader", fields: [uploadedById], references: [id])
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+}
+
+model CourseAccess {
+  id        String   @id @default(cuid())
+  courseId  String
+  course    Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  studentId String
+  student   User     @relation("CourseStudent", fields: [studentId], references: [id], onDelete: Cascade)
+  grantedAt DateTime @default(now())
+  grantedBy String
+  admin     User     @relation("CourseAccessGranter", fields: [grantedBy], references: [id])
+
+  @@unique([courseId, studentId])
+}
