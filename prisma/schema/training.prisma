@@ -11,6 +11,7 @@ model Course {
   createdAt    DateTime       @default(now())
   updatedAt    DateTime       @updatedAt
   lessons      CourseLesson[]
+  accesses     CourseAccess[]
 }
 
 enum LessonStatus {
@@ -25,7 +26,7 @@ model CourseLesson {
   course       Course       @relation(fields: [courseId], references: [id], onDelete: Cascade)
   title        String
   description  String?      @db.Text
-  videoKey     String?      // S3 bucket object key
+  videoKey     String? // S3 bucket object key
   lessonNumber Int
   partNumber   Int          @default(1)
   status       LessonStatus @default(UPLOADING)
@@ -64,4 +65,17 @@ model ClassRecording {
   uploadedBy   User       @relation("RecordingUploader", fields: [uploadedById], references: [id])
   createdAt    DateTime   @default(now())
   updatedAt    DateTime   @updatedAt
+}
+
+model CourseAccess {
+  id        String   @id @default(cuid())
+  courseId  String
+  course    Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  studentId String
+  student   User     @relation("CourseStudent", fields: [studentId], references: [id], onDelete: Cascade)
+  grantedAt DateTime @default(now())
+  grantedBy String
+  admin     User     @relation("CourseAccessGranter", fields: [grantedBy], references: [id])
+
+  @@unique([courseId, studentId])
 }

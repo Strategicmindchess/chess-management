@@ -237,10 +237,28 @@ export async function updateLessonTitle(lessonId: string, title: string): Promis
 
 /** Short-lived signed URL to play a lesson video. */
 export async function getLessonVideoUrl(lessonId: string): Promise<ActionResult & { url?: string }> {
-  await requireRole(["ADMIN", "TEACHER", "STUDENT"]);
+  const user = await requireRole(["ADMIN", "TEACHER", "STUDENT"]);
+  
   const lesson = await prisma.courseLesson.findUnique({ where: { id: lessonId } });
   if (!lesson || lesson.status !== "READY" || !lesson.videoKey) {
     return { success: false, error: "Video not available." };
   }
+
+  // Security check for STUDENT
+  if (user.role === "STUDENT" && !lesson.isPreview) {
+    const access = await prisma.courseAccess.findUnique({
+      where: {
+        courseId_studentId: {
+          courseId: lesson.courseId,
+          studentId: user.id
+        }
+      }
+    });
+
+    if (!access) {
+      return { success: false, error: "You do not have access to this course." };
+    }
+  }
+
   return { success: true, url: await generateDownloadUrl(lesson.videoKey) };
 }
