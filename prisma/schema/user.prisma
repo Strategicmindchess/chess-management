@@ -22,6 +22,11 @@ model User {
   studentProfile         StudentProfile?
   ticketReplies          TicketReply[]
   assignedTickets        Ticket[]                 @relation("AssignedTickets")
+  createdCourses         Course[]                 @relation("CourseCreator")
+  createdRevisions       RevisionVideo[]          @relation("RevisionCreator")
+  uploadedRecords        ClassRecording[]         @relation("RecordingUploader")
+  accessedCourses        CourseAccess[]           @relation("CourseStudent")
+  grantedCourseAccesses  CourseAccess[]           @relation("CourseAccessGranter")
 
   @@map("users")
 }
