@@ -2,6 +2,7 @@ import { requireRole } from "@/lib/dal";
 import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
 import { Role } from "@/lib/enums";
+import { getPresignedUrlFromPublicUrl } from "@/lib/s3";
 import StudentLessonPlayer from "@/components/student/courses/student-lesson-player";
 
 export const dynamic = "force-dynamic";
@@ -28,7 +29,9 @@ export default async function StudentCourseDetailPage({ params }: { params: Prom
 
   if (!course) notFound();
 
-  const hasAccess = course.accesses.length > 0;
+  course.thumbnailUrl = await getPresignedUrlFromPublicUrl(course.thumbnailUrl);
+
+  const hasAccess = course.price === 0 || course.accesses.length > 0;
   const { lessons, accesses, createdAt, updatedAt, ...rest } = course;
 
   return <StudentLessonPlayer course={rest} lessons={lessons} hasAccess={hasAccess} />;

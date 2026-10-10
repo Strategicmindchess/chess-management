@@ -7,6 +7,7 @@ export const initUploadSchema = z.object({
   lessonNumber: z.number().int().min(1),
   partNumber: z.number().int().min(1).default(1),
   isPreview: z.boolean().default(false),
+  thumbnailUrl: z.string().url().optional().nullable(),
   fileName: z.string().min(1, "File name is required"),
   contentType: z.string().min(1, "Content type is required"),
   partsCount: z.number().int().min(1, "At least 1 part is required").max(10000, "Max 10000 parts allowed"),

@@ -27,6 +27,7 @@ model CourseLesson {
   title        String
   description  String?      @db.Text
   videoKey     String? // S3 bucket object key
+  thumbnailUrl String? // Lesson thumbnail (16:9, 1280x720px recommended)
   lessonNumber Int
   partNumber   Int          @default(1)
   status       LessonStatus @default(UPLOADING)

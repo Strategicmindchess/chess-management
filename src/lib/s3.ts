@@ -87,3 +87,17 @@ export async function abortMultipartUpload(key: string, uploadId: string) {
   return await s3Client.send(command);
 }
 
+export async function getPresignedUrlFromPublicUrl(publicUrl: string | null) {
+  if (!publicUrl) return null;
+  const base =
+    process.env.S3_PUBLIC_BASE_URL ||
+    `${(process.env.S3_ENDPOINT_URL || "https://t3.storageapi.dev").replace(/\/$/, "")}/${BUCKET_NAME}`;
+  const prefix = `${base.replace(/\/$/, "")}/`;
+  
+  if (publicUrl.startsWith(prefix)) {
+    const key = publicUrl.substring(prefix.length);
+    return await generateDownloadUrl(key);
+  }
+  return publicUrl;
+}
+

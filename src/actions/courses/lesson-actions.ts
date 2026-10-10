@@ -36,7 +36,7 @@ export async function initLessonUpload(
     };
   }
 
-  const { courseId, title, description, lessonNumber, partNumber, isPreview, fileName, contentType, partsCount } = parsed.data;
+  const { courseId, title, description, lessonNumber, partNumber, isPreview, thumbnailUrl, fileName, contentType, partsCount } = parsed.data;
 
   try {
     // 1. Verify Course exists
@@ -57,6 +57,7 @@ export async function initLessonUpload(
         lessonNumber,
         partNumber,
         isPreview,
+        thumbnailUrl: thumbnailUrl ?? null,
         status: "UPLOADING",
       },
     });
@@ -239,13 +240,17 @@ export async function updateLessonTitle(lessonId: string, title: string): Promis
 export async function getLessonVideoUrl(lessonId: string): Promise<ActionResult & { url?: string }> {
   const user = await requireRole(["ADMIN", "TEACHER", "STUDENT"]);
   
-  const lesson = await prisma.courseLesson.findUnique({ where: { id: lessonId } });
+  const lesson = await prisma.courseLesson.findUnique({ 
+    where: { id: lessonId },
+    include: { course: { select: { price: true } } }
+  });
+  
   if (!lesson || lesson.status !== "READY" || !lesson.videoKey) {
     return { success: false, error: "Video not available." };
   }
 
   // Security check for STUDENT
-  if (user.role === "STUDENT" && !lesson.isPreview) {
+  if (user.role === "STUDENT" && !lesson.isPreview && lesson.course.price > 0) {
     const access = await prisma.courseAccess.findUnique({
       where: {
         courseId_studentId: {

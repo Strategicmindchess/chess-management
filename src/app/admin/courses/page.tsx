@@ -2,6 +2,7 @@ import { requireRole } from "@/lib/dal";
 import { prisma } from "@/lib/prisma";
 import CourseList from "@/components/admin/courses/course-list";
 import { Settings } from "lucide-react";
+import { getPresignedUrlFromPublicUrl } from "@/lib/s3";
 
 export default async function AdminCoursesPage() {
   await requireRole(["ADMIN"]);
@@ -16,11 +17,14 @@ export default async function AdminCoursesPage() {
     }
   });
 
-  const courses = rawCourses.map(c => ({
-    ...c,
-    createdAt: c.createdAt.toISOString(),
-    updatedAt: c.updatedAt.toISOString(),
-  }));
+  const courses = await Promise.all(
+    rawCourses.map(async (c) => ({
+      ...c,
+      thumbnailUrl: await getPresignedUrlFromPublicUrl(c.thumbnailUrl),
+      createdAt: c.createdAt.toISOString(),
+      updatedAt: c.updatedAt.toISOString(),
+    }))
+  );
 
   return (
     <div className="p-6 max-w-7xl mx-auto space-y-6">

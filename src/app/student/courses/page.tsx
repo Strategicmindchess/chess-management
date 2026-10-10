@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 import { Role } from "@/lib/enums";
 import { ImageOff, Video, ArrowRight, Lock, Unlock, GraduationCap, Clock } from "lucide-react";
+import { getPresignedUrlFromPublicUrl } from "@/lib/s3";
 
 export const dynamic = "force-dynamic";
 
@@ -19,7 +20,7 @@ export default async function StudentCoursesPage() {
   const user = await requireRole([Role.STUDENT]);
 
   // Fetch all published courses
-  const courses = await prisma.course.findMany({
+  const rawCourses = await prisma.course.findMany({
     where: { isPublished: true },
     orderBy: { createdAt: "desc" },
     include: {
@@ -31,6 +32,13 @@ export default async function StudentCoursesPage() {
       }
     }
   });
+
+  const courses = await Promise.all(
+    rawCourses.map(async (course) => ({
+      ...course,
+      thumbnailUrl: await getPresignedUrlFromPublicUrl(course.thumbnailUrl),
+    }))
+  );
 
   return (
     <div className="mx-auto max-w-6xl space-y-8 p-6">
@@ -48,7 +56,7 @@ export default async function StudentCoursesPage() {
 
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {courses.map(course => {
-          const hasAccess = course.accesses.length > 0;
+          const hasAccess = course.price === 0 || course.accesses.length > 0;
           return (
             <div key={course.id} className="group flex flex-col overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-b from-slate-900 to-slate-950 shadow-lg transition hover:-translate-y-0.5 hover:border-indigo-500/40 hover:shadow-indigo-500/10">
               <Link href={`/student/courses/${course.id}`} className="relative block aspect-video overflow-hidden bg-slate-800/60">
