@@ -31,7 +31,6 @@ export let POST = withLogging(async function(req: NextRequest) {
     classQualityScore,
     conceptUnderstood,
     overallCoachScore,
-    coachLateDuration,
     } = body as {
     classLogId: string;
     cameraOffOver5Min?: boolean;
@@ -39,7 +38,6 @@ export let POST = withLogging(async function(req: NextRequest) {
     classQualityScore?: number;
     conceptUnderstood?: boolean;
     overallCoachScore?: number;
-    coachLateDuration?: string;
     };
 
     if (!classLogId) {
@@ -86,7 +84,6 @@ export let POST = withLogging(async function(req: NextRequest) {
         classQualityScore: classQualityScore ?? null,
         conceptUnderstood: conceptUnderstood ?? true,
         overallCoachScore: resolvedOverallScore,
-        coachLateDuration: coachLateDuration ?? "ON_TIME",
       },
     });
 

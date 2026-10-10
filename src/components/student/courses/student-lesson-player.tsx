@@ -16,10 +16,12 @@ export default function StudentLessonPlayer({ course, lessons, hasAccess }: { co
     setLoading(lesson.id);
     try {
       const res = await getLessonVideoUrl(lesson.id);
-      if (res.success && res.url) {
-        setPlayer({ title: lesson.title, url: res.url });
-      } else {
+      if (!res.success) {
         alert(res.error || "Failed to load video.");
+        return;
+      }
+      if (res.url) {
+        setPlayer({ title: lesson.title, url: res.url });
       }
     } catch (err: any) {
       alert("Failed to load video.");

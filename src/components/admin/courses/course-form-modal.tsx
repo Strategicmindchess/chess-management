@@ -158,7 +158,7 @@ export default function CourseFormModal({ isOpen, onClose, course }: { isOpen: b
         </div>
 
         <div className="flex justify-end gap-2 pt-4">
-          <Button type="button" variant="outline" onClick={onClose}>Cancel</Button>
+          <Button type="button" variant="secondary" onClick={onClose}>Cancel</Button>
           <Button type="submit" disabled={loading}>{loading ? "Saving..." : "Save Course"}</Button>
         </div>
       </form>

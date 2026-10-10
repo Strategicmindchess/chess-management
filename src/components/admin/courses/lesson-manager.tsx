@@ -83,8 +83,11 @@ export default function LessonManager({ course, lessons, backHref }: { course: a
         contentType: file.type || "video/mp4",
         partsCount,
       });
-      if (!init.success || !init.presignedUrls || !init.lessonId || !init.uploadId) {
+      if (!init.success) {
         throw new Error(init.error || "Failed to start upload");
+      }
+      if (!init.presignedUrls || !init.lessonId || !init.uploadId) {
+        throw new Error("Missing required upload data");
       }
       lessonId = init.lessonId;
       uploadId = init.uploadId;
@@ -135,15 +138,20 @@ export default function LessonManager({ course, lessons, backHref }: { course: a
 
   async function handlePlay(l: Lesson) {
     const res = await getLessonVideoUrl(l.id);
-    if (res.success && res.url) setPlayer({ title: l.title, url: res.url });
-    else alert(res.error);
+    if (!res.success) {
+      alert(res.error);
+      return;
+    }
+    if (res.url) {
+      setPlayer({ title: l.title, url: res.url });
+    }
   }
 
   async function handleDelete(l: Lesson) {
     if (!confirm(`Delete "${l.title}"? The video will be removed permanently.`)) return;
     const res = await deleteLesson(l.id);
     if (!res.success) alert(res.error);
-    router.refresh();
+    router.refresh(); 
   }
 
   async function saveTitle(id: string) {
