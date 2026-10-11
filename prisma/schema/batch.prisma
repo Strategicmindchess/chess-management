@@ -48,6 +48,7 @@ model ClassInstance {
   rescheduleRequests CoachRescheduleRequest[]
 
   @@index([batchId, date])
+  @@index([batchId, status])
   @@map("class_instances")
 }
 
@@ -61,6 +62,7 @@ model ClassJoinEvent {
   classInstance   ClassInstance @relation(fields: [classInstanceId], references: [id], onDelete: Cascade)
   coachProfile    CoachProfile  @relation(fields: [coachProfileId], references: [id], onDelete: Cascade)
 
+  @@index([classInstanceId, coachProfileId, joinedAt])
   @@index([classInstanceId])
   @@index([coachProfileId])
   @@map("class_join_events")
@@ -136,6 +138,8 @@ model ClassLog {
   batch                Batch              @relation(fields: [batchId], references: [id], onDelete: Cascade)
   coach                CoachProfile       @relation(fields: [coachProfileId], references: [id], onDelete: Cascade)
 
+  @@index([batchId, date])
+  @@index([coachProfileId, date])
   @@map("class_logs")
 }
 
