@@ -118,6 +118,9 @@ export function Topbar({
               disabled={isPending}
               onClick={() => {
                 setIsDropdownOpen(false);
+                if (typeof window !== "undefined") {
+                  sessionStorage.clear();
+                }
                 startTransition(() => logout());
               }}
               className="flex w-full items-center px-4 py-2 text-sm text-red-600 hover:bg-red-50 hover:text-red-700 text-left dark:text-red-400 dark:hover:bg-red-900/20"
