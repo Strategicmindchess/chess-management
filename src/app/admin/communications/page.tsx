@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { manualNotify, getActiveBatches, getBatchClasses } from '@/actions/communications';
+import { prepareManualNotification, sendSingleNotification, getActiveBatches, getBatchClasses } from '@/actions/communications';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -23,6 +23,15 @@ export default function CommunicationsPage() {
 
   const [manualNumbers, setManualNumbers] = useState('');
   const [selectedBatchIds, setSelectedBatchIds] = useState<string[]>([]);
+
+  const [previewModalOpen, setPreviewModalOpen] = useState(false);
+  const [preparedData, setPreparedData] = useState<any>(null);
+  const [sendProgress, setSendProgress] = useState(0);
+  const [isSending, setIsSending] = useState(false);
+  const [recipientStatuses, setRecipientStatuses] = useState<Record<string, 'pending' | 'success' | 'error'>>({});
+  
+  const [newManualName, setNewManualName] = useState('');
+  const [newManualPhone, setNewManualPhone] = useState('');
 
   useEffect(() => {
     getActiveBatches().then(res => setBatches(res)).catch(console.error);
@@ -49,18 +58,51 @@ export default function CommunicationsPage() {
         manualNumbers,
         selectedBatchIds
       };
-      const res = await manualNotify(payload);
-      if (res.success) {
-        setMessage(`Successfully queued ${payload.type} notification!`);
-      } else {
-        setMessage('Error queueing notification.');
-      }
+      const res = await prepareManualNotification(payload);
+      setPreparedData(res);
+      const initialStatuses: any = {};
+      res.recipients.forEach((r: any) => initialStatuses[r.phone] = 'pending');
+      setRecipientStatuses(initialStatuses);
+      setSendProgress(0);
+      setPreviewModalOpen(true);
     } catch (err: any) {
       setMessage(`Error: ${err.message}`);
     }
     
-    setPendingAction(null);
     setLoading(false);
+  }
+
+  async function startSending() {
+    if (!preparedData) return;
+    setIsSending(true);
+    let sentCount = 0;
+    
+    for (const recipient of preparedData.recipients) {
+      try {
+        await sendSingleNotification(recipient.phone, preparedData.templateName, preparedData.templateParams);
+        setRecipientStatuses(prev => ({ ...prev, [recipient.phone]: 'success' }));
+      } catch (e) {
+        setRecipientStatuses(prev => ({ ...prev, [recipient.phone]: 'error' }));
+      }
+      sentCount++;
+      setSendProgress(Math.round((sentCount / preparedData.recipients.length) * 100));
+    }
+    
+    setIsSending(false);
+    setMessage('Sending complete!');
+    setPendingAction(null);
+  }
+
+  function addManualRecipient() {
+    if (!newManualName || !newManualPhone) return;
+    const newRecipient = { name: newManualName, phone: newManualPhone, role: 'Manual' };
+    setPreparedData((prev: any) => ({
+      ...prev,
+      recipients: [newRecipient, ...prev.recipients]
+    }));
+    setRecipientStatuses(prev => ({ ...prev, [newManualPhone]: 'pending' }));
+    setNewManualName('');
+    setNewManualPhone('');
   }
 
   function requestSend(type: string, data: any) {
@@ -262,6 +304,73 @@ export default function CommunicationsPage() {
         <div className="flex justify-start mt-4">
           <Button type="button" variant="ghost" onClick={() => setAudienceDialogOpen(false)}>
             Cancel
+          </Button>
+        </div>
+      </Dialog>
+
+      {/* Preview and Send Dialog */}
+      <Dialog 
+        open={previewModalOpen} 
+        onClose={() => !isSending && setPreviewModalOpen(false)}
+        title="Preview & Send Notification"
+        description="Verify the template and recipient list before sending."
+      >
+        <div className="py-4 space-y-4">
+          <div>
+            <Label className="text-gray-400">Template Preview</Label>
+            <div className="bg-slate-900 p-3 rounded mt-1 text-sm whitespace-pre-wrap font-mono text-gray-300">
+              {preparedData?.templatePreview}
+            </div>
+          </div>
+          
+          <div className="border border-slate-700 rounded p-3 space-y-2">
+            <Label>Add Recipient</Label>
+            <div className="flex gap-2">
+              <Input placeholder="Name" value={newManualName} onChange={e => setNewManualName(e.target.value)} disabled={isSending} className="flex-1" />
+              <Input placeholder="Phone" value={newManualPhone} onChange={e => setNewManualPhone(e.target.value)} disabled={isSending} className="flex-1" />
+              <Button onClick={addManualRecipient} disabled={isSending} variant="secondary">Add</Button>
+            </div>
+          </div>
+
+          <div>
+            <div className="flex justify-between items-center mb-1">
+              <Label>Recipients ({preparedData?.recipients.length || 0})</Label>
+              {isSending && <span className="text-xs text-blue-400">{sendProgress}% Complete</span>}
+            </div>
+            
+            {(isSending || sendProgress > 0) && (
+              <div className="w-full bg-slate-800 rounded-full h-2 mb-2">
+                <div className="bg-blue-600 h-2 rounded-full transition-all" style={{ width: `${sendProgress}%` }}></div>
+              </div>
+            )}
+
+            <div className="bg-slate-800 rounded max-h-60 overflow-y-auto p-2 space-y-1">
+              {preparedData?.recipients.map((r: any, idx: number) => (
+                <div key={`${r.phone}-${idx}`} className="flex justify-between items-center bg-slate-900 p-2 rounded text-sm">
+                  <div>
+                    <span className="font-medium text-slate-200">{r.name}</span> <span className="text-gray-400 text-xs">({r.role})</span>
+                    <div className="text-xs text-gray-500">{r.phone}</div>
+                  </div>
+                  <div>
+                    {recipientStatuses[r.phone] === 'success' && <span className="text-green-500 font-medium">✓ Sent</span>}
+                    {recipientStatuses[r.phone] === 'error' && <span className="text-red-500 font-medium">❌ Failed</span>}
+                    {recipientStatuses[r.phone] === 'pending' && <span className="text-gray-500">Pending</span>}
+                  </div>
+                </div>
+              ))}
+              {preparedData?.recipients.length === 0 && (
+                <div className="text-gray-500 text-center py-2">No recipients found</div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        <div className="flex justify-end gap-2 mt-4">
+          <Button type="button" variant="ghost" onClick={() => setPreviewModalOpen(false)} disabled={isSending}>
+            Cancel
+          </Button>
+          <Button onClick={startSending} disabled={isSending || !preparedData?.recipients.length} className="bg-blue-600 hover:bg-blue-700">
+            {isSending ? 'Sending...' : 'Start Sending'}
           </Button>
         </div>
       </Dialog>

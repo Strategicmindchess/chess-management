@@ -10,6 +10,7 @@ export interface SendWhatsAppPayload {
   to: string;            // E.164 e.g. "919876543210"
   templateName: string;
   templateParams: string[]; // Simple array of strings for body parameters
+  languageCode?: string;
 }
 
 export async function sendWhatsAppMessage(payload: SendWhatsAppPayload): Promise<void> {
@@ -35,7 +36,7 @@ export async function sendWhatsAppMessage(payload: SendWhatsAppPayload): Promise
     template: {
       name: payload.templateName,
       language: {
-        code: "en" // Adjust based on your approved templates (e.g., en_US, hi)
+        code: payload.languageCode || process.env.WHATSAPP_TEMPLATE_LANG || "en_US"
       },
       components
     }
