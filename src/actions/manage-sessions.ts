@@ -263,7 +263,7 @@ export async function bulkUpdateClassTimings(input: z.infer<typeof bulkUpdateCla
 
   try {
     const { today } = getISTDayBounds();
-    
+
     // Note: We don't do clash prevention here on a row-by-row basis as it's a bulk operation
     // and would be complex. Assuming Admin knows what they're doing for bulk update.
     await prisma.classInstance.updateMany({

@@ -118,7 +118,7 @@ export async function getAdminDashboardStats() {
   const now = new Date();
   const monthString = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
   const startOfM = new Date(now.getFullYear(), now.getMonth(), 1);
-  const endOfM   = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
+  const endOfM = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
 
   const [
     studentCount,
@@ -162,8 +162,8 @@ export async function getAdminDashboardStats() {
     select: { fixedSalary: true, tdsApplicable: true },
   });
   const staffGross = activeEmployees.reduce((acc, e) => acc + e.fixedSalary, 0);
-  const staffTds   = activeEmployees.reduce((acc, e) => acc + (e.tdsApplicable ? Math.round(e.fixedSalary * 0.1) : 0), 0);
-  const staffNet   = staffGross - staffTds;
+  const staffTds = activeEmployees.reduce((acc, e) => acc + (e.tdsApplicable ? Math.round(e.fixedSalary * 0.1) : 0), 0);
+  const staffNet = staffGross - staffTds;
 
   const coachGross = monthlyCoachPayout._sum.payoutAmount ?? 0;
 

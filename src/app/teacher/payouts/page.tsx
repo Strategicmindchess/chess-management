@@ -218,8 +218,8 @@ export default async function TeacherPayoutsPage({
                       <div className={`flex flex-col items-end gap-0.5 mt-0.5 ${log.penaltyWaived ? "text-slate-400 line-through" : "text-rose-400"}`}>
                         <div className="text-xs font-medium">−₹{log.penaltyAmount} penalty</div>
                         {log.penaltyNote && (
-                          <div 
-                            className="text-[11px] opacity-80 max-w-[200px] sm:max-w-[300px] text-right truncate" 
+                          <div
+                            className="text-[11px] opacity-80 max-w-[200px] sm:max-w-[300px] text-right truncate"
                             title={log.penaltyNote}
                           >
                             {log.penaltyNote}

@@ -19,7 +19,7 @@
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
     "db:push": "prisma db push",
-    "db:push:force": "prisma db push --accept-data-loss",
+   
     "db:seed": "prisma db seed",
     "db:seed:demo": "tsx seed-demo.ts",
     "db:studio": "prisma studio",

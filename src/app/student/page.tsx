@@ -5,10 +5,10 @@ import Image from "next/image";
 import { getStudentAssignments } from "@/actions/assignment-actions";
 import { Progress } from "@/components/ui/progress";
 import Link from "next/link";
-import { format, getHours, getMinutes } from "date-fns";
+import { format } from "date-fns";
 import { prisma } from "@/lib/prisma";
 import { getStudentDashboardData } from "@/actions/dashboard-actions";
-import { getISTNow } from "@/lib/timezone";
+import { formatClassTiming, getClassDateLabel, isClassLive, isClassPast } from "@/lib/timezone";
 import { getStudentChocolateStatus } from "@/actions/chocolate-actions";
 import { StudentChocolateCard } from "@/components/student/chocolate-card";
 
@@ -31,22 +31,15 @@ export default async function StudentDashboardPage() {
     getStudentChocolateStatus()
   ]);
 
-  const progress = assignmentsData.success && assignmentsData.progress 
-    ? assignmentsData.progress 
+  const progress = assignmentsData.success && assignmentsData.progress
+    ? assignmentsData.progress
     : { total: 0, score: 0, percentage: 0 };
 
   const { todayInstances, upcomingInstances } = dashboardData;
-  const istNow = getISTNow();
-  const currentHour = getHours(istNow);
-  const currentMin = getMinutes(istNow);
 
   const filteredTodayInstances = todayInstances.filter(instance => {
     if (instance.status === 'CANCELLED') return true;
-    const [endH, endM] = instance.endTime.split(":").map(Number);
-    if (currentHour > endH || (currentHour === endH && currentMin >= endM)) {
-      return false; 
-    }
-    return true;
+    return !isClassPast(instance.date, instance.endTime);
   });
 
   const displayInstances = [...filteredTodayInstances, ...upcomingInstances].slice(0, 4);
@@ -123,7 +116,7 @@ export default async function StudentDashboardPage() {
       <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-8">
         <div>
           <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-white drop-shadow-md">
-            Welcome back,<br/>
+            Welcome back,<br />
             <span className="bg-gradient-to-r from-brand-300 via-brand-500 to-orange-400 bg-clip-text text-transparent drop-shadow-[0_0_15px_rgba(234,179,8,0.5)]">{firstName}!</span>
           </h1>
           <p className="text-slate-400 mt-2 text-sm md:text-base">
@@ -150,7 +143,7 @@ export default async function StudentDashboardPage() {
               className={`group relative overflow-hidden rounded-xl bg-[#11141c]/60 backdrop-blur-2xl border ${card.borderColor} p-5 transition-all duration-300 hover:-translate-y-1 ${card.hoverBorder} ${card.shadowColor} ${card.hoverShadow} flex flex-col justify-between`}
             >
               <div className={`absolute top-0 right-0 w-32 h-32 rounded-full blur-[30px] -mr-8 -mt-8 pointer-events-none opacity-100 ${card.glowColor}`} />
-              
+
               <div className="flex flex-col h-full">
                 <div className="flex items-center gap-3 mb-2 relative z-10">
                   <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${card.glowColor} ${card.borderColor} border`}>
@@ -160,7 +153,7 @@ export default async function StudentDashboardPage() {
                     <ArrowRight className="w-4 h-4" />
                   </div>
                 </div>
-                
+
                 <p className={`text-[10px] font-bold tracking-wider uppercase mb-1 relative z-10 ${card.iconColor}`}>
                   {card.tag}
                 </p>
@@ -191,11 +184,11 @@ export default async function StudentDashboardPage() {
             Completed: <span className="text-white">{progress.score} / {progress.total}</span>
           </div>
         </div>
-        
+
         <div className="relative z-10 py-4 flex items-center">
           <div className="flex-1 h-3 rounded-full bg-slate-900 border border-slate-700 overflow-hidden relative shadow-[inset_0_2px_4px_rgba(0,0,0,0.6)]">
-            <div 
-              className="h-full bg-gradient-to-r from-brand-600 via-brand-400 to-yellow-300 rounded-full shadow-[0_0_15px_rgba(234,179,8,0.8)] animate-[pulse_2s_ease-in-out_infinite]" 
+            <div
+              className="h-full bg-gradient-to-r from-brand-600 via-brand-400 to-yellow-300 rounded-full shadow-[0_0_15px_rgba(234,179,8,0.8)] animate-[pulse_2s_ease-in-out_infinite]"
               style={{ width: `${progress.total > 0 ? progress.percentage : 0}%` }}
             />
           </div>
@@ -221,7 +214,7 @@ export default async function StudentDashboardPage() {
 
       {/* Bottom Row */}
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 mt-6">
-        
+
         {/* Left Column: Classes (3 cols) */}
         <div className="lg:col-span-3 rounded-2xl bg-[#11141c]/50 backdrop-blur-2xl border border-slate-700/50 p-6 flex flex-col relative overflow-hidden shadow-[0_8px_30px_rgba(0,0,0,0.4)]">
           <div className="absolute top-0 left-0 w-64 h-64 bg-blue-500/10 rounded-full blur-[50px] pointer-events-none -z-10" />
@@ -234,7 +227,7 @@ export default async function StudentDashboardPage() {
               View All <ArrowRight className="w-4 h-4" />
             </Link>
           </div>
-          
+
           <div className="space-y-3 flex-1 relative z-10">
             {displayInstances.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-10 text-slate-400">
@@ -243,14 +236,8 @@ export default async function StudentDashboardPage() {
               </div>
             ) : (
               displayInstances.map((instance, idx) => {
-                const isToday = instance.date.toDateString() === istNow.toDateString();
-                // Check if class is live (within 10 mins before start to end time)
-                const [startH, startM] = instance.startTime.split(":").map(Number);
-                const [endH, endM] = instance.endTime.split(":").map(Number);
-                const classStartMins = startH * 60 + startM;
-                const classEndMins = endH * 60 + endM;
-                const currentMins = currentHour * 60 + currentMin;
-                const isLive = isToday && currentMins >= (classStartMins - 10) && currentMins <= classEndMins;
+                const isLive = instance.status !== 'CANCELLED' && isClassLive(instance.date, instance.startTime, instance.endTime);
+                const dateLabel = getClassDateLabel(instance.date);
 
                 return (
                   <div key={instance.id} className="bg-slate-900/50 border border-slate-800 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -266,12 +253,12 @@ export default async function StudentDashboardPage() {
                         </div>
                       ) : (
                         <div className="px-3 py-1 rounded-full bg-slate-800 text-slate-300 text-xs font-bold border border-slate-700">
-                          {isToday ? "Today" : format(new Date(instance.date), "MMM d")}
+                          {dateLabel}
                         </div>
                       )}
-                      
+
                       <div>
-                        <p className="text-xs text-slate-400 mb-0.5">{instance.startTime} – {instance.endTime}</p>
+                        <p className="text-xs text-slate-400 mb-0.5">{formatClassTiming(instance.startTime, instance.endTime)}</p>
                         <p className="text-white font-medium">{instance.batch.name} ({instance.batch.code})</p>
                         <p className="text-xs text-slate-500 mt-1 flex items-center gap-1">
                           Coach {instance.batch.coach?.user?.name || "Unassigned"}
@@ -280,15 +267,14 @@ export default async function StudentDashboardPage() {
                     </div>
                     <div className="flex items-center gap-2 w-full sm:w-auto">
                       {instance.status !== 'CANCELLED' && (
-                        <a 
-                          href={instance.batch.meetLink || "#"} 
+                        <a
+                          href={instance.batch.meetLink || "#"}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className={`flex-1 sm:flex-none font-bold px-4 py-2 rounded-md flex items-center justify-center transition-all ${
-                            isLive 
-                              ? "bg-brand-400 hover:bg-brand-500 text-brand-950 shadow-[0_0_15px_rgba(251,191,36,0.3)]" 
+                          className={`flex-1 sm:flex-none font-bold px-4 py-2 rounded-md flex items-center justify-center transition-all ${isLive
+                              ? "bg-brand-400 hover:bg-brand-500 text-brand-950 shadow-[0_0_15px_rgba(251,191,36,0.3)]"
                               : "bg-slate-800 border border-slate-700 text-slate-300 hover:bg-slate-700 hover:text-white"
-                          }`}
+                            }`}
                         >
                           Join Class <ArrowRight className="w-4 h-4 ml-2" />
                         </a>
@@ -311,7 +297,7 @@ export default async function StudentDashboardPage() {
             <Zap className="w-5 h-5 text-blue-400" />
             <h2 className="text-lg font-bold text-white">Quick Actions</h2>
           </div>
-          
+
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 flex-1 relative z-10">
             <Link href="/student/assignments" className="group rounded-xl bg-blue-900/50 border border-blue-400 p-4 shadow-[0_0_30px_rgba(59,130,246,0.4)] hover:shadow-[0_0_40px_rgba(59,130,246,0.6)] hover:bg-blue-800/60 transition-all duration-300 flex flex-col justify-between relative overflow-hidden">
               <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/30 rounded-full blur-[30px] opacity-100 pointer-events-none" />

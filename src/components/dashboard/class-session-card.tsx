@@ -7,7 +7,7 @@ import { JoinClassButton } from '@/components/student/join-class-button';
 import { StartBatchButton } from '@/components/coach/start-batch-button';
 import { ViewStudentsDialog } from '@/components/coach/view-students-dialog';
 import { TeacherRescheduleDialog } from '@/components/coach/teacher-reschedule-dialog';
-import { format } from 'date-fns';
+import { formatISTDate, formatClassTiming } from '@/lib/timezone';
 
 type StudentDetail = {
   id: string;
@@ -31,7 +31,7 @@ type ClassSessionCardProps = {
 
 export function ClassSessionCard({ role, session, isUpcoming = false }: ClassSessionCardProps) {
   const { batch, date, startTime, endTime, lectureName } = session;
-  
+
   // Format students for ViewStudentsDialog (Teacher only)
   const students: StudentDetail[] = batch.students?.map((s: any) => ({
     id: s.student.id,
@@ -70,7 +70,7 @@ export function ClassSessionCard({ role, session, isUpcoming = false }: ClassSes
           </Badge>
         </div>
       </div>
-      
+
       <CardContent className="p-0 flex flex-col flex-grow">
         <div className="p-5 flex-grow space-y-4">
           <div className="flex items-center gap-3">
@@ -79,7 +79,7 @@ export function ClassSessionCard({ role, session, isUpcoming = false }: ClassSes
             </div>
             <div>
               <p className="font-medium text-slate-900 dark:text-slate-100">
-                {format(new Date(date), 'EEEE, MMM do, yyyy')}
+                {formatISTDate(date, 'EEEE, MMM do, yyyy')}
               </p>
               {lectureName && (
                 <p className="text-sm font-semibold text-brand-700 dark:text-brand-400 mt-0.5">
@@ -88,7 +88,7 @@ export function ClassSessionCard({ role, session, isUpcoming = false }: ClassSes
               )}
               <p className="text-sm text-slate-500 dark:text-slate-400 flex items-center mt-1">
                 <Clock className="w-4 h-4 mr-1.5" />
-                {startTime} - {endTime}
+                {formatClassTiming(startTime, endTime)}
               </p>
             </div>
           </div>
@@ -108,10 +108,10 @@ export function ClassSessionCard({ role, session, isUpcoming = false }: ClassSes
               ) : (
                 <StartBatchButton meetLink={batch.meetLink} batchName={batch.name} classInstanceId={session.id} />
               )}
-              
+
               <div className="w-full flex gap-2">
                 <div className="flex-1">
-                  <ViewStudentsDialog 
+                  <ViewStudentsDialog
                     batchName={batch.name}
                     students={students}
                   />
@@ -120,8 +120,8 @@ export function ClassSessionCard({ role, session, isUpcoming = false }: ClassSes
                   <TeacherRescheduleDialog
                     classInstanceId={session.id}
                     batchName={batch.name}
-                    originalDate={format(new Date(date), 'MMM do, yyyy')}
-                    originalTime={`${startTime} - ${endTime}`}
+                    originalDate={formatISTDate(date, 'MMM do, yyyy')}
+                    originalTime={formatClassTiming(startTime, endTime)}
                   />
                 </div>
               </div>
@@ -137,9 +137,9 @@ export function ClassSessionCard({ role, session, isUpcoming = false }: ClassSes
                   Join Class <ExternalLink className="h-3.5 w-3.5" />
                 </span>
               ) : (
-                <JoinClassButton 
-                  meetLink={batch.meetLink} 
-                  nextInstance={session} 
+                <JoinClassButton
+                  meetLink={batch.meetLink}
+                  nextInstance={session}
                 />
               )}
             </div>

@@ -111,7 +111,7 @@ function CreateBatchForm({
       setPrevLevel(selectedLevel);
     }
   }, [selectedLevel, prevLevel, setValue]);
-console.log("selectedCoachId:", selectedCoachId);
+  console.log("selectedCoachId:", selectedCoachId);
   function handleCreateMeetLink() {
     window.open('https://meet.google.com/new', '_blank');
   }
@@ -141,12 +141,12 @@ console.log("selectedCoachId:", selectedCoachId);
           </Select>
           <FieldError message={errors.level?.message} />
         </div>
-        
+
         {selectedLevel && SYLLABUS_MAP[selectedLevel] && (
           <div className="flex items-center">
             <div className="w-full bg-blue-50 border border-blue-100 rounded-md p-3 text-sm text-blue-800">
-               <strong>{SYLLABUS_MAP[selectedLevel].label}</strong> selected. <br/>
-               {Math.max(1, SYLLABUS_MAP[selectedLevel].lectures - startingLecture + 1)} Lectures Remaining (Starting from #{startingLecture}) |  {SYLLABUS_MAP[selectedLevel].durationMonths} Months |  Auto-code: {SYLLABUS_MAP[selectedLevel].codePrefix}-XX
+              <strong>{SYLLABUS_MAP[selectedLevel].label}</strong> selected. <br />
+              {Math.max(1, SYLLABUS_MAP[selectedLevel].lectures - startingLecture + 1)} Lectures Remaining (Starting from #{startingLecture}) |  {SYLLABUS_MAP[selectedLevel].durationMonths} Months |  Auto-code: {SYLLABUS_MAP[selectedLevel].codePrefix}-XX
             </div>
           </div>
         )}
@@ -156,12 +156,12 @@ console.log("selectedCoachId:", selectedCoachId);
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div>
             <Label htmlFor="startingLecture">Starting Lecture Number <span className="text-slate-400 font-normal ml-1">(Optional)</span></Label>
-            <Input 
-              id="startingLecture" 
-              type="number" 
-              min={1} 
-              max={SYLLABUS_MAP[selectedLevel].lectures} 
-              {...register('startingLecture', { valueAsNumber: true })} 
+            <Input
+              id="startingLecture"
+              type="number"
+              min={1}
+              max={SYLLABUS_MAP[selectedLevel].lectures}
+              {...register('startingLecture', { valueAsNumber: true })}
             />
             <FieldError message={errors.startingLecture?.message} />
           </div>
@@ -199,11 +199,11 @@ console.log("selectedCoachId:", selectedCoachId);
         {!selectedLevel && (
           <div>
             <Label htmlFor="instancesCount">Number of classes to schedule (max 300) <span className="text-red-500 ml-0.5">*</span></Label>
-            <Input 
-              id="instancesCount" 
-              type="number" 
-              {...register('instancesCount', { valueAsNumber: true })} 
-              placeholder="e.g. 10" 
+            <Input
+              id="instancesCount"
+              type="number"
+              {...register('instancesCount', { valueAsNumber: true })}
+              placeholder="e.g. 10"
             />
             <FieldError message={errors.instancesCount?.message} />
           </div>

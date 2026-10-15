@@ -13,8 +13,8 @@ export const dynamic = "force-dynamic";
 export default async function TeacherDashboardPage() {
   const user = await requireRole([Role.TEACHER]);
   const reportData = await getAssignmentReport() as any;
-  const summary = reportData.success && reportData.summary 
-    ? reportData.summary 
+  const summary = reportData.success && reportData.summary
+    ? reportData.summary
     : { totalStudents: 0, completedAll: 0, missing: 0 };
 
   const firstName = user.name.split(" ")[0];
@@ -103,7 +103,7 @@ export default async function TeacherDashboardPage() {
       <div className="group relative rounded-2xl bg-[#2a1c0f]/90 backdrop-blur-xl border border-amber-500/20 p-6 shadow-[0_8px_30px_rgba(0,0,0,0.4)] overflow-hidden hover:border-amber-500/50 transition-colors">
         <div className="absolute top-0 right-0 w-32 h-32 bg-amber-500/10 rounded-full blur-[30px] -mr-10 -mt-10 pointer-events-none" />
         <div className="absolute inset-0 bg-gradient-to-r from-amber-500/5 via-transparent to-rose-500/5 pointer-events-none" />
-        
+
         <div className="flex items-center justify-between mb-8 relative z-10">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-lg bg-amber-500/20 flex items-center justify-center border border-amber-500/30 shadow-[0_0_15px_rgba(245,158,11,0.2)]">
@@ -127,7 +127,7 @@ export default async function TeacherDashboardPage() {
         <div className="relative flex flex-col sm:flex-row justify-between items-start sm:items-center mt-12 mb-6 px-4 z-10 gap-8 sm:gap-0">
           {/* Connecting Line (Desktop) */}
           <div className="hidden sm:block absolute top-6 left-[5%] right-[5%] h-0.5 bg-slate-800 -z-10" />
-          
+
           {/* Step 1 */}
           <div className="flex flex-col items-center text-center relative w-full sm:w-auto">
             <div className="w-12 h-12 rounded-full bg-amber-500/20 border-2 border-amber-500 flex items-center justify-center shadow-[0_0_20px_rgba(245,158,11,0.4)] z-10 relative bg-[#11141c]">
@@ -135,7 +135,7 @@ export default async function TeacherDashboardPage() {
             </div>
             <div className="mt-4">
               <p className="text-amber-400 font-bold">2 min</p>
-              <p className="text-sm text-slate-300 font-medium">Welcome &<br/>Assignment</p>
+              <p className="text-sm text-slate-300 font-medium">Welcome &<br />Assignment</p>
             </div>
           </div>
 
@@ -157,7 +157,7 @@ export default async function TeacherDashboardPage() {
             </div>
             <div className="mt-4">
               <p className="text-emerald-400 font-bold">10–15 min</p>
-              <p className="text-sm text-slate-300 font-medium">Concept<br/>Explanation</p>
+              <p className="text-sm text-slate-300 font-medium">Concept<br />Explanation</p>
             </div>
           </div>
 
@@ -198,7 +198,7 @@ export default async function TeacherDashboardPage() {
 
       {/* Bottom Row */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        
+
         {/* Today's Batches (dynamic data with loading state) */}
         <Suspense fallback={<TodayBatchesSkeleton />}>
           <TodayBatches coachUserId={user.id} />
@@ -211,7 +211,7 @@ export default async function TeacherDashboardPage() {
             <PlayCircle className="w-5 h-5 text-brand-400" />
             <h2 className="text-lg font-bold text-white">Quick Actions</h2>
           </div>
-          
+
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 flex-1">
             <Link href="/teacher/attendance" className="group rounded-xl bg-emerald-950/30 border border-emerald-900/50 p-5 hover:bg-emerald-900/30 hover:border-emerald-500/50 transition-all flex flex-col justify-between">
               <div>

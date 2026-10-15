@@ -256,13 +256,13 @@ export async function updateBatch(input: z.infer<typeof updateBatchSchema>): Pro
   }
 
   const parsed = updateBatchSchema.safeParse(input);
-  if (!parsed.success) { 
+  if (!parsed.success) {
     return { success: false, error: parsed.error.issues[0]?.message ?? 'Invalid input.' };
   }
 
   const { batchId, name, code, meetLink, startDate, coachId, studentIds, payoutRate, type, addInstancesCount, level, startSession } = parsed.data;
 
-  const existingBatch = await prisma.batch.findUnique({ 
+  const existingBatch = await prisma.batch.findUnique({
     where: { id: batchId },
     include: { students: { select: { studentProfileId: true } } }
   });
@@ -295,39 +295,39 @@ export async function updateBatch(input: z.infer<typeof updateBatchSchema>): Pro
   if (meetLink !== undefined && meetLink !== existingBatch.meetLink) batchUpdateData.meetLink = meetLink;
   if (type !== undefined && type !== existingBatch.type) batchUpdateData.type = type as any;
   if (parsedStartDate !== null && existingBatch.startDate?.getTime() !== parsedStartDate.getTime()) batchUpdateData.startDate = parsedStartDate;
-  
-const targetCoachId = coachId !== undefined ? coachId : existingBatch.coachProfileId;
 
-const coachChanged = targetCoachId !== existingBatch.coachProfileId;
+  const targetCoachId = coachId !== undefined ? coachId : existingBatch.coachProfileId;
 
-if (coachChanged) {
-  batchUpdateData.coachProfileId = targetCoachId;
-}
+  const coachChanged = targetCoachId !== existingBatch.coachProfileId;
 
-// Payout rules:
-// 1. Increase → always allowed
-// 2. Decrease → only when coach changes
-if (payoutRate !== undefined && payoutRate !== existingBatch.payoutRate) {
-  if (payoutRate < existingBatch.payoutRate && !coachChanged) {
-    return {
-      success: false,
-      error: 'Payout rate cannot be decreased unless the coach is changed.',
-    };
+  if (coachChanged) {
+    batchUpdateData.coachProfileId = targetCoachId;
   }
 
-  batchUpdateData.payoutRate = payoutRate;
-}
-  
+  // Payout rules:
+  // 1. Increase → always allowed
+  // 2. Decrease → only when coach changes
+  if (payoutRate !== undefined && payoutRate !== existingBatch.payoutRate) {
+    if (payoutRate < existingBatch.payoutRate && !coachChanged) {
+      return {
+        success: false,
+        error: 'Payout rate cannot be decreased unless the coach is changed.',
+      };
+    }
+
+    batchUpdateData.payoutRate = payoutRate;
+  }
+
   const newStartSession = startSession || 1;
   if (level !== undefined && level !== existingBatch.level) batchUpdateData.level = level as any;
   if (startSession !== undefined && newStartSession !== existingBatch.startSession) batchUpdateData.startSession = newStartSession;
 
   const existingStudentIds = new Set(existingBatch.students.map(s => s.studentProfileId));
   const newStudentIds = new Set(studentIds);
-  
+
   const studentsToAdd: string[] = [];
   const studentsToRemove: string[] = [];
-  
+
   for (const id of studentIds) {
     if (!existingStudentIds.has(id)) studentsToAdd.push(id);
   }
@@ -336,8 +336,8 @@ if (payoutRate !== undefined && payoutRate !== existingBatch.payoutRate) {
   }
 
   // Trigger if user explicitly changed level or startSession — they want a resync
-  const syllabusChanged = 
-    (level !== undefined && level !== existingBatch.level) || 
+  const syllabusChanged =
+    (level !== undefined && level !== existingBatch.level) ||
     (startSession !== undefined && startSession !== existingBatch.startSession);
 
   await prisma.$transaction(async (tx) => {

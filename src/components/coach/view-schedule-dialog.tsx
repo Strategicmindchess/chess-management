@@ -24,9 +24,9 @@ export function ViewScheduleDialog({ batchName, classInstances }: ViewScheduleDi
 
   return (
     <>
-      <Button 
-        variant="secondary" 
-        size="sm" 
+      <Button
+        variant="secondary"
+        size="sm"
         className="w-full text-xs h-9"
         onClick={() => setOpen(true)}
       >

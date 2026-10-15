@@ -62,7 +62,7 @@ export default async function TeacherAttendancePage() {
           {pendingInstances.map((instance) => {
             const batch = instance.batch;
             const dateStr = new Date(instance.date).toLocaleDateString("en-US", { weekday: 'long', month: 'short', day: 'numeric' });
-            
+
             return (
               <Card key={instance.id} className="flex flex-col h-full">
                 <CardContent className="p-5 flex flex-col h-full">
@@ -70,7 +70,7 @@ export default async function TeacherAttendancePage() {
                     <h2 className="text-lg font-bold text-white">{batch.name}</h2>
                     <Badge variant="neutral">{batch.code}</Badge>
                   </div>
-                  
+
                   <div className="text-sm text-slate-400 mb-6 flex-grow">
                     <p className="font-medium text-slate-200">Class Session</p>
                     {/* @ts-ignore */}
@@ -85,8 +85,8 @@ export default async function TeacherAttendancePage() {
                   </div>
 
                   <div className="mt-auto">
-                    <MarkClassHeldDialog 
-                      batchId={instance.id} 
+                    <MarkClassHeldDialog
+                      batchId={instance.id}
                       batchName={batch.name}
                       students={batch.students.map(s => ({ id: s.student.id, name: s.student.user.name }))}
                       scheduleDate={instance.date.toISOString()}

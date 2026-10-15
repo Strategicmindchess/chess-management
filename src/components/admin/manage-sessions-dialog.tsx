@@ -38,9 +38,9 @@ export function ManageSessionsDialog({ batchId, batchName }: ManageSessionsDialo
   const [rescheduleDialogOpen, setRescheduleDialogOpen] = useState(false);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [bulkUpdateDialogOpen, setBulkUpdateDialogOpen] = useState(false);
-  
+
   const [selectedSession, setSelectedSession] = useState<Session | null>(null);
-  
+
   // Edit & Create States
   const [editDate, setEditDate] = useState<string>("");
   const [editStartTime, setEditStartTime] = useState<string>("");
@@ -233,9 +233,9 @@ export function ManageSessionsDialog({ batchId, batchName }: ManageSessionsDialo
 
   return (
     <>
-      <Button 
-        variant="secondary" 
-        size="sm" 
+      <Button
+        variant="secondary"
+        size="sm"
         onClick={() => setOpen(true)}
         className="inline-flex items-center gap-1.5"
       >
@@ -327,7 +327,7 @@ export function ManageSessionsDialog({ batchId, batchName }: ManageSessionsDialo
           {/* Sessions List */}
           <div className="space-y-3">
             <h4 className="text-sm font-semibold text-slate-900 dark:text-slate-100">Class Sessions History & Schedule</h4>
-            
+
             <div className="border border-slate-200 dark:border-slate-700 rounded-lg overflow-hidden bg-white dark:bg-[#252d3d] max-h-[300px] overflow-y-auto divide-y divide-slate-100 dark:divide-slate-700/50">
               {isLoading ? (
                 <div className="p-8 text-center text-slate-500 dark:text-slate-400 flex flex-col items-center justify-center gap-2 bg-slate-50/50 dark:bg-transparent">
@@ -467,7 +467,7 @@ export function ManageSessionsDialog({ batchId, batchName }: ManageSessionsDialo
                 <Ban className="h-3.5 w-3.5 mr-1.5" />
                 Cancel Session
               </Button>
-              
+
               <div className="flex items-center gap-2">
                 <Button type="button" variant="ghost" size="sm" className="h-9 text-xs" onClick={() => setUpdateDialogOpen(false)} disabled={isPending}>
                   Close

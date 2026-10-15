@@ -49,7 +49,7 @@ export async function generateInstancesInternal(
       where: { batchId },
       orderBy: { date: 'desc' },
     });
-    
+
     if (lastInstance) {
       // If a previous class exists, start generating from the NEXT day after that class.
       startDate = fromZonedTime(startOfDay(toZonedTime(new Date(lastInstance.date), TIME_ZONE)), TIME_ZONE);
@@ -92,7 +92,7 @@ export async function generateInstancesInternal(
   // ── 3. Determine the Current Session Number ────────────────────────────────
   // We need to know what "Lecture Number" this new batch of classes should start from.
   let currentSession: number;
-  
+
   if (overrideStartSession !== undefined) {
     // A. Explicit Override: Used by background workers when a syllabus changes or we force a start point.
     currentSession = overrideStartSession;
@@ -103,7 +103,7 @@ export async function generateInstancesInternal(
       orderBy: { sessionNumber: 'desc' },
       select: { sessionNumber: true }
     });
-    
+
     if (lastSessionInst?.sessionNumber) {
       // If we found a previous session, simply increment it by 1 to pick up exactly where we left off.
       currentSession = lastSessionInst.sessionNumber + 1;
@@ -114,7 +114,7 @@ export async function generateInstancesInternal(
       currentSession = batchStartSession + existingCount;
     }
   }
- 
+
   const syllabusLevel = batch.level as SyllabusLevelType | null;
   const topicsMap = syllabusLevel && SYLLABUS_MAP[syllabusLevel]
     ? SYLLABUS_MAP[syllabusLevel].topics
@@ -141,7 +141,7 @@ export async function generateInstancesInternal(
   while (newInstances.length < count && daysInspected < 730) {
     const zonedCurrent = toZonedTime(currentDate, TIME_ZONE);
     const dayOfWeek = zonedCurrent.getDay();
-    
+
     // Find all schedules configured for this specific day of the week (e.g., all Monday schedules)
     const matchingSchedules = batch.schedules
       .filter((s) => WEEKDAY_MAP[s.day as Weekday] === dayOfWeek)

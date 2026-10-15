@@ -19,7 +19,7 @@ export default async function TeacherBatchesPage() {
 
   const { getISTNow } = await import("@/lib/timezone");
   const { getHours, getMinutes } = await import("date-fns");
-  
+
   const istNow = getISTNow();
   const currentHour = getHours(istNow);
   const currentMin = getMinutes(istNow);
@@ -27,7 +27,7 @@ export default async function TeacherBatchesPage() {
   const filteredTodayInstances = todayInstances.filter(instance => {
     // Keep cancelled classes visible for the entire day
     if (instance.status === 'CANCELLED') return true;
-    
+
     const [endH, endM] = instance.endTime.split(":").map(Number);
     if (currentHour > endH || (currentHour === endH && currentMin >= endM)) {
       return false; // already ended
@@ -54,11 +54,11 @@ export default async function TeacherBatchesPage() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredTodayInstances.map((instance) => (
-              <ClassSessionCard 
-                key={instance.id} 
-                role="teacher" 
-                session={instance} 
-                isUpcoming={false} 
+              <ClassSessionCard
+                key={instance.id}
+                role="teacher"
+                session={instance}
+                isUpcoming={false}
               />
             ))}
           </div>
@@ -82,11 +82,11 @@ export default async function TeacherBatchesPage() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {upcomingInstances.map((instance) => (
-              <ClassSessionCard 
-                key={instance.id} 
-                role="teacher" 
-                session={instance} 
-                isUpcoming={true} 
+              <ClassSessionCard
+                key={instance.id}
+                role="teacher"
+                session={instance}
+                isUpcoming={true}
               />
             ))}
           </div>
