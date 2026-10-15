@@ -4,6 +4,7 @@ import { CalendarDays, ArrowRight, Users, Video } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { JoinClassButton } from "./join-class-button";
+import { NotifyStudentsButton } from "@/components/coach/notify-students-button";
 
 export async function TodayBatches({ coachUserId }: { coachUserId: string }) {
   const { today, tomorrow } = getISTDayBounds();
@@ -77,13 +78,25 @@ export async function TodayBatches({ coachUserId }: { coachUserId: string }) {
                     </p>
                   </div>
                 </div>
-                {cls.batch.meetLink ? (
-                  <JoinClassButton meetLink={cls.batch.meetLink} classInstanceId={cls.id} />
-                ) : (
-                  <Button variant="secondary" className="bg-slate-800 border-slate-700 text-slate-400 w-full sm:w-auto cursor-not-allowed">
-                    No Link
-                  </Button>
-                )}
+                <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
+                  <NotifyStudentsButton
+                    classInstanceId={cls.id}
+                    batchId={cls.batchId}
+                    batchName={cls.batch.name}
+                    initialReminderSentAt={cls.reminderSentAt}
+                    startTime={cls.startTime}
+                    endTime={cls.endTime}
+                    isToday={true}
+                    isCancelled={cls.status === 'CANCELLED'}
+                  />
+                  {cls.batch.meetLink ? (
+                    <JoinClassButton meetLink={cls.batch.meetLink} classInstanceId={cls.id} />
+                  ) : (
+                    <Button variant="secondary" className="bg-slate-800 border-slate-700 text-slate-400 w-full sm:w-auto cursor-not-allowed">
+                      No Link
+                    </Button>
+                  )}
+                </div>
               </div>
             );
           })

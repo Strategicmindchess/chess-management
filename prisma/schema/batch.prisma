@@ -41,6 +41,9 @@ model ClassInstance {
   completedAt        DateTime?
   /// Set when teacher clicks Start Batch to record actual join time
   startedAt          DateTime?
+  /// Set when coach triggers WhatsApp reminder — guarantees 1-time send
+  reminderSentAt     DateTime?
+  reminderSentBy     String?
   batch              Batch                    @relation(fields: [batchId], references: [id], onDelete: Cascade)
   classLog           ClassLog?                @relation(fields: [classLogId], references: [id])
   joinEvents         ClassJoinEvent[]

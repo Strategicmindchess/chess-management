@@ -8,6 +8,9 @@ import { Label } from '@/components/ui/label';
 import { Card } from '@/components/ui/card';
 import { Dialog } from '@/components/ui/dialog';
 import { format } from 'date-fns';
+import { Bell, Calendar, Sparkles } from 'lucide-react';
+import { AdminTodayClassesDialog } from '@/components/admin/admin-today-classes-dialog';
+import { getAdminTodayClassesAction } from '@/actions/class-reminder-actions';
 
 export default function CommunicationsPage() {
   const [loading, setLoading] = useState(false);
@@ -29,12 +32,17 @@ export default function CommunicationsPage() {
   const [sendProgress, setSendProgress] = useState(0);
   const [isSending, setIsSending] = useState(false);
   const [recipientStatuses, setRecipientStatuses] = useState<Record<string, 'pending' | 'success' | 'error'>>({});
+  const [recipientErrors, setRecipientErrors] = useState<Record<string, string>>({});
   
   const [newManualName, setNewManualName] = useState('');
   const [newManualPhone, setNewManualPhone] = useState('');
 
+  const [todayClassesDialogOpen, setTodayClassesDialogOpen] = useState(false);
+  const [todayClassesCount, setTodayClassesCount] = useState<number | null>(null);
+
   useEffect(() => {
     getActiveBatches().then(res => setBatches(res)).catch(console.error);
+    getAdminTodayClassesAction().then(res => setTodayClassesCount(res.length)).catch(console.error);
   }, []);
 
   useEffect(() => {
@@ -63,6 +71,7 @@ export default function CommunicationsPage() {
       const initialStatuses: any = {};
       res.recipients.forEach((r: any) => initialStatuses[r.phone] = 'pending');
       setRecipientStatuses(initialStatuses);
+      setRecipientErrors({});
       setSendProgress(0);
       setPreviewModalOpen(true);
     } catch (err: any) {
@@ -79,10 +88,11 @@ export default function CommunicationsPage() {
     
     for (const recipient of preparedData.recipients) {
       try {
-        await sendSingleNotification(recipient.phone, preparedData.templateName, preparedData.templateParams);
+        await sendSingleNotification(recipient.phone, preparedData.templateName, preparedData.templateParams, recipient.name);
         setRecipientStatuses(prev => ({ ...prev, [recipient.phone]: 'success' }));
-      } catch (e) {
+      } catch (e: any) {
         setRecipientStatuses(prev => ({ ...prev, [recipient.phone]: 'error' }));
+        setRecipientErrors(prev => ({ ...prev, [recipient.phone]: e.message || 'Failed' }));
       }
       sentCount++;
       setSendProgress(Math.round((sentCount / preparedData.recipients.length) * 100));
@@ -112,8 +122,49 @@ export default function CommunicationsPage() {
 
   return (
     <div className="p-6 space-y-6">
-      <h1 className="text-2xl font-bold">Manual Communications</h1>
-      <p className="text-gray-400">Trigger WhatsApp notifications manually for testing or ad-hoc events.</p>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold">Manual Communications</h1>
+          <p className="text-gray-400">Trigger WhatsApp notifications manually for testing or ad-hoc events.</p>
+        </div>
+        <Button
+          type="button"
+          onClick={() => setTodayClassesDialogOpen(true)}
+          className="bg-indigo-600 hover:bg-indigo-700 text-white font-medium shadow-md shadow-indigo-600/20 px-4 py-2 flex items-center gap-2 self-start sm:self-auto cursor-pointer"
+        >
+          <Bell className="w-4 h-4 text-indigo-200" />
+          <span>View Today's Classes {todayClassesCount !== null ? `(${todayClassesCount})` : ''} ↗</span>
+        </Button>
+      </div>
+
+      {/* Today's Classes & Quick Notify Banner */}
+      <Card className="p-5 bg-gradient-to-r from-slate-900 via-indigo-950/40 to-slate-900 border border-indigo-500/30 rounded-xl shadow-lg relative overflow-hidden">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <span className="flex h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+              <span className="text-xs font-semibold uppercase tracking-wider text-emerald-400">Live Class Hub</span>
+              <span className="text-xs text-slate-400 bg-slate-800/80 px-2 py-0.5 rounded-full border border-slate-700/50">
+                Today
+              </span>
+            </div>
+            <h2 className="text-lg font-bold text-white flex items-center gap-2">
+              Today's Scheduled Classes & Live Notifications
+            </h2>
+            <p className="text-xs text-slate-300 max-w-2xl">
+              Inspect all class instances scheduled for today across every batch and coach. View coach reminder status, see enrolled students, and dispatch 1-time WhatsApp reminders with Google Meet links.
+            </p>
+          </div>
+          <Button
+            type="button"
+            onClick={() => setTodayClassesDialogOpen(true)}
+            className="bg-indigo-600 hover:bg-indigo-700 text-white font-medium shadow-md shadow-indigo-600/20 px-4 py-2.5 flex items-center gap-2 self-start md:self-center shrink-0 cursor-pointer"
+          >
+            <Bell className="w-4 h-4 text-indigo-200" />
+            <span>Open Today's Classes Popup ↗</span>
+          </Button>
+        </div>
+      </Card>
 
       {message && (
         <div className="p-4 bg-blue-900/50 text-blue-200 border border-blue-800 rounded">
@@ -124,7 +175,18 @@ export default function CommunicationsPage() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Class Reminder */}
         <Card className="p-4 space-y-4">
-          <h2 className="text-xl font-semibold">Class Reminder / Cancellation</h2>
+          <div className="flex items-center justify-between">
+            <h2 className="text-xl font-semibold">Class Reminder / Cancellation</h2>
+            <Button
+              type="button"
+              variant="secondary"
+              size="sm"
+              onClick={() => setTodayClassesDialogOpen(true)}
+              className="text-xs border-indigo-500/40 text-indigo-300 hover:bg-indigo-950/40"
+            >
+              Today's Classes ↗
+            </Button>
+          </div>
           <form onSubmit={(e) => {
             e.preventDefault();
             const fd = new FormData(e.currentTarget);
@@ -172,7 +234,17 @@ export default function CommunicationsPage() {
                 <option value="CLASS_CANCELLED">Send Cancellation</option>
               </select>
             </div>
-            <Button type="submit" disabled={loading || !selectedClass}>Send Class Notification</Button>
+            <div className="flex flex-col sm:flex-row gap-2 pt-1">
+              <Button type="submit" disabled={loading || !selectedClass} className="flex-1">Send Class Notification</Button>
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={() => setTodayClassesDialogOpen(true)}
+                className="border-indigo-500/40 text-indigo-300 hover:bg-indigo-950/40 text-xs"
+              >
+                Today's Sessions ({todayClassesCount ?? '...'})
+              </Button>
+            </div>
           </form>
         </Card>
 
@@ -351,9 +423,18 @@ export default function CommunicationsPage() {
                     <span className="font-medium text-slate-200">{r.name}</span> <span className="text-gray-400 text-xs">({r.role})</span>
                     <div className="text-xs text-gray-500">{r.phone}</div>
                   </div>
-                  <div>
+                  <div className="text-right">
                     {recipientStatuses[r.phone] === 'success' && <span className="text-green-500 font-medium">✓ Sent</span>}
-                    {recipientStatuses[r.phone] === 'error' && <span className="text-red-500 font-medium">❌ Failed</span>}
+                    {recipientStatuses[r.phone] === 'error' && (
+                      <div>
+                        <span className="text-red-500 font-medium">❌ Failed</span>
+                        {recipientErrors[r.phone] && (
+                          <div className="text-[10px] text-red-400 max-w-[200px] truncate" title={recipientErrors[r.phone]}>
+                            {recipientErrors[r.phone]}
+                          </div>
+                        )}
+                      </div>
+                    )}
                     {recipientStatuses[r.phone] === 'pending' && <span className="text-gray-500">Pending</span>}
                   </div>
                 </div>
@@ -374,6 +455,15 @@ export default function CommunicationsPage() {
           </Button>
         </div>
       </Dialog>
+
+      {/* Today's Live Class Instances Popup Modal for Admin */}
+      <AdminTodayClassesDialog
+        open={todayClassesDialogOpen}
+        onClose={() => {
+          setTodayClassesDialogOpen(false);
+          getAdminTodayClassesAction().then(res => setTodayClassesCount(res.length)).catch(() => {});
+        }}
+      />
     </div>
   );
 }

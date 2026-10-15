@@ -7,6 +7,7 @@ import { JoinClassButton } from '@/components/student/join-class-button';
 import { StartBatchButton } from '@/components/coach/start-batch-button';
 import { ViewStudentsDialog } from '@/components/coach/view-students-dialog';
 import { TeacherRescheduleDialog } from '@/components/coach/teacher-reschedule-dialog';
+import { NotifyStudentsButton } from '@/components/coach/notify-students-button';
 import { format } from 'date-fns';
 
 type StudentDetail = {
@@ -101,12 +102,31 @@ export function ClassSessionCard({ role, session, isUpcoming = false }: ClassSes
                 <div title="This class was cancelled" className="w-full text-center py-2 px-3 text-sm font-semibold text-red-500 bg-red-50 rounded-md cursor-not-allowed border border-red-100">
                   Class Cancelled
                 </div>
-              ) : isUpcoming ? (
-                <div title="Class not yet open" className="w-full text-center py-2 px-3 text-sm font-semibold text-slate-400 dark:text-slate-500 bg-slate-100 dark:bg-slate-800/50 rounded-md cursor-not-allowed">
-                  Start Batch (Opens later)
-                </div>
               ) : (
-                <StartBatchButton meetLink={batch.meetLink} batchName={batch.name} classInstanceId={session.id} />
+                <div className="flex items-center gap-2">
+                  <div className="flex-1">
+                    <NotifyStudentsButton
+                      classInstanceId={session.id}
+                      batchId={batch.id}
+                      batchName={batch.name}
+                      initialReminderSentAt={session.reminderSentAt}
+                      startTime={startTime}
+                      endTime={endTime}
+                      isToday={!isUpcoming}
+                      isCancelled={session.status === 'CANCELLED'}
+                      className="w-full justify-center"
+                    />
+                  </div>
+                  <div className="flex-1">
+                    {isUpcoming ? (
+                      <div title="Class not yet open" className="w-full h-8 flex items-center justify-center text-xs font-semibold text-slate-400 dark:text-slate-500 bg-slate-100 dark:bg-slate-800/50 rounded-lg cursor-not-allowed">
+                        Opens later
+                      </div>
+                    ) : (
+                      <StartBatchButton meetLink={batch.meetLink} batchName={batch.name} classInstanceId={session.id} />
+                    )}
+                  </div>
+                </div>
               )}
               
               <div className="w-full flex gap-2">

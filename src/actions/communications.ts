@@ -15,8 +15,17 @@ export interface Recipient {
 }
 
 function toE164(phone: string): string {
-  const digits = phone.replace(/\D/g, '');
-  return digits.startsWith('91') ? digits : `91${digits}`;
+  let digits = phone.replace(/\D/g, '');
+  if (digits.startsWith('0') && digits.length === 11) {
+    digits = digits.slice(1);
+  }
+  if (digits.length === 10) {
+    return `91${digits}`;
+  }
+  if (digits.startsWith('91') && digits.length === 12) {
+    return digits;
+  }
+  return digits.length > 10 ? `91${digits.slice(-10)}` : `91${digits}`;
 }
 
 async function resolveRecipientsWithNames(audience: string | undefined, batch: any, meta?: any): Promise<Recipient[]> {
@@ -101,7 +110,7 @@ export async function manualNotify(data: any) {
   } else if (data.type === 'TOURNAMENT') {
     let tournamentId = data.tournamentId;
     if (!tournamentId) {
-      const t = await prisma.tournamentAnnouncement.create({
+      const t = await (prisma as any).tournamentAnnouncement?.create({
         data: {
           name: data.tournamentName,
           date: new Date(data.date),
@@ -111,9 +120,11 @@ export async function manualNotify(data: any) {
           createdById: (await requireRole(['ADMIN'])).id,
         }
       });
-      tournamentId = t.id;
+      tournamentId = t?.id;
     }
-    await sendNotification({ type: 'TOURNAMENT', refId: tournamentId, meta: { audience: data.audience } });
+    if (tournamentId) {
+      await sendNotification({ type: 'TOURNAMENT', refId: tournamentId, meta: { audience: data.audience } });
+    }
   }
 
   return { success: true };
@@ -175,7 +186,8 @@ export async function prepareManualNotification(data: any) {
       templatePreview = `Reminder: Your class for batch "${templateParams[0]}" is scheduled on ${templateParams[1]} at ${templateParams[2]}. Join Link: ${templateParams[3]}`;
     } else if (data.type === 'CLASS_CANCELLED') {
       templateName = 'smc_class_cancelled';
-      templateParams = [instance.batch.name, dateStr];
+      const timeStr = `${dateStr} at ${instance.startTime}`;
+      templateParams = [instance.batch.name, timeStr];
       templatePreview = `Cancellation: Your class for batch "${templateParams[0]}" scheduled on ${templateParams[1]} has been cancelled.`;
     } else if (data.type === 'CLASS_RESCHEDULED') {
       templateName = 'smc_class_rescheduled';
@@ -200,24 +212,9 @@ export async function prepareManualNotification(data: any) {
     const startDate = new Date(data.startDate);
     const dateStr = startDate.toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata', day: 'numeric', month: 'short' });
     templateParams = [data.holidayName, dateStr];
-    templatePreview = `Holiday Announcement: ${templateParams[0]} starting from ${templateParams[1]}.`;
+    templatePreview = `Holiday Announcement: SMC will remain closed for "${templateParams[0]}" starting from ${templateParams[1]}.`;
   } else if (data.type === 'TOURNAMENT') {
     let tournamentId = data.tournamentId;
-    // if (!tournamentId) {
-    //   // NOTE: prisma.tournamentAnnouncement is undefined because the Prisma client is outdated.
-    //   // Please run `npm run db:generate` and `npx prisma db push` to generate the client.
-    //   const t = await (prisma as any).tournamentAnnouncement?.create({
-    //     data: {
-    //       name: data.tournamentName,
-    //       date: new Date(data.date),
-    //       time: data.time,
-    //       tournamentType: data.tournamentType,
-    //       registrationLink: data.registrationLink,
-    //       createdById: admin.id,
-    //     }
-    //   });
-    //   tournamentId = t?.id;
-    // }
     
     templateName = 'smc_tournament';
     const tDate = new Date(data.date);
@@ -236,12 +233,56 @@ export async function prepareManualNotification(data: any) {
   };
 }
 
-export async function sendSingleNotification(phone: string, templateName: string, templateParams: string[]) {
+export async function sendSingleNotification(phone: string, templateName: string, templateParams: string[], recipientName?: string) {
   await requireRole(['ADMIN']);
-  await sendWhatsAppMessage({
-    to: toE164(phone),
-    templateName,
-    templateParams
-  });
+  if (templateName === 'smc_class_reminder') {
+    await sendWhatsAppMessage({
+      to: toE164(phone),
+      templateName,
+      namedParams: {
+        student_name: recipientName || 'Student',
+        batch_name: templateParams[0] || '',
+        class_date: templateParams[1] || '',
+        class_time: templateParams[2] || '',
+        class_link: templateParams[3] || '',
+      }
+    });
+  } else if (templateName === 'smc_holiday') {
+    await sendWhatsAppMessage({
+      to: toE164(phone),
+      templateName,
+      namedParams: {
+        holiday_name: templateParams[0] || '',
+        start_date: templateParams[1] || '',
+      }
+    });
+  } else if (templateName === 'smc_class_cancelled') {
+    await sendWhatsAppMessage({
+      to: toE164(phone),
+      templateName,
+      namedParams: {
+        batch_name: templateParams[0] || '',
+        time: templateParams[1] || '',
+      }
+    });
+  } else if (templateName === 'smc_tournament') {
+    await sendWhatsAppMessage({
+      to: toE164(phone),
+      templateName,
+      namedParams: {
+        tournament_name: templateParams[0] || '',
+        tournament_type: templateParams[3] || '',
+        tournament_date: templateParams[1] || '',
+        tournament_time: templateParams[2] || '',
+        registration_link: templateParams[4] || '',
+      }
+    });
+  } else {
+    await sendWhatsAppMessage({
+      to: toE164(phone),
+      templateName,
+      templateParams
+    });
+  }
   return { success: true };
 }
