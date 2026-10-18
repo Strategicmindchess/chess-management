@@ -1,12 +1,19 @@
-import { CalendarDays, LayoutDashboard, Users, IndianRupee, ClipboardCheck, Trophy, Activity, Wallet, Briefcase, MessageSquare, Gift, PlaySquare } from "lucide-react";
+import { CalendarDays, LayoutDashboard, Users, IndianRupee, ClipboardCheck, Trophy, Activity, Wallet, Briefcase, MessageSquare, Gift, PlaySquare, Send } from "lucide-react";
+
 
 
 import { Role } from "@/lib/enums";
+
+export interface NavSubItem {
+  href: string;
+  label: string;
+}
 
 export interface NavItem {
   href: string;
   label: string;
   icon: React.ComponentType<{ className?: string }>;
+  subItems?: NavSubItem[];
 }
 
 export const NAV_ITEMS: Record<Role, NavItem[]> = {
@@ -25,6 +32,15 @@ export const NAV_ITEMS: Record<Role, NavItem[]> = {
     { href: "/admin/feedback", label: "Student Feedback", icon: MessageSquare },
     { href: "/admin/chocolate", label: "Chocolate Rewards", icon: Gift },
     { href: "/admin/courses", label: "Courses", icon: PlaySquare },
+    { 
+      href: "/admin/communications", 
+      label: "Communications", 
+      icon: Send,
+      subItems: [
+        { href: "/admin/communications", label: "Broadcast" },
+        { href: "/admin/communications/history", label: "History" },
+      ]
+    },
 
     //{ href: "/admin/materials", label: "Class Materials", icon: ClipboardCheck },
   ],

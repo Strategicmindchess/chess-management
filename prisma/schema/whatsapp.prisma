@@ -1,0 +1,61 @@
+/// Admin-created holiday periods — drive holiday notifications
+model HolidayPeriod {
+  id          String   @id @default(cuid())
+  name        String                      /// "Gandhi Jayanti", "Diwali Break"
+  startDate   DateTime
+  endDate     DateTime
+  description String?
+  notified    Boolean  @default(false)    /// prevent re-sends on cron
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  createdById String                      /// Admin user ID
+  createdBy   User     @relation("HolidayCreator", fields: [createdById], references: [id])
+
+  @@map("holiday_periods")
+}
+
+/// Admin-created tournaments — track reminder sends per (tournament, recipient)
+model TournamentAnnouncement {
+  id               String   @id @default(cuid())
+  name             String
+  date             DateTime
+  time             String
+  tournamentType   String
+  registrationLink String?
+  customMessage    String?
+  createdAt        DateTime @default(now())
+  createdById      String
+  createdBy        User     @relation("TournamentCreator", fields: [createdById], references: [id])
+
+  @@map("tournament_announcements")
+}
+
+/// Tracks every outgoing WhatsApp notification and webhook delivery receipts
+model WhatsAppMessageLog {
+  id               String    @id @default(cuid())
+  wamid            String?   @unique /// Meta Cloud API message ID
+  recipientPhone   String    /// E.164 e.g. "919305302337"
+  recipientName    String?   /// e.g. "Shivam Gupta"
+  role             String?   /// "Student" | "Coach" | "Parent" | "Manual"
+  templateName     String    /// e.g. "smc_class_reminder", "smc_holiday"
+  templateCategory String?   @default("UTILITY") /// "UTILITY" | "MARKETING"
+  templateParams   Json?     /// { student_name, batch_name, ... }
+  previewText      String?   /// Rendered message text
+  status           String    @default("SENT") /// "SENT" | "DELIVERED" | "READ" | "FAILED"
+  errorMessage     String?   /// Meta error details if failed
+  classInstanceId  String?
+  batchId          String?
+  sentById         String?
+  retryCount       Int       @default(0)
+  createdAt        DateTime  @default(now())
+  deliveredAt      DateTime?
+  readAt           DateTime?
+  failedAt         DateTime?
+  updatedAt        DateTime  @updatedAt
+
+  @@index([recipientPhone])
+  @@index([status])
+  @@index([templateName])
+  @@index([createdAt])
+  @@map("whatsapp_message_logs")
+}

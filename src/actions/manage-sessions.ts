@@ -214,6 +214,18 @@ export async function rescheduleClassInstance(input: z.infer<typeof rescheduleCl
     });
 
     revalidatePath('/admin/batches');
+
+    try {
+      const { sendNotification } = await import('@/lib/whatsapp-notifications');
+      await sendNotification({ 
+        type: 'CLASS_RESCHEDULED', 
+        refId: instanceId,
+        meta: { newDate, newTime: newStartTime }
+      });
+    } catch (e) {
+      console.warn('Failed to enqueue WhatsApp notification:', e);
+    }
+
     return { success: true };
   } catch (err: any) {
     console.error('Error rescheduling class instance:', err);
@@ -241,6 +253,14 @@ export async function cancelClassInstance(instanceId: string) {
     });
 
     revalidatePath('/admin/batches');
+
+    try {
+      const { sendNotification } = await import('@/lib/whatsapp-notifications');
+      await sendNotification({ type: 'CLASS_CANCELLED', refId: instanceId });
+    } catch (e) {
+      console.warn('Failed to enqueue WhatsApp notification:', e);
+    }
+
     return { success: true };
   } catch (err: any) {
     console.error('Error cancelling class instance:', err);

@@ -57,10 +57,15 @@ Promise.all([
   import('./src/workers/penalty.worker').then(() => {
     logger.info('penalty worker started');
   }),
+
+  // WhatsApp worker — processes Meta Cloud API messages
+  import('./src/workers/whatsapp.worker').then(() => {
+    logger.info('whatsapp worker started');
+  }),
 ])
   .then(async () => {
     logger.info({
-      queues: ['batch-queue', 'chess-fetch-queue', 'leaderboard-calc-queue', 'log-cleanup-queue', 'attendance-summary-queue', 'assignment-summary-queue', 'penalty-queue'],
+      queues: ['batch-queue', 'chess-fetch-queue', 'leaderboard-calc-queue', 'log-cleanup-queue', 'attendance-summary-queue', 'assignment-summary-queue', 'penalty-queue', 'whatsapp-queue'],
     }, 'All BullMQ workers running — listening for jobs');
 
     // Register daily repeatable job for penalty processing (runs every 24 hours at 02:00 UTC)
@@ -102,7 +107,7 @@ Promise.all([
 async function shutdown(signal: string) {
   logger.info(`Received ${signal} — shutting down gracefully...`);
   try {
-    const [{ chessFetchWorker }, { leaderboardCalcWorker }, { logCleanupWorker }, { attendanceSummaryWorker }, { assignmentSummaryWorker }, { batchWorker }, { penaltyWorker }] = await Promise.all([
+    const [{ chessFetchWorker }, { leaderboardCalcWorker }, { logCleanupWorker }, { attendanceSummaryWorker }, { assignmentSummaryWorker }, { batchWorker }, { penaltyWorker }, { whatsappWorker }] = await Promise.all([
       import('./src/workers/chess-fetch.worker'),
       import('./src/workers/leaderboard-calc.worker'),
       import('./src/workers/log-cleanup.worker'),
@@ -110,6 +115,7 @@ async function shutdown(signal: string) {
       import('./src/workers/assignment-summary.worker'),
       import('./src/workers/batch.worker'),
       import('./src/workers/penalty.worker'),
+      import('./src/workers/whatsapp.worker'),
     ]);
     await Promise.all([
       chessFetchWorker.close(),
@@ -119,6 +125,7 @@ async function shutdown(signal: string) {
       assignmentSummaryWorker.close(),
       batchWorker?.close?.(),
       penaltyWorker?.close?.(),
+      whatsappWorker.close(),
     ]);
     logger.info('All workers closed cleanly.');
     process.exit(0);

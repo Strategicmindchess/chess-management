@@ -98,3 +98,31 @@ export const penaltyQueue = new Queue<{}>(QUEUE_NAMES.PENALTY, {
   },
 });
 
+// ─── WhatsApp Notification Queue ─────────────────────────────────────────────
+export type WaNotificationType =
+  | 'CLASS_REMINDER'
+  | 'CLASS_CANCELLED'
+  | 'CLASS_RESCHEDULED'
+  | 'HOLIDAY'
+  | 'TOURNAMENT';
+
+export interface WhatsAppJobData {
+  type: WaNotificationType;
+  /** Primary reference ID — classInstanceId / holidayId / tournamentId */
+  refId: string;
+  /** Optional extra payload (e.g. new date for reschedule) */
+  meta?: Record<string, string>;
+  /** Optional list of selected student IDs to notify */
+  targetStudentIds?: string[];
+}
+
+export const whatsappQueue = new Queue<WhatsAppJobData>(QUEUE_NAMES.WHATSAPP, {
+  connection,
+  defaultJobOptions: {
+    attempts: 1,
+    backoff: { type: 'exponential', delay: 30_000 },
+    removeOnComplete: { count: 100 },
+    removeOnFail:     { count: 50  },
+  },
+});
+

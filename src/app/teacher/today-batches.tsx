@@ -4,6 +4,7 @@ import { CalendarDays, ArrowRight, Users, Video } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { JoinClassButton } from "./join-class-button";
+import { NotifyStudentsButton } from "@/components/coach/notify-students-button";
 
 export async function TodayBatches({ coachUserId }: { coachUserId: string }) {
   const { today, tomorrow } = getISTDayBounds();
@@ -25,7 +26,15 @@ export async function TodayBatches({ coachUserId }: { coachUserId: string }) {
     include: {
       batch: {
         include: {
-          students: true,
+          students: {
+            include: {
+              student: {
+                include: {
+                  user: true,
+                },
+              },
+            },
+          },
         },
       },
     },
@@ -60,10 +69,10 @@ export async function TodayBatches({ coachUserId }: { coachUserId: string }) {
               <div key={cls.id} className={`bg-slate-900/50 border ${isLive ? 'border-emerald-500/30 shadow-[0_0_15px_rgba(16,185,129,0.15)]' : 'border-slate-800'} rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-all`}>
                 <div className="flex items-center gap-3">
                   <div className={`px-3 py-1 rounded-full text-xs font-bold border ${isLive
-                      ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
-                      : isPast
-                        ? 'bg-slate-800 text-slate-400 border-slate-700'
-                        : 'bg-blue-500/20 text-blue-400 border-blue-500/30'
+                    ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
+                    : isPast
+                      ? 'bg-slate-800 text-slate-400 border-slate-700'
+                      : 'bg-blue-500/20 text-blue-400 border-blue-500/30'
                     }`}>
                     {isLive && <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block mr-1.5 animate-pulse" />}
                     {isLive ? 'Live' : isPast ? 'Past' : 'Upcoming'}
@@ -76,13 +85,32 @@ export async function TodayBatches({ coachUserId }: { coachUserId: string }) {
                     </p>
                   </div>
                 </div>
-                {cls.batch.meetLink ? (
-                  <JoinClassButton meetLink={cls.batch.meetLink} classInstanceId={cls.id} />
-                ) : (
-                  <Button variant="secondary" className="bg-slate-800 border-slate-700 text-slate-400 w-full sm:w-auto cursor-not-allowed">
-                    No Link
-                  </Button>
-                )}
+                <div className="flex items-center gap-2.5 shrink-0">
+                  <NotifyStudentsButton
+                    classInstanceId={cls.id}
+                    batchId={cls.batchId}
+                    batchName={cls.batch.name}
+                    batchCode={cls.batch.code}
+                    meetLink={cls.batch.meetLink}
+                    students={cls.batch.students.map((bs) => ({
+                      id: bs.student.id,
+                      name: bs.student.user?.name || bs.student.parentName || 'Student',
+                      phone: bs.student.user?.phone || bs.student.parentPhone || '',
+                    }))}
+                    initialReminderSentAt={(cls as any).reminderSentAt ?? null}
+                    startTime={cls.startTime}
+                    endTime={cls.endTime}
+                    isToday={true}
+                    isCancelled={cls.status === 'CANCELLED'}
+                  />
+                  {cls.batch.meetLink ? (
+                    <JoinClassButton meetLink={cls.batch.meetLink} classInstanceId={cls.id} />
+                  ) : (
+                    <Button variant="secondary" className="bg-slate-800 border-slate-700 text-slate-400 w-full sm:w-auto cursor-not-allowed">
+                      No Link
+                    </Button>
+                  )}
+                </div>
               </div>
             );
           })

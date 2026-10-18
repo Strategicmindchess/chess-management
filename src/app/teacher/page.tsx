@@ -7,6 +7,9 @@ import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Suspense } from "react";
 import { TodayBatches, TodayBatchesSkeleton } from "./today-batches";
+import { DashboardNotifyDialog } from "@/components/coach/dashboard-notify-dialog";
+import { prisma } from "@/lib/prisma";
+import { getISTDayBounds } from "@/lib/timezone";
 
 export const dynamic = "force-dynamic";
 
@@ -18,6 +21,42 @@ export default async function TeacherDashboardPage() {
     : { totalStudents: 0, completedAll: 0, missing: 0 };
 
   const firstName = user.name.split(" ")[0];
+
+  // Fetch coach profile & today's classes for Quick Notify
+  const { today, tomorrow } = getISTDayBounds();
+  const coachProfile = await prisma.coachProfile.findUnique({
+    where: { userId: user.id },
+  });
+
+  const todaysClasses = coachProfile
+    ? await prisma.classInstance.findMany({
+        where: {
+          batch: { coachProfileId: coachProfile.id, isActive: true },
+          date: { gte: today, lt: tomorrow },
+          status: "SCHEDULED",
+        },
+        include: {
+          batch: {
+            include: {
+              students: true,
+            },
+          },
+        },
+        orderBy: { startTime: "asc" },
+      })
+    : [];
+
+  const formattedClasses = todaysClasses.map((c) => ({
+    id: c.id,
+    batchId: c.batchId,
+    batchName: c.batch.name,
+    batchCode: c.batch.code,
+    startTime: c.startTime,
+    endTime: c.endTime,
+    studentCount: c.batch.students.length,
+    reminderSentAt: c.reminderSentAt,
+    status: c.status,
+  }));
 
   return (
     <div className="space-y-8 relative pb-10">
@@ -211,8 +250,8 @@ export default async function TeacherDashboardPage() {
             <PlayCircle className="w-5 h-5 text-brand-400" />
             <h2 className="text-lg font-bold text-white">Quick Actions</h2>
           </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 flex-1">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 flex-1">
+            <DashboardNotifyDialog classes={formattedClasses} />
             <Link href="/teacher/attendance" className="group rounded-xl bg-emerald-950/30 border border-emerald-900/50 p-5 hover:bg-emerald-900/30 hover:border-emerald-500/50 transition-all flex flex-col justify-between">
               <div>
                 <div className="w-10 h-10 rounded-lg bg-emerald-500/20 flex items-center justify-center mb-4">
