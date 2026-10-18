@@ -326,6 +326,11 @@ export function AdminTodayClassesDialog({ open, onClose }: AdminTodayClassesDial
                             classInstanceId={item.id}
                             batchId={item.batchId}
                             batchName={item.batchName}
+                            students={item.students?.map((s) => ({
+                              id: s.id,
+                              name: s.name,
+                              phone: s.phone || '',
+                            })) || []}
                             startTime={item.startTime}
                             endTime={item.endTime}
                             isToday={true}

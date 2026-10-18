@@ -25,8 +25,10 @@ async function main() {
   try {
     console.log('Running non-destructive migration...');
     await client.query(`ALTER TABLE "class_instances" ADD COLUMN IF NOT EXISTS "reminderSentAt" TIMESTAMP(3);`);
+    await client.query(`ALTER TABLE "class_instances" ADD COLUMN IF NOT EXISTS "reminder_sent_at" TIMESTAMP(3);`);
     await client.query(`ALTER TABLE "class_instances" ADD COLUMN IF NOT EXISTS "reminderSentBy" TEXT;`);
-    console.log('✅ Columns "reminderSentAt" and "reminderSentBy" successfully added to "class_instances"!');
+    await client.query(`ALTER TABLE "class_instances" ADD COLUMN IF NOT EXISTS "reminder_sent_by" TEXT;`);
+    console.log('✅ Columns "reminderSentAt" / "reminder_sent_at" and "reminderSentBy" / "reminder_sent_by" successfully verified/added in "class_instances"!');
   } finally {
     client.release();
     await pool.end();

@@ -3,10 +3,16 @@ import { CalendarDays, LayoutDashboard, Users, IndianRupee, ClipboardCheck, Trop
 
 import { Role } from "@/lib/enums";
 
+export interface NavSubItem {
+  href: string;
+  label: string;
+}
+
 export interface NavItem {
   href: string;
   label: string;
   icon: React.ComponentType<{ className?: string }>;
+  subItems?: NavSubItem[];
 }
 
 export const NAV_ITEMS: Record<Role, NavItem[]> = {
@@ -24,7 +30,15 @@ export const NAV_ITEMS: Record<Role, NavItem[]> = {
     { href: "/admin/fees", label: "Student Ledger", icon: Wallet },
     { href: "/admin/feedback", label: "Student Feedback", icon: MessageSquare },
     { href: "/admin/chocolate", label: "Chocolate Rewards", icon: Gift },
-    { href: "/admin/communications", label: "Communications", icon: Send },
+    { 
+      href: "/admin/communications", 
+      label: "Communications", 
+      icon: Send,
+      subItems: [
+        { href: "/admin/communications", label: "Broadcast" },
+        { href: "/admin/communications/history", label: "History" },
+      ]
+    },
 
     //{ href: "/admin/materials", label: "Class Materials", icon: ClipboardCheck },
   ],

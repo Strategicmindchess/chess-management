@@ -28,7 +28,8 @@ export interface NotifyClassResponse {
  */
 export async function notifyClassStudentsAction(
   classInstanceId: string,
-  batchId?: string
+  batchId?: string,
+  selectedStudentIds?: string[]
 ): Promise<NotifyClassResponse> {
   try {
     const user = await getCurrentUser();
@@ -110,8 +111,9 @@ export async function notifyClassStudentsAction(
     }
 
     // 7. Already Sent Check (Idempotency)
-    if (instance.reminderSentAt) {
-      const sentTimeStr = new Date(instance.reminderSentAt).toLocaleTimeString('en-IN', {
+    const instReminderSentAt = (instance as any).reminderSentAt;
+    if (instReminderSentAt) {
+      const sentTimeStr = new Date(instReminderSentAt).toLocaleTimeString('en-IN', {
         timeZone: 'Asia/Kolkata',
         hour: '2-digit',
         minute: '2-digit',
@@ -119,40 +121,48 @@ export async function notifyClassStudentsAction(
       return {
         success: false,
         error: `Reminder has already been sent for this class at ${sentTimeStr}.`,
-        reminderSentAt: instance.reminderSentAt.toISOString(),
+        reminderSentAt: new Date(instReminderSentAt).toISOString(),
       };
     }
 
-    // 8. ATOMIC LOCK (Prisma updateMany with reminderSentAt: null condition)
     const now = new Date();
-    const updateResult = await prisma.classInstance.updateMany({
-      where: {
-        id: classInstanceId,
-        reminderSentAt: null, // Guarantees strictly 1-time send even under rapid double-click
-      },
-      data: {
-        reminderSentAt: now,
-        reminderSentBy: user.id,
-      },
-    });
 
-    if (updateResult.count === 0) {
-      return { success: false, error: 'Reminder was already triggered by another concurrent request.' };
+    // 8. Direct Dispatch via Meta Cloud API (100% Direct synchronous delivery, no worker/queue)
+    const { sendClassReminderService } = await import('@/services/whatsapp/class-reminder.service');
+    let reminderResult;
+    try {
+      reminderResult = await sendClassReminderService(classInstanceId, { targetStudentIds: selectedStudentIds });
+      logger.info({ classInstanceId, reminderResult }, '[ClassReminder] Directly dispatched reminders via sendClassReminderService');
+    } catch (err: any) {
+      logger.error({ error: err?.message, classInstanceId }, '[ClassReminder] Error in direct sendClassReminderService');
+      return {
+        success: false,
+        error: err?.message || 'Failed to dispatch WhatsApp notifications.',
+      };
     }
 
-    // 9. Enqueue into BullMQ Queue
-    await whatsappQueue.add(
-      'CLASS_REMINDER',
-      {
-        type: 'CLASS_REMINDER',
-        refId: classInstanceId,
-      },
-      {
-        jobId: `class-reminder-${classInstanceId}`, // Dedupes at BullMQ level as well
-      }
-    );
+    if (reminderResult.failed > 0 && reminderResult.sent === 0) {
+      const errMsg = reminderResult.errors[0]?.error || 'Failed to deliver message via WhatsApp gateway.';
+      logger.error({ classInstanceId, errors: reminderResult.errors }, '[ClassReminder] All recipients failed to deliver');
+      return {
+        success: false,
+        error: errMsg,
+      };
+    }
 
-    logger.info({ classInstanceId, batchId: instance.batchId, coachId: user.id }, '[ClassReminder] Enqueued class reminder job');
+    // 9. Update DB only on success (locks button with tick mark)
+    try {
+      await prisma.classInstance.update({
+        where: { id: classInstanceId },
+        data: {
+          reminderSentAt: now,
+          reminderSentBy: user.id,
+        },
+      });
+      logger.info({ classInstanceId }, '[ClassReminder] Successfully recorded reminderSentAt in database');
+    } catch (dbErr: any) {
+      logger.warn({ error: dbErr?.message }, '[ClassReminder] Could not update reminderSentAt in database');
+    }
 
     revalidatePath('/teacher');
     revalidatePath('/teacher/batches');
@@ -160,7 +170,7 @@ export async function notifyClassStudentsAction(
 
     return {
       success: true,
-      message: 'Reminder notification queued! Students are being notified via WhatsApp.',
+      message: `Sent WhatsApp reminder to ${reminderResult.sent} recipient(s) directly!`,
       reminderSentAt: now.toISOString(),
     };
   } catch (error: any) {
@@ -183,7 +193,7 @@ export interface AdminTodayClassItem {
   endTime: string;
   status: string;
   studentCount: number;
-  students: Array<{ name: string; phone?: string }>;
+  students: Array<{ id: string; name: string; phone?: string }>;
   reminderSentAt?: string | null;
   reminderSentByName?: string | null;
   meetLink?: string;
@@ -218,13 +228,13 @@ export async function getAdminTodayClassesAction(): Promise<AdminTodayClassItem[
   });
 
   // Fetch names of users who sent reminders if any
-  const sentByUserIds = instances.map((i) => i.reminderSentBy).filter(Boolean) as string[];
+  const sentByUserIds = instances.map((i) => (i as any).reminderSentBy).filter(Boolean) as string[];
   const sentByUsers =
     sentByUserIds.length > 0
       ? await prisma.user.findMany({
-          where: { id: { in: sentByUserIds } },
-          select: { id: true, name: true, role: true },
-        })
+        where: { id: { in: sentByUserIds } },
+        select: { id: true, name: true, role: true },
+      })
       : [];
   const userMap = new Map(sentByUsers.map((u) => [u.id, u.name]));
 
@@ -241,13 +251,59 @@ export async function getAdminTodayClassesAction(): Promise<AdminTodayClassItem[
       status: inst.status,
       studentCount: inst.batch.students.length,
       students: inst.batch.students.map((bs) => ({
-        name: bs.student?.user?.name || 'Student',
+        id: bs.student.id,
+        name: bs.student?.user?.name || bs.student?.parentName || 'Student',
         phone: bs.student?.user?.phone || bs.student?.parentPhone || undefined,
       })),
-      reminderSentAt: inst.reminderSentAt ? inst.reminderSentAt.toISOString() : null,
-      reminderSentByName: inst.reminderSentBy ? (userMap.get(inst.reminderSentBy) || 'Admin') : null,
+      reminderSentAt: (inst as any).reminderSentAt ? (inst as any).reminderSentAt.toISOString() : null,
+      reminderSentByName: (inst as any).reminderSentBy ? (userMap.get((inst as any).reminderSentBy) || 'Admin') : null,
       meetLink: inst.batch.meetLink,
       batchType: inst.batch.type,
     };
   });
 }
+
+/**
+ * Server Action: Fetches enrolled students for a class instance or batch for the Notify modal
+ */
+export async function getClassStudentsForModalAction(
+  classInstanceId?: string,
+  batchId?: string
+): Promise<Array<{ id: string; name: string; phone?: string }>> {
+  try {
+    let resolvedBatchId = batchId;
+
+    if (!resolvedBatchId && classInstanceId) {
+      const instance = await prisma.classInstance.findUnique({
+        where: { id: classInstanceId },
+        select: { batchId: true },
+      });
+      resolvedBatchId = instance?.batchId;
+    }
+
+    if (!resolvedBatchId) return [];
+
+    const batchStudents = await prisma.batchStudent.findMany({
+      where: { batchId: resolvedBatchId },
+      include: {
+        student: {
+          include: {
+            user: {
+              select: { name: true, phone: true },
+            },
+          },
+        },
+      },
+    });
+
+    return batchStudents.map((bs) => ({
+      id: bs.student.id,
+      name: bs.student.user?.name || bs.student.parentName || 'Student',
+      phone: bs.student.user?.phone || bs.student.parentPhone || undefined,
+    }));
+  } catch (err: any) {
+    console.error('[getClassStudentsForModalAction Error]:', err.message);
+    return [];
+  }
+}
+

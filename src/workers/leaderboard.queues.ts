@@ -112,12 +112,14 @@ export interface WhatsAppJobData {
   refId: string;
   /** Optional extra payload (e.g. new date for reschedule) */
   meta?: Record<string, string>;
+  /** Optional list of selected student IDs to notify */
+  targetStudentIds?: string[];
 }
 
 export const whatsappQueue = new Queue<WhatsAppJobData>(QUEUE_NAMES.WHATSAPP, {
   connection,
   defaultJobOptions: {
-    attempts: 3,
+    attempts: 1,
     backoff: { type: 'exponential', delay: 30_000 },
     removeOnComplete: { count: 100 },
     removeOnFail:     { count: 50  },

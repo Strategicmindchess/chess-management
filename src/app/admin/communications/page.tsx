@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { prepareManualNotification, sendSingleNotification, getActiveBatches, getBatchClasses } from '@/actions/communications';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -11,8 +12,41 @@ import { format } from 'date-fns';
 import { Bell, Calendar, Sparkles } from 'lucide-react';
 import { AdminTodayClassesDialog } from '@/components/admin/admin-today-classes-dialog';
 import { getAdminTodayClassesAction } from '@/actions/class-reminder-actions';
+import { CommunicationsTabs, CommTab } from '@/components/admin/communications/communications-tabs';
+import { ActiveTemplatesView } from '@/components/admin/communications/active-templates-view';
+import { WhatsAppHistoryView } from '@/components/admin/communications/whatsapp-history-view';
 
-export default function CommunicationsPage() {
+export default function CommunicationsPage({ defaultTab = 'input' }: { defaultTab?: CommTab }) {
+  return (
+    <Suspense fallback={<div className="p-6 text-slate-500">Loading communications hub...</div>}>
+      <CommunicationsContent defaultTab={defaultTab} />
+    </Suspense>
+  );
+}
+
+function CommunicationsContent({ defaultTab = 'input' }: { defaultTab?: CommTab }) {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const tabParam = searchParams.get('tab') as CommTab | null;
+  const [activeTab, setActiveTab] = useState<CommTab>(tabParam || defaultTab);
+
+  useEffect(() => {
+    if (tabParam && (tabParam === 'input' || tabParam === 'template' || tabParam === 'history')) {
+      setActiveTab(tabParam);
+    }
+  }, [tabParam]);
+
+  const handleTabChange = (newTab: CommTab) => {
+    setActiveTab(newTab);
+    const params = new URLSearchParams(window.location.search);
+    if (newTab === 'input') {
+      params.delete('tab');
+    } else {
+      params.set('tab', newTab);
+    }
+    const query = params.toString() ? `?${params.toString()}` : '';
+    router.replace(`/admin/communications${query}`);
+  };
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
   
@@ -122,22 +156,37 @@ export default function CommunicationsPage() {
 
   return (
     <div className="p-6 space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800 pb-5">
         <div>
-          <h1 className="text-2xl font-bold">Manual Communications</h1>
-          <p className="text-gray-400">Trigger WhatsApp notifications manually for testing or ad-hoc events.</p>
+          <h1 className="text-2xl font-bold text-white flex items-center gap-2.5">
+            Communications & WhatsApp Hub
+          </h1>
+          <p className="text-slate-400 text-xs mt-1">
+            Broadcast WhatsApp notifications, inspect pre-approved templates, and monitor real-time delivery logs.
+          </p>
         </div>
-        <Button
-          type="button"
-          onClick={() => setTodayClassesDialogOpen(true)}
-          className="bg-indigo-600 hover:bg-indigo-700 text-white font-medium shadow-md shadow-indigo-600/20 px-4 py-2 flex items-center gap-2 self-start sm:self-auto cursor-pointer"
-        >
-          <Bell className="w-4 h-4 text-indigo-200" />
-          <span>View Today's Classes {todayClassesCount !== null ? `(${todayClassesCount})` : ''} ↗</span>
-        </Button>
+
+        <div className="flex flex-wrap items-center gap-3">
+          <CommunicationsTabs
+            activeTab={activeTab}
+            onChange={handleTabChange}
+          />
+          {activeTab === 'input' && (
+            <Button
+              type="button"
+              onClick={() => setTodayClassesDialogOpen(true)}
+              className="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold px-3.5 py-2 flex items-center gap-2 cursor-pointer shadow-md"
+            >
+              <Bell className="w-4 h-4 text-indigo-200" />
+              <span>Today's Classes {todayClassesCount !== null ? `(${todayClassesCount})` : ''} ↗</span>
+            </Button>
+          )}
+        </div>
       </div>
 
-      {/* Today's Classes & Quick Notify Banner */}
+      {activeTab === 'input' && (
+        <>
+          {/* Today's Classes & Quick Notify Banner */}
       <Card className="p-5 bg-gradient-to-r from-slate-900 via-indigo-950/40 to-slate-900 border border-indigo-500/30 rounded-xl shadow-lg relative overflow-hidden">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="space-y-1">
@@ -318,6 +367,16 @@ export default function CommunicationsPage() {
           </form>
         </Card>
       </div>
+        </>
+      )}
+
+      {activeTab === 'template' && (
+        <ActiveTemplatesView />
+      )}
+
+      {activeTab === 'history' && (
+        <WhatsAppHistoryView />
+      )}
 
       {/* Audience Selection Dialog */}
       <Dialog 

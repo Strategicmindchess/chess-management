@@ -109,6 +109,11 @@ export function ClassSessionCard({ role, session, isUpcoming = false }: ClassSes
                       classInstanceId={session.id}
                       batchId={batch.id}
                       batchName={batch.name}
+                      students={batch.students?.map((s: any) => ({
+                        id: s.student.id,
+                        name: s.student.user?.name || s.student.parentName || 'Student',
+                        phone: s.student.user?.phone || s.student.parentPhone || '',
+                      })) || []}
                       initialReminderSentAt={session.reminderSentAt}
                       startTime={startTime}
                       endTime={endTime}

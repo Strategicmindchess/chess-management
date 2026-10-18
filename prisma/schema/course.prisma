@@ -1,0 +1,87 @@
+enum LessonStatus {
+  UPLOADING
+  READY
+  FAILED
+}
+
+model Course {
+  id           String         @id @default(cuid())
+  title        String
+  description  String
+  thumbnailUrl String?
+  level        BatchLevel?
+  price        Int
+  isPublished  Boolean        @default(false)
+  createdById  String
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  createdBy    User           @relation("CoursesCreated", fields: [createdById], references: [id])
+  lessons      CourseLesson[]
+  accesses     CourseAccess[]
+
+  @@map("Course")
+}
+
+model CourseAccess {
+  id        String   @id @default(cuid())
+  courseId  String
+  studentId String
+  grantedAt DateTime @default(now())
+  grantedBy String
+  course    Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  student   User     @relation("CourseAccessStudent", fields: [studentId], references: [id], onDelete: Cascade)
+  granter   User     @relation("CourseAccessGranter", fields: [grantedBy], references: [id], onDelete: Cascade)
+
+  @@map("CourseAccess")
+}
+
+model CourseLesson {
+  id           String       @id @default(cuid())
+  courseId     String
+  title        String
+  description  String?
+  videoKey     String?
+  lessonNumber Int
+  partNumber   Int          @default(1)
+  status       LessonStatus @default(UPLOADING)
+  isPreview    Boolean      @default(false)
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  course       Course       @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@map("CourseLesson")
+}
+
+model ClassRecording {
+  id           String     @id @default(cuid())
+  title        String
+  description  String?
+  thumbnailUrl String?
+  recordingUrl String
+  level        BatchLevel
+  batchId      String?
+  classDate    DateTime?
+  uploadedById String
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  batch        Batch?     @relation(fields: [batchId], references: [id])
+  uploadedBy   User       @relation("ClassRecordingUploader", fields: [uploadedById], references: [id])
+
+  @@map("ClassRecording")
+}
+
+model RevisionVideo {
+  id           String      @id @default(cuid())
+  title        String
+  description  String
+  thumbnailUrl String?
+  videoUrl     String
+  level        BatchLevel?
+  isPublished  Boolean     @default(false)
+  createdById  String
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+  createdBy    User        @relation("RevisionVideoCreator", fields: [createdById], references: [id])
+
+  @@map("RevisionVideo")
+}

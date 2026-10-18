@@ -73,26 +73,49 @@ export function Sidebar({
       {/* Nav */}
       <nav className="flex-1 space-y-0.5 px-3 pb-6">
         {navItems.map((item) => {
-          const isActive =
+          const isItemActive =
             pathname === item.href ||
-            (item.href.split("/").length > 2 && pathname.startsWith(`${item.href}/`));
+            (item.href.split("/").length > 2 && pathname.startsWith(item.href));
           const Icon = item.icon;
 
           return (
-            <Link
-              key={item.href}
-              href={item.href}
-              onClick={onClose}
-              className={cn(
-                "group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200",
-                isActive
-                  ? "bg-brand-500/15 text-brand-600 dark:text-brand-400 border border-brand-500/40"
-                  : "text-slate-600 dark:text-slate-400 border border-transparent hover:bg-slate-100 dark:hover:bg-slate-800/60 hover:text-slate-900 dark:hover:text-white"
+            <div key={item.href} className="space-y-0.5">
+              <Link
+                href={item.href}
+                onClick={onClose}
+                className={cn(
+                  "group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200",
+                  isItemActive && (!item.subItems || pathname === item.href)
+                    ? "bg-brand-500/15 text-brand-600 dark:text-brand-400 border border-brand-500/40"
+                    : "text-slate-600 dark:text-slate-400 border border-transparent hover:bg-slate-100 dark:hover:bg-slate-800/60 hover:text-slate-900 dark:hover:text-white"
+                )}
+              >
+                <Icon className={cn("h-4 w-4 shrink-0", isItemActive ? "text-brand-500" : "text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-300")} />
+                <span className="flex-1">{item.label}</span>
+              </Link>
+              {item.subItems && (isItemActive || pathname.startsWith(item.href)) && (
+                <div className="ml-6 pl-2.5 border-l border-slate-200 dark:border-slate-800 space-y-1 py-1">
+                  {item.subItems.map((sub) => {
+                    const isSubActive = pathname === sub.href;
+                    return (
+                      <Link
+                        key={sub.href}
+                        href={sub.href}
+                        onClick={onClose}
+                        className={cn(
+                          "block rounded-md px-2.5 py-1 text-xs font-medium transition-all",
+                          isSubActive
+                            ? "bg-brand-500/20 text-brand-400 font-semibold border-l-2 border-brand-500 -ml-[11px] pl-[9px]"
+                            : "text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/40"
+                        )}
+                      >
+                        {sub.label}
+                      </Link>
+                    );
+                  })}
+                </div>
               )}
-            >
-              <Icon className={cn("h-4 w-4 shrink-0", isActive ? "text-brand-500" : "text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-300")} />
-              {item.label}
-            </Link>
+            </div>
           );
         })}
       </nav>

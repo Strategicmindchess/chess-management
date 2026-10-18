@@ -20,6 +20,7 @@ model Batch {
   coach          CoachProfile?     @relation("BatchCoach", fields: [coachProfileId], references: [id])
   classInstances ClassInstance[]
   classLogs      ClassLog[]
+  classRecordings ClassRecording[]
 
   @@map("batches")
 }
@@ -156,6 +157,7 @@ model ClassFeedback {
   conceptUnderstood   Boolean        @default(true)
   /// Overall coach performance score 1–10
   overallCoachScore   Int?
+  coachLateDuration   String?
   submittedAt         DateTime       @default(now())
   classLog            ClassLog       @relation(fields: [classLogId], references: [id], onDelete: Cascade)
   student             StudentProfile @relation(fields: [studentProfileId], references: [id], onDelete: Cascade)

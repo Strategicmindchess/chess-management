@@ -24,6 +24,11 @@ model User {
   assignedTickets        Ticket[]                 @relation("AssignedTickets")
   holidayPeriods         HolidayPeriod[]          @relation("HolidayCreator")
   tournamentAnnouncements TournamentAnnouncement[] @relation("TournamentCreator")
+  coursesCreated          Course[]                 @relation("CoursesCreated")
+  courseAccesses          CourseAccess[]           @relation("CourseAccessStudent")
+  grantedCourseAccesses   CourseAccess[]           @relation("CourseAccessGranter")
+  classRecordingsUploaded ClassRecording[]         @relation("ClassRecordingUploader")
+  revisionVideosCreated   RevisionVideo[]          @relation("RevisionVideoCreator")
 
   @@map("users")
 }

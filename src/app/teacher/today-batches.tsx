@@ -26,7 +26,15 @@ export async function TodayBatches({ coachUserId }: { coachUserId: string }) {
     include: {
       batch: {
         include: {
-          students: true,
+          students: {
+            include: {
+              student: {
+                include: {
+                  user: true,
+                },
+              },
+            },
+          },
         },
       },
     },
@@ -45,7 +53,7 @@ export async function TodayBatches({ coachUserId }: { coachUserId: string }) {
           View All <ArrowRight className="w-4 h-4" />
         </Link>
       </div>
-      
+
       <div className="space-y-3 flex-1 flex flex-col justify-start relative z-10">
         {todaysClasses.length === 0 ? (
           <div className="flex flex-col items-center justify-center flex-1 py-8 text-center bg-slate-900/30 border border-slate-800 rounded-xl">
@@ -56,17 +64,16 @@ export async function TodayBatches({ coachUserId }: { coachUserId: string }) {
             const nowTime = new Date().toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit' });
             const isLive = nowTime >= cls.startTime && nowTime <= cls.endTime;
             const isPast = nowTime > cls.endTime;
-            
+
             return (
               <div key={cls.id} className={`bg-slate-900/50 border ${isLive ? 'border-emerald-500/30 shadow-[0_0_15px_rgba(16,185,129,0.15)]' : 'border-slate-800'} rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-all`}>
                 <div className="flex items-center gap-3">
-                  <div className={`px-3 py-1 rounded-full text-xs font-bold border ${
-                    isLive 
-                      ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
-                      : isPast
-                        ? 'bg-slate-800 text-slate-400 border-slate-700'
-                        : 'bg-blue-500/20 text-blue-400 border-blue-500/30'
-                  }`}>
+                  <div className={`px-3 py-1 rounded-full text-xs font-bold border ${isLive
+                    ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
+                    : isPast
+                      ? 'bg-slate-800 text-slate-400 border-slate-700'
+                      : 'bg-blue-500/20 text-blue-400 border-blue-500/30'
+                    }`}>
                     {isLive && <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block mr-1.5 animate-pulse" />}
                     {isLive ? 'Live' : isPast ? 'Past' : 'Upcoming'}
                   </div>
@@ -78,12 +85,19 @@ export async function TodayBatches({ coachUserId }: { coachUserId: string }) {
                     </p>
                   </div>
                 </div>
-                <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
+                <div className="flex items-center gap-2.5 shrink-0">
                   <NotifyStudentsButton
                     classInstanceId={cls.id}
                     batchId={cls.batchId}
                     batchName={cls.batch.name}
-                    initialReminderSentAt={cls.reminderSentAt}
+                    batchCode={cls.batch.code}
+                    meetLink={cls.batch.meetLink}
+                    students={cls.batch.students.map((bs) => ({
+                      id: bs.student.id,
+                      name: bs.student.user?.name || bs.student.parentName || 'Student',
+                      phone: bs.student.user?.phone || bs.student.parentPhone || '',
+                    }))}
+                    initialReminderSentAt={(cls as any).reminderSentAt ?? null}
                     startTime={cls.startTime}
                     endTime={cls.endTime}
                     isToday={true}

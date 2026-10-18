@@ -29,3 +29,33 @@ model TournamentAnnouncement {
 
   @@map("tournament_announcements")
 }
+
+/// Tracks every outgoing WhatsApp notification and webhook delivery receipts
+model WhatsAppMessageLog {
+  id               String    @id @default(cuid())
+  wamid            String?   @unique /// Meta Cloud API message ID
+  recipientPhone   String    /// E.164 e.g. "919305302337"
+  recipientName    String?   /// e.g. "Shivam Gupta"
+  role             String?   /// "Student" | "Coach" | "Parent" | "Manual"
+  templateName     String    /// e.g. "smc_class_reminder", "smc_holiday"
+  templateCategory String?   @default("UTILITY") /// "UTILITY" | "MARKETING"
+  templateParams   Json?     /// { student_name, batch_name, ... }
+  previewText      String?   /// Rendered message text
+  status           String    @default("SENT") /// "SENT" | "DELIVERED" | "READ" | "FAILED"
+  errorMessage     String?   /// Meta error details if failed
+  classInstanceId  String?
+  batchId          String?
+  sentById         String?
+  retryCount       Int       @default(0)
+  createdAt        DateTime  @default(now())
+  deliveredAt      DateTime?
+  readAt           DateTime?
+  failedAt         DateTime?
+  updatedAt        DateTime  @updatedAt
+
+  @@index([recipientPhone])
+  @@index([status])
+  @@index([templateName])
+  @@index([createdAt])
+  @@map("whatsapp_message_logs")
+}

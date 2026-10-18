@@ -73,6 +73,34 @@ export async function handleWhatsAppWebhookEvent(req: NextRequest) {
               if (status.errors && status.errors.length > 0) {
                 console.error(`   ❌ Delivery Error:`, JSON.stringify(status.errors, null, 2));
               }
+
+              // Update whatsapp_message_logs table in database
+              try {
+                const { prisma } = await import('@/lib/prisma');
+                const ts = status.timestamp ? new Date(Number(status.timestamp) * 1000) : new Date();
+                const statusUpper = status.status.toUpperCase();
+                const errMsg = status.errors && status.errors.length > 0
+                  ? (status.errors[0].message || status.errors[0].title || JSON.stringify(status.errors[0]))
+                  : null;
+
+                const updateData: any = {
+                  status: statusUpper,
+                  updatedAt: new Date(),
+                };
+                if (statusUpper === 'DELIVERED') updateData.deliveredAt = ts;
+                if (statusUpper === 'READ') updateData.readAt = ts;
+                if (statusUpper === 'FAILED') {
+                  updateData.failedAt = ts;
+                  updateData.errorMessage = errMsg;
+                }
+
+                await (prisma as any).whatsAppMessageLog.updateMany({
+                  where: { wamid: status.id },
+                  data: updateData,
+                });
+              } catch (dbErr: any) {
+                console.warn('[Webhook DB Update Error]:', dbErr.message);
+              }
             }
           }
 

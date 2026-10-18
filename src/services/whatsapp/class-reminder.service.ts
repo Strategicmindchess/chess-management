@@ -164,10 +164,20 @@ async function sendInBatches(
  * @param classInstanceId - Prisma ID of the scheduled ClassInstance
  * @param onProgress - Optional callback to report real-time BullMQ progress
  */
+export interface ClassReminderOptions {
+  onProgress?: (progress: SendProgress) => Promise<void>;
+  targetStudentIds?: string[];
+}
+
 export async function sendClassReminderService(
   classInstanceId: string,
-  onProgress?: (progress: SendProgress) => Promise<void>
+  onProgressOrOptions?: ((progress: SendProgress) => Promise<void>) | ClassReminderOptions,
+  legacyTargetStudentIds?: string[]
 ): Promise<ReminderResult> {
+  const onProgress = typeof onProgressOrOptions === 'function' ? onProgressOrOptions : onProgressOrOptions?.onProgress;
+  const targetStudentIds = typeof onProgressOrOptions === 'object' && onProgressOrOptions?.targetStudentIds
+    ? onProgressOrOptions.targetStudentIds
+    : legacyTargetStudentIds;
   // Step 1: Database se Class, Batch, Coach aur Students load karein
   const instance = await prisma.classInstance.findUnique({
     where: { id: classInstanceId },
@@ -208,6 +218,9 @@ export async function sendClassReminderService(
   // Enrolled students add karein (agar student phone na ho to parentPhone fallback)
   if (instance.batch.students) {
     for (const bs of instance.batch.students) {
+      if (targetStudentIds && targetStudentIds.length > 0 && !targetStudentIds.includes(bs.student.id)) {
+        continue;
+      }
       const studentUser = bs.student?.user;
       const rawPhone = studentUser?.phone || bs.student?.parentPhone;
       const studentPhone = toE164Valid(rawPhone);
@@ -237,7 +250,7 @@ export async function sendClassReminderService(
 
   // Step 4: 'smc_class_reminder' template dispatch karein
   // Note: Ye UTILITY category template hai, ispar Error 131049 (ecosystem cap) kabhi nahi lagta.
-  return sendInBatches(
+  const result = await sendInBatches(
     recipients,
     (r) =>
       sendWhatsAppMessage({
@@ -253,4 +266,25 @@ export async function sendClassReminderService(
       }),
     onProgress
   );
+
+  try {
+    const fs = await import('fs');
+    const path = await import('path');
+    const logPath = path.resolve(process.cwd(), 'logs', 'worker.log');
+    const entry = JSON.stringify({
+      ts: new Date().toISOString(),
+      level: result.failed > 0 && result.sent === 0 ? 'error' : 'info',
+      msg: '[ClassReminder] Sent reminders via Meta Cloud API',
+      classInstanceId,
+      batch: instance.batch.name,
+      recipientsCount: recipients.length,
+      sent: result.sent,
+      failed: result.failed,
+      messageIds: result.messageIds,
+      errors: result.errors,
+    }) + '\n';
+    fs.appendFileSync(logPath, entry, 'utf-8');
+  } catch (_) {}
+
+  return result;
 }
