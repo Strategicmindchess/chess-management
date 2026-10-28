@@ -18,12 +18,19 @@ export async function processBatchSync(job: Job) {
       return;
     }
 
-    // 2. Delete all future SCHEDULED instances.
-    //    Past COMPLETED / CANCELLED instances are kept — they are the history.
+    // 2. Delete future SCHEDULED instances ONLY if they are default batch coach sessions.
+    //    Past COMPLETED / CANCELLED instances and custom substitute coach sessions are kept.
     const deleted = await prisma.classInstance.deleteMany({
-      where: { batchId, status: 'SCHEDULED' },
+      where: {
+        batchId,
+        status: 'SCHEDULED',
+        OR: [
+          { coachProfileId: batch.coachProfileId },
+          { coachProfileId: null }
+        ]
+      },
     });
-    console.log(`[BatchProcessor] Deleted | Count: ${deleted.count} old SCHEDULED instances.`);
+    console.log(`[BatchProcessor] Deleted | Count: ${deleted.count} old SCHEDULED instances (custom substitute sessions preserved).`);
 
     // 3. Find the highest sessionNumber among the KEEP (COMPLETED/CANCELLED) instances
     const keptInstances = await prisma.classInstance.findMany({

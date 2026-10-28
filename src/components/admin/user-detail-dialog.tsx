@@ -71,7 +71,7 @@ export function UserDetailDialog({
     >
       <form onSubmit={handleSubmit}>
         <div className="grid gap-4 py-4">
-          <div className="space-y-4 mb-2 pb-4 border-b border-slate-100">
+          <div className="space-y-4 mb-2 pb-4 border-b border-slate-100 dark:border-slate-800">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="name">Name <span className="text-red-500 ml-0.5">*</span></Label>
@@ -92,14 +92,14 @@ export function UserDetailDialog({
             </div>
 
             <div className="flex items-center justify-between pt-2">
-              <Label htmlFor="isActive" className="text-slate-700">Account Status</Label>
+              <Label htmlFor="isActive" className="text-slate-700 dark:text-slate-300">Account Status</Label>
               <div className="flex items-center gap-2">
-                <span className="text-sm font-medium text-slate-500">Inactive</span>
+                <span className="text-sm font-medium text-slate-500 dark:text-slate-400">Inactive</span>
                 <label className="relative inline-flex items-center cursor-pointer">
                   <input type="checkbox" name="isActive" id="isActive" value="true" defaultChecked={user.isActive} className="sr-only peer" />
-                  <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-brand-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-brand-600"></div>
+                  <div className="w-11 h-6 bg-slate-200 dark:bg-slate-700 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-brand-300 dark:peer-focus:ring-brand-900 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-brand-600"></div>
                 </label>
-                <span className="text-sm font-medium text-brand-700">Active</span>
+                <span className="text-sm font-medium text-brand-700 dark:text-brand-400">Active</span>
               </div>
             </div>
           </div>
@@ -135,7 +135,7 @@ export function UserDetailDialog({
                 <textarea
                   id="bio"
                   name="bio"
-                  className="flex min-h-[80px] w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm ring-offset-white placeholder:text-slate-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="flex min-h-[80px] w-full rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900/50 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 ring-offset-white dark:ring-offset-slate-900 placeholder:text-slate-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                   defaultValue={user.bio ?? ""}
                   placeholder="A short bio about the coach..."
                 />
@@ -143,16 +143,16 @@ export function UserDetailDialog({
             </>
           )}
 
-          {error && <p className="text-sm text-red-600">{error}</p>}
+          {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
         </div>
 
-        <div className="mt-6 flex justify-between gap-3 border-t border-slate-100 pt-5">
+        <div className="mt-6 flex justify-between gap-3 border-t border-slate-100 dark:border-slate-800 pt-5">
           <Button
             type="button"
             variant="ghost"
             onClick={handleDelete}
             disabled={isPending}
-            className="text-red-600 hover:text-red-700 hover:bg-red-50"
+            className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950/30"
           >
             Delete User
           </Button>

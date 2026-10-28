@@ -205,33 +205,33 @@ export default async function UserProfilePage({
             <CardTitle className="text-lg">Personal Information</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3 text-sm">
-            <div className="grid grid-cols-2 py-1 border-b border-slate-100">
-              <span className="text-slate-500">Name</span>
-              <span className="font-medium">{user.name}</span>
+            <div className="grid grid-cols-2 py-1 border-b border-slate-100 dark:border-slate-800">
+              <span className="text-slate-500 dark:text-slate-400">Name</span>
+              <span className="font-medium text-slate-800 dark:text-slate-200">{user.name}</span>
             </div>
             {isStudent && (
               <>
-                <div className="grid grid-cols-2 py-1 border-b border-slate-100">
-                  <span className="text-slate-500">Parent Name</span>
-                  <span className="font-medium">{userRow.parentName || "—"}</span>
+                <div className="grid grid-cols-2 py-1 border-b border-slate-100 dark:border-slate-800">
+                  <span className="text-slate-500 dark:text-slate-400">Parent Name</span>
+                  <span className="font-medium text-slate-800 dark:text-slate-200">{userRow.parentName || "—"}</span>
                 </div>
-                <div className="grid grid-cols-2 py-1 border-b border-slate-100">
-                  <span className="text-slate-500">Parent Phone</span>
-                  <span className="font-medium">{userRow.parentPhone || "—"}</span>
+                <div className="grid grid-cols-2 py-1 border-b border-slate-100 dark:border-slate-800">
+                  <span className="text-slate-500 dark:text-slate-400">Parent Phone</span>
+                  <span className="font-medium text-slate-800 dark:text-slate-200">{userRow.parentPhone || "—"}</span>
                 </div>
               </>
             )}
-            <div className="grid grid-cols-2 py-1 border-b border-slate-100">
-              <span className="text-slate-500">{isStudent ? "Student Phone" : "Phone"}</span>
-              <span className="font-medium">{user.phone || "—"}</span>
+            <div className="grid grid-cols-2 py-1 border-b border-slate-100 dark:border-slate-800">
+              <span className="text-slate-500 dark:text-slate-400">{isStudent ? "Student Phone" : "Phone"}</span>
+              <span className="font-medium text-slate-800 dark:text-slate-200">{user.phone || "—"}</span>
             </div>
-            <div className="grid grid-cols-2 py-1 border-b border-slate-100">
-              <span className="text-slate-500">City</span>
-              <span className="font-medium">{userRow.city || "—"}</span>
+            <div className="grid grid-cols-2 py-1 border-b border-slate-100 dark:border-slate-800">
+              <span className="text-slate-500 dark:text-slate-400">City</span>
+              <span className="font-medium text-slate-800 dark:text-slate-200">{userRow.city || "—"}</span>
             </div>
             <div className="grid grid-cols-2 py-1">
-              <span className="text-slate-500">Joining Date</span>
-              <span className="font-medium">{format(new Date(user.createdAt), "dd MMM yyyy")}</span>
+              <span className="text-slate-500 dark:text-slate-400">Joining Date</span>
+              <span className="font-medium text-slate-800 dark:text-slate-200">{format(new Date(user.createdAt), "dd MMM yyyy")}</span>
             </div>
           </CardContent>
         </Card>
@@ -242,27 +242,27 @@ export default async function UserProfilePage({
             <CardTitle className="text-lg">Chess Information</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3 text-sm">
-            <div className="grid grid-cols-2 py-1 border-b border-slate-100">
-              <span className="text-slate-500">Chess.com ID</span>
-              <span className="font-medium">{userRow.chessComId || "—"}</span>
+            <div className="grid grid-cols-2 py-1 border-b border-slate-100 dark:border-slate-800">
+              <span className="text-slate-500 dark:text-slate-400">Chess.com ID</span>
+              <span className="font-medium text-slate-800 dark:text-slate-200">{userRow.chessComId || "—"}</span>
             </div>
-            <div className="grid grid-cols-2 py-1 border-b border-slate-100">
-              <span className="text-slate-500">Chess.com Rating</span>
-              <span className="font-medium">{userRow.chessComRating || "—"}</span>
+            <div className="grid grid-cols-2 py-1 border-b border-slate-100 dark:border-slate-800">
+              <span className="text-slate-500 dark:text-slate-400">Chess.com Rating</span>
+              <span className="font-medium text-slate-800 dark:text-slate-200">{userRow.chessComRating || "—"}</span>
             </div>
-            <div className="grid grid-cols-2 py-1 border-b border-slate-100">
-              <span className="text-slate-500">Lichess ID</span>
-              <span className="font-medium">{userRow.lichessId || "—"}</span>
+            <div className="grid grid-cols-2 py-1 border-b border-slate-100 dark:border-slate-800">
+              <span className="text-slate-500 dark:text-slate-400">Lichess ID</span>
+              <span className="font-medium text-slate-800 dark:text-slate-200">{userRow.lichessId || "—"}</span>
             </div>
-            <div className="grid grid-cols-2 py-1 border-b border-slate-100">
-              <span className="text-slate-500">Lichess Rating</span>
-              <span className="font-medium">{userRow.lichessRating || "—"}</span>
+            <div className="grid grid-cols-2 py-1 border-b border-slate-100 dark:border-slate-800">
+              <span className="text-slate-500 dark:text-slate-400">Lichess Rating</span>
+              <span className="font-medium text-slate-800 dark:text-slate-200">{userRow.lichessRating || "—"}</span>
             </div>
 
             {isStudent && (
               <div className="grid grid-cols-2 py-1">
-                <span className="text-slate-500">Assigned Batches</span>
-                <span className="font-medium">
+                <span className="text-slate-500 dark:text-slate-400">Assigned Batches</span>
+                <span className="font-medium text-slate-800 dark:text-slate-200">
                   {user.studentProfile!.enrollments.length > 0
                     ? user.studentProfile!.enrollments.map((e: any) => e.batch.name).join(", ")
                     : "None"}
@@ -271,8 +271,8 @@ export default async function UserProfilePage({
             )}
             {isCoach && (
               <div className="grid grid-cols-2 py-1">
-                <span className="text-slate-500">Assigned Batches</span>
-                <span className="font-medium">
+                <span className="text-slate-500 dark:text-slate-400">Assigned Batches</span>
+                <span className="font-medium text-slate-800 dark:text-slate-200">
                   {user.coachProfile!.batches.length > 0
                     ? user.coachProfile!.batches.map((b: any) => b.name).join(", ")
                     : "None"}
@@ -310,7 +310,7 @@ export default async function UserProfilePage({
               </div>
 
               <div>
-                <h4 className="text-sm font-semibold text-slate-700 mb-3">Recent Classes</h4>
+                <h4 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-3">Recent Classes</h4>
                 {user.studentProfile!.attendanceRecords.length === 0 ? (
                   <p className="text-sm text-slate-500 text-center py-2">No classes attended yet.</p>
                 ) : (
@@ -352,7 +352,7 @@ export default async function UserProfilePage({
               </div>
 
               <div>
-                <h4 className="text-sm font-semibold text-slate-700 mb-3">Recent Classes</h4>
+                <h4 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-3">Recent Classes</h4>
                 {user.coachProfile!.classLogs.length === 0 ? (
                   <p className="text-sm text-slate-500 text-center py-2">No classes logged yet.</p>
                 ) : (
@@ -363,7 +363,7 @@ export default async function UserProfilePage({
                           <p className="font-medium text-slate-800 dark:text-slate-200">{format(new Date(log.date), "dd MMM yyyy")}</p>
                           <p className="text-xs text-slate-500 dark:text-slate-400">{log.topicCovered || "No topic"}</p>
                         </div>
-                        <span className="font-medium text-emerald-600">₹{log.payoutAmount}</span>
+                        <span className="font-medium text-emerald-600 dark:text-emerald-400">₹{log.payoutAmount}</span>
                       </div>
                     ))}
                   </div>
@@ -420,27 +420,27 @@ export default async function UserProfilePage({
 
         {/* Fee Information for Student */}
         {isStudent && (
-          <Card className="opacity-75 bg-slate-50/50">
+          <Card className="opacity-75 bg-slate-50/50 dark:bg-slate-900/50">
             <CardHeader>
               <CardTitle className="text-lg flex items-center justify-between">
                 Fee Information
                 <Badge variant="neutral" className="text-xs font-normal">See Fee Ledger</Badge>
               </CardTitle>
             </CardHeader>
-            <CardContent className="text-sm text-slate-500 flex flex-col items-center justify-center py-8">
+            <CardContent className="text-sm text-slate-500 dark:text-slate-400 flex flex-col items-center justify-center py-8">
               <p>View this student&apos;s fee records in the Fee Ledger section.</p>
             </CardContent>
           </Card>
         )}
 
-        <Card className="opacity-75 bg-slate-50/50">
+        <Card className="opacity-75 bg-slate-50/50 dark:bg-slate-900/50">
           <CardHeader>
             <CardTitle className="text-lg flex items-center justify-between">
               Tickets & Feedback
               <Badge variant="neutral" className="text-xs font-normal">Coming Soon</Badge>
             </CardTitle>
           </CardHeader>
-          <CardContent className="text-sm text-slate-500 flex flex-col items-center justify-center py-8">
+          <CardContent className="text-sm text-slate-500 dark:text-slate-400 flex flex-col items-center justify-center py-8">
             <p>Modules 9 & 10 (Feedback and Tickets) will appear here.</p>
           </CardContent>
         </Card>

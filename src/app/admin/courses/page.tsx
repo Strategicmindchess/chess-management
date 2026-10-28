@@ -33,8 +33,8 @@ export default async function AdminCoursesPage() {
           <Settings className="h-6 w-6" />
         </div>
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-white">Courses Management</h1>
-          <p className="mt-0.5 text-sm text-slate-400">
+          <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">Courses Management</h1>
+          <p className="mt-0.5 text-sm text-slate-600 dark:text-slate-400">
             Create and manage paid courses, edit details, and add lessons.
           </p>
         </div>

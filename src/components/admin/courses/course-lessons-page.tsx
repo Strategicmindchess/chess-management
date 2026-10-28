@@ -21,6 +21,13 @@ export default async function CourseLessonsPage({ id, backHref }: { id: string; 
 
   course.thumbnailUrl = await getPresignedUrlFromPublicUrl(course.thumbnailUrl);
 
-  const { lessons, createdAt, updatedAt, ...rest } = course;
-  return <LessonManager course={rest} lessons={lessons} backHref={backHref} />;
+  const presignedLessons = await Promise.all(
+    course.lessons.map(async (l) => ({
+      ...l,
+      thumbnailUrl: await getPresignedUrlFromPublicUrl(l.thumbnailUrl),
+    }))
+  );
+
+  const { createdAt, updatedAt, ...rest } = course;
+  return <LessonManager course={rest} lessons={presignedLessons} backHref={backHref} />;
 }

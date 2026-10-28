@@ -31,13 +31,13 @@ export default async function TeacherAvailabilityPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-xl font-semibold text-white">Manage Availability</h1>
-        <p className="text-sm text-slate-400">
+        <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">Manage Availability</h1>
+        <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
           Select a date on the calendar to add your available time slots. You can also apply a time slot to the entire week.
         </p>
       </div>
 
-      <div className="bg-[#1a1f2e] rounded-xl shadow-sm border border-slate-700/50 overflow-hidden">
+      <div className="bg-white dark:bg-[#1a1f2e] rounded-2xl shadow-sm border border-slate-200/90 dark:border-slate-700/50 overflow-hidden">
         <AvailabilityManager initialAvailabilities={initialAvailabilities} />
       </div>
     </div>

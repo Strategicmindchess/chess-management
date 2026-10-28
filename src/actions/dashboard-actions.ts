@@ -17,11 +17,11 @@ export async function getTeacherDashboardData(coachProfileId: string) {
         gte: today,
         lt: tomorrow
       },
-      batch: {
-        coachProfileId,
-        isActive: true
-      }
-    },
+      OR: [
+        { coachProfileId },
+        { coachProfileId: null, batch: { coachProfileId, isActive: true } }
+      ]
+    } as any,
     include: {
       batch: {
         include: {
@@ -39,11 +39,11 @@ export async function getTeacherDashboardData(coachProfileId: string) {
         gte: tomorrow,
         lt: threeDaysLater
       },
-      batch: {
-        coachProfileId,
-        isActive: true
-      }
-    },
+      OR: [
+        { coachProfileId },
+        { coachProfileId: null, batch: { coachProfileId, isActive: true } }
+      ]
+    } as any,
     include: {
       batch: {
         include: {

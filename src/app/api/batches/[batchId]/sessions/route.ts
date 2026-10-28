@@ -12,6 +12,13 @@ export let GET = withLogging(async function(_req: NextRequest, { params }: { par
 
     const instances = await prisma.classInstance.findMany({
       where: { batchId },
+      include: {
+        coach: {
+          include: {
+            user: { select: { name: true } },
+          },
+        },
+      },
       orderBy: [{ date: "asc" }, { startTime: "asc" }],
     });
 
@@ -23,6 +30,9 @@ export let GET = withLogging(async function(_req: NextRequest, { params }: { par
       status: inst.status,
       lectureName: inst.lectureName,
       sessionNumber: inst.sessionNumber,
+      coachProfileId: inst.coachProfileId,
+      coachPay: inst.coachPay,
+      coachName: inst.coach?.user?.name || null,
     }));
 
     return NextResponse.json({ sessions });

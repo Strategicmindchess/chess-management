@@ -41,6 +41,8 @@ export async function getBatchSessions(batchId: string) {
         status: inst.status,
         lectureName: inst.lectureName,
         sessionNumber: inst.sessionNumber,
+        coachProfileId: inst.coachProfileId,
+        coachPay: inst.coachPay,
       })),
     };
   } catch (err: any) {
@@ -60,7 +62,7 @@ export async function createClassInstance(input: z.infer<typeof createClassInsta
     return { success: false, error: parsed.error.issues[0]?.message ?? 'Invalid input.' };
   }
 
-  const { batchId, date, startTime, endTime, lectureName, sessionNumber } = parsed.data;
+    const { batchId, date, startTime, endTime, lectureName, sessionNumber, coachProfileId: inputCoachId, coachPay: inputCoachPay } = parsed.data;
 
   try {
     const normalizedDate = fromZonedTime(startOfDay(toZonedTime(new Date(date), TIME_ZONE)), TIME_ZONE);
@@ -79,6 +81,18 @@ export async function createClassInstance(input: z.infer<typeof createClassInsta
       return { success: false, error: 'A class is already scheduled or completed at this exact date and time.' };
     }
 
+    // Determine the coach and pay: use explicitly passed values or inherit from the batch
+    let targetCoachId = inputCoachId;
+    let targetCoachPay = inputCoachPay;
+    if (targetCoachId === undefined || targetCoachPay === undefined) {
+      const batch = await prisma.batch.findUnique({
+        where: { id: batchId },
+        select: { coachProfileId: true, payoutRate: true },
+      });
+      if (targetCoachId === undefined) targetCoachId = batch?.coachProfileId ?? null;
+      if (targetCoachPay === undefined) targetCoachPay = batch?.payoutRate ?? 0;
+    }
+
     await prisma.classInstance.create({
       data: {
         batchId,
@@ -88,7 +102,9 @@ export async function createClassInstance(input: z.infer<typeof createClassInsta
         status: 'SCHEDULED',
         lectureName: lectureName || null,
         sessionNumber: sessionNumber || null,
-      },
+        ...(targetCoachId !== undefined ? { coachProfileId: targetCoachId } : {}),
+        ...(targetCoachPay !== undefined ? { coachPay: targetCoachPay } : {}),
+      } as any,
     });
 
     revalidatePath('/admin/batches');
@@ -100,7 +116,7 @@ export async function createClassInstance(input: z.infer<typeof createClassInsta
 }
 
 /**
- * Update an existing class instance (date, times, lectureName, sessionNumber).
+ * Update an existing class instance (date, times, lectureName, sessionNumber, coachProfileId, coachPay).
  */
 export async function updateClassInstance(input: z.infer<typeof updateClassInstanceSchema>): Promise<ActionResult> {
   await requireRole(['ADMIN']);
@@ -110,7 +126,7 @@ export async function updateClassInstance(input: z.infer<typeof updateClassInsta
     return { success: false, error: parsed.error.issues[0]?.message ?? 'Invalid input.' };
   }
 
-  const { instanceId, newDate, newStartTime, newEndTime, lectureName, sessionNumber } = parsed.data;
+  const { instanceId, newDate, newStartTime, newEndTime, lectureName, sessionNumber, coachProfileId, coachPay } = parsed.data;
 
   try {
     const instance = await prisma.classInstance.findUnique({
@@ -151,7 +167,9 @@ export async function updateClassInstance(input: z.infer<typeof updateClassInsta
         endTime: newEndTime,
         lectureName: lectureName || null,
         sessionNumber: sessionNumber || null,
-      },
+        ...(coachProfileId !== undefined ? { coachProfileId } : {}),
+        ...(coachPay !== undefined ? { coachPay } : {}),
+      } as any,
     });
 
     revalidatePath('/admin/batches');

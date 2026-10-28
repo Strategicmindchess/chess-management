@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { CalendarRange, CalendarSync, Ban, Loader2, Clock, Check, X, PlusCircle, RefreshCw, Settings2 } from "lucide-react";
+import { Select } from "@/components/ui/select";
 import { generateMoreClassInstances } from "@/actions/batch-actions";
 import { cancelClassInstance, updateClassInstance, rescheduleClassInstance, createClassInstance, bulkUpdateClassTimings } from "@/actions/manage-sessions";
 import { useBatchSessions, invalidateBatchSessions } from "@/hooks/use-batch-sessions";
@@ -20,14 +21,28 @@ interface Session {
   status: string;
   lectureName?: string | null;
   sessionNumber?: number | null;
+  coachProfileId?: string | null;
+  coachPay?: number | null;
+  coachName?: string | null;
 }
 
 interface ManageSessionsDialogProps {
   batchId: string;
   batchName: string;
+  coaches?: { id: string; name: string }[];
+  batchCoachProfileId?: string | null;
+  batchCoachName?: string | null;
+  defaultPayoutRate?: number;
 }
 
-export function ManageSessionsDialog({ batchId, batchName }: ManageSessionsDialogProps) {
+export function ManageSessionsDialog({
+  batchId,
+  batchName,
+  coaches = [],
+  batchCoachProfileId,
+  batchCoachName,
+  defaultPayoutRate,
+}: ManageSessionsDialogProps) {
   const [open, setOpen] = useState(false);
   const { sessions, isLoading, error: sessionsError } = useBatchSessions(open ? batchId : null);
   const [error, setError] = useState<string | null>(null);
@@ -47,6 +62,8 @@ export function ManageSessionsDialog({ batchId, batchName }: ManageSessionsDialo
   const [editEndTime, setEditEndTime] = useState<string>("");
   const [editLectureName, setEditLectureName] = useState<string>("");
   const [editSessionNumber, setEditSessionNumber] = useState<string>("");
+  const [editCoachProfileId, setEditCoachProfileId] = useState<string>("");
+  const [editCoachPay, setEditCoachPay] = useState<string>("");
 
   const [isPending, startTransition] = useTransition();
 
@@ -98,6 +115,12 @@ export function ManageSessionsDialog({ batchId, batchName }: ManageSessionsDialo
     setEditDate(formatInTimeZone(new Date(session.date), 'Asia/Kolkata', 'yyyy-MM-dd'));
     setEditLectureName(session.lectureName || "");
     setEditSessionNumber(session.sessionNumber ? session.sessionNumber.toString() : "");
+    setEditCoachProfileId(session.coachProfileId || "");
+    setEditCoachPay(
+      session.coachPay !== null && session.coachPay !== undefined
+        ? session.coachPay.toString()
+        : (defaultPayoutRate != null ? defaultPayoutRate.toString() : "")
+    );
     setUpdateDialogOpen(true);
   }
 
@@ -115,6 +138,8 @@ export function ManageSessionsDialog({ batchId, batchName }: ManageSessionsDialo
     setEditDate("");
     setEditLectureName("");
     setEditSessionNumber("");
+    setEditCoachProfileId(batchCoachProfileId || "");
+    setEditCoachPay(defaultPayoutRate != null ? defaultPayoutRate.toString() : "");
     setCreateDialogOpen(true);
   }
 
@@ -132,7 +157,9 @@ export function ManageSessionsDialog({ batchId, batchName }: ManageSessionsDialo
         newStartTime: editStartTime,
         newEndTime: editEndTime,
         lectureName: editLectureName || null,
-        sessionNumber: editSessionNumber ? parseInt(editSessionNumber, 10) : null
+        sessionNumber: editSessionNumber ? parseInt(editSessionNumber, 10) : null,
+        coachProfileId: editCoachProfileId ? editCoachProfileId : null,
+        coachPay: editCoachPay !== "" ? parseInt(editCoachPay, 10) : (defaultPayoutRate ?? null),
       });
       if (result.success) {
         setSuccessMessage("Session updated successfully.");
@@ -181,7 +208,9 @@ export function ManageSessionsDialog({ batchId, batchName }: ManageSessionsDialo
         startTime: editStartTime,
         endTime: editEndTime,
         lectureName: editLectureName || null,
-        sessionNumber: editSessionNumber ? parseInt(editSessionNumber, 10) : null
+        sessionNumber: editSessionNumber ? parseInt(editSessionNumber, 10) : null,
+        coachProfileId: editCoachProfileId ? editCoachProfileId : null,
+        coachPay: editCoachPay !== "" ? parseInt(editCoachPay, 10) : (defaultPayoutRate ?? null),
       });
       if (result.success) {
         setSuccessMessage("Session created successfully.");
@@ -305,7 +334,7 @@ export function ManageSessionsDialog({ batchId, batchName }: ManageSessionsDialo
                 </Button>
               </div>
             </div>
-            <form onSubmit={handleAddSessions} className="flex items-end gap-3 pt-2 border-t border-slate-100">
+            <form onSubmit={handleAddSessions} className="flex items-end gap-3 pt-2 border-t border-slate-100 dark:border-slate-700/60">
               <div className="flex-1 max-w-[200px]">
                 <Label htmlFor="addCount" className="text-xs">Number of classes to add</Label>
                 <Input
@@ -362,14 +391,26 @@ export function ManageSessionsDialog({ batchId, batchName }: ManageSessionsDialo
                               <span>Class Session</span>
                             )}
                           </p>
-                          <p className="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1">
-                            {sessionDate.toLocaleDateString("en-US", {
-                              weekday: "short",
-                              year: "numeric",
-                              month: "short",
-                              day: "numeric",
-                            })} &bull; {session.startTime} – {session.endTime}
-                          </p>
+                          <div className="flex flex-wrap items-center gap-2 pt-0.5">
+                            <p className="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1">
+                              {sessionDate.toLocaleDateString("en-US", {
+                                weekday: "short",
+                                year: "numeric",
+                                month: "short",
+                                day: "numeric",
+                              })} &bull; {session.startTime} – {session.endTime}
+                            </p>
+                            {session.coachName && (
+                              <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300 border border-blue-200/50 dark:border-blue-800/50">
+                                Coach: {session.coachName}
+                              </span>
+                            )}
+                            {session.coachPay != null && (
+                              <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300 border border-emerald-200/50 dark:border-emerald-800/50">
+                                ₹{session.coachPay}
+                              </span>
+                            )}
+                          </div>
                         </div>
 
                         <div className="flex items-center gap-3">
@@ -409,7 +450,7 @@ export function ManageSessionsDialog({ batchId, batchName }: ManageSessionsDialo
             </div>
           </div>
 
-          <div className="flex justify-end pt-2 border-t border-slate-100">
+          <div className="flex justify-end pt-2 border-t border-slate-100 dark:border-slate-700/60">
             <Button type="button" variant="secondary" onClick={() => setOpen(false)}>
               Close
             </Button>
@@ -453,9 +494,40 @@ export function ManageSessionsDialog({ batchId, batchName }: ManageSessionsDialo
                 <Label htmlFor="update-lecture-name" className="text-xs font-medium">Lecture Name / Topic</Label>
                 <Input id="update-lecture-name" type="text" value={editLectureName} onChange={(e) => setEditLectureName(e.target.value)} placeholder="e.g. Fundamentals of Chess" />
               </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <Label htmlFor="update-coach" className="text-xs font-medium">Assigned / Substitute Coach</Label>
+                  <Select
+                    id="update-coach"
+                    value={editCoachProfileId}
+                    onChange={(e) => setEditCoachProfileId(e.target.value)}
+                  >
+                    <option value="">
+                      Default ({batchCoachName || "Batch Lead Coach"})
+                    </option>
+                    {coaches.map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.name} {c.id === batchCoachProfileId ? "(Lead Coach)" : "(Substitute)"}
+                      </option>
+                    ))}
+                  </Select>
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="update-pay" className="text-xs font-medium">Session Payout Rate (₹)</Label>
+                  <Input
+                    id="update-pay"
+                    type="number"
+                    min="0"
+                    value={editCoachPay}
+                    onChange={(e) => setEditCoachPay(e.target.value)}
+                    placeholder={defaultPayoutRate != null ? `Default: ₹${defaultPayoutRate}` : "₹ per class"}
+                  />
+                </div>
+              </div>
             </div>
 
-            <div className="flex items-center justify-between pt-4 border-t border-slate-100">
+            <div className="flex items-center justify-between pt-4 border-t border-slate-100 dark:border-slate-700/60">
               <Button
                 type="button"
                 variant="danger"
@@ -491,13 +563,13 @@ export function ManageSessionsDialog({ batchId, batchName }: ManageSessionsDialo
       >
         {selectedSession && (
           <form onSubmit={handleReschedule} className="space-y-5">
-            <div className="space-y-1 pb-3 border-b border-slate-100">
-              <h4 className="text-sm font-semibold text-slate-900">
+            <div className="space-y-1 pb-3 border-b border-slate-100 dark:border-slate-700/60">
+              <h4 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
                 {selectedSession.sessionNumber && selectedSession.lectureName
                   ? `Lecture ${selectedSession.sessionNumber}: ${selectedSession.lectureName}`
                   : "Cancelled Session"}
               </h4>
-              <p className="text-xs text-slate-500">
+              <p className="text-xs text-slate-500 dark:text-slate-400">
                 Change the date and time to restore this cancelled session to SCHEDULED status.
               </p>
             </div>
@@ -520,7 +592,7 @@ export function ManageSessionsDialog({ batchId, batchName }: ManageSessionsDialo
               </div>
             </div>
 
-            <div className="flex justify-end gap-2 pt-4 border-t border-slate-100">
+            <div className="flex justify-end gap-2 pt-4 border-t border-slate-100 dark:border-slate-700/60">
               <Button type="button" variant="ghost" size="sm" onClick={() => setRescheduleDialogOpen(false)} disabled={isPending}>
                 Cancel
               </Button>
@@ -541,8 +613,8 @@ export function ManageSessionsDialog({ batchId, batchName }: ManageSessionsDialo
         className="max-w-md"
       >
         <form onSubmit={handleCreate} className="space-y-5">
-          <div className="space-y-1 pb-3 border-b border-slate-100">
-            <p className="text-xs text-slate-500">
+          <div className="space-y-1 pb-3 border-b border-slate-100 dark:border-slate-700/60">
+            <p className="text-xs text-slate-500 dark:text-slate-400">
               Manually add a session at any specific date and time. It will be checked for scheduling conflicts.
             </p>
           </div>
@@ -574,9 +646,40 @@ export function ManageSessionsDialog({ batchId, batchName }: ManageSessionsDialo
               <Label htmlFor="create-lecture-name" className="text-xs font-medium">Lecture Name / Topic</Label>
               <Input id="create-lecture-name" type="text" value={editLectureName} onChange={(e) => setEditLectureName(e.target.value)} placeholder="e.g. Fundamentals of Chess" />
             </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <Label htmlFor="create-coach" className="text-xs font-medium">Assigned Coach</Label>
+                <Select
+                  id="create-coach"
+                  value={editCoachProfileId}
+                  onChange={(e) => setEditCoachProfileId(e.target.value)}
+                >
+                  <option value="">
+                    Default ({batchCoachName || "Batch Lead Coach"})
+                  </option>
+                  {coaches.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.name} {c.id === batchCoachProfileId ? "(Lead Coach)" : ""}
+                    </option>
+                  ))}
+                </Select>
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="create-pay" className="text-xs font-medium">Session Payout Rate (₹)</Label>
+                <Input
+                  id="create-pay"
+                  type="number"
+                  min="0"
+                  value={editCoachPay}
+                  onChange={(e) => setEditCoachPay(e.target.value)}
+                  placeholder={defaultPayoutRate != null ? `Default: ₹${defaultPayoutRate}` : "₹ per class"}
+                />
+              </div>
+            </div>
           </div>
 
-          <div className="flex justify-end gap-2 pt-4 border-t border-slate-100">
+          <div className="flex justify-end gap-2 pt-4 border-t border-slate-100 dark:border-slate-700/60">
             <Button type="button" variant="ghost" size="sm" onClick={() => setCreateDialogOpen(false)} disabled={isPending}>
               Cancel
             </Button>
@@ -595,8 +698,8 @@ export function ManageSessionsDialog({ batchId, batchName }: ManageSessionsDialo
         className="max-w-md"
       >
         <form onSubmit={handleBulkUpdate} className="space-y-5">
-          <div className="space-y-1 pb-3 border-b border-slate-100">
-            <p className="text-xs text-slate-500">
+          <div className="space-y-1 pb-3 border-b border-slate-100 dark:border-slate-700/60">
+            <p className="text-xs text-slate-500 dark:text-slate-400">
               Update the start and end times for <b>ALL future SCHEDULED</b> sessions of this batch, starting from today.
             </p>
           </div>
@@ -614,7 +717,7 @@ export function ManageSessionsDialog({ batchId, batchName }: ManageSessionsDialo
             </div>
           </div>
 
-          <div className="flex justify-end gap-2 pt-4 border-t border-slate-100">
+          <div className="flex justify-end gap-2 pt-4 border-t border-slate-100 dark:border-slate-700/60">
             <Button type="button" variant="ghost" size="sm" onClick={() => setBulkUpdateDialogOpen(false)} disabled={isPending}>
               Cancel
             </Button>

@@ -27,8 +27,8 @@ export default async function TeacherTicketsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-xl font-bold text-slate-900">Support Tickets</h1>
-        <p className="text-sm text-slate-500">Raise and track your support requests.</p>
+        <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">Support Tickets</h1>
+        <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">Raise and track your support requests.</p>
       </div>
       <TeacherTicketsClient initialTickets={tickets} />
     </div>

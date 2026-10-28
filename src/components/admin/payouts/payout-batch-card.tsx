@@ -16,7 +16,6 @@ type BatchCardProps = {
   monthString: string;
 };
 
-// Represents the return type of getBatchClassLogs roughly
 type ClassLogData = {
   id: string;
   date: Date;
@@ -24,6 +23,7 @@ type ClassLogData = {
   durationMins: number;
   payoutAmount: number;
   attendance: { status: string }[];
+  coach?: { user: { name: string } };
 };
 
 export function PayoutBatchCard({
@@ -91,6 +91,7 @@ export function PayoutBatchCard({
                   <tr>
                     <th className="px-5 py-3">Date</th>
                     <th className="px-5 py-3">Topic</th>
+                    <th className="px-5 py-3">Coach</th>
                     <th className="px-5 py-3">Duration</th>
                     <th className="px-5 py-3">Amount</th>
                     <th className="px-5 py-3 text-center">Attendance</th>
@@ -102,11 +103,14 @@ export function PayoutBatchCard({
                     const totalCount = log.attendance.length;
                     
                     return (
-                      <tr key={log.id} className="hover:bg-slate-50">
-                        <td className="px-5 py-3 font-medium text-slate-700">
+                      <tr key={log.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/40">
+                        <td className="px-5 py-3 font-medium text-slate-700 dark:text-slate-200">
                           {format(new Date(log.date), "dd MMM yyyy")}
                         </td>
                         <td className="px-5 py-3">{log.topicCovered || "—"}</td>
+                        <td className="px-5 py-3 text-slate-800 dark:text-slate-200 font-medium">
+                          {log.coach?.user?.name || "—"}
+                        </td>
                         <td className="px-5 py-3">{log.durationMins} min</td>
                         <td className="px-5 py-3 text-emerald-600 font-medium">₹{log.payoutAmount}</td>
                         <td className="px-5 py-3 text-center text-slate-500">

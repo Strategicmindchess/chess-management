@@ -84,6 +84,8 @@ export const createClassInstanceSchema = z.object({
   endTime: z.string().regex(TIME_REGEX, "Use 24h format, e.g. 17:00."),
   lectureName: z.string().optional().nullable(),
   sessionNumber: z.coerce.number().int().min(1).optional().nullable(),
+  coachProfileId: z.string().optional().nullable(),
+  coachPay: z.coerce.number().int().min(0).optional().nullable(),
 }).refine(data => data.endTime > data.startTime, {
   message: "End time must be after start time.",
   path: ["endTime"],
@@ -96,6 +98,8 @@ export const updateClassInstanceSchema = z.object({
   newEndTime: z.string().regex(TIME_REGEX, "Use 24h format, e.g. 17:00."),
   lectureName: z.string().optional().nullable(),
   sessionNumber: z.coerce.number().int().min(1).optional().nullable(),
+  coachProfileId: z.string().optional().nullable(),
+  coachPay: z.coerce.number().int().min(0).optional().nullable(),
 }).refine(data => data.newEndTime > data.newStartTime, {
   message: "End time must be after start time.",
   path: ["newEndTime"],

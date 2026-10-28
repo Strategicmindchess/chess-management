@@ -128,13 +128,13 @@ export function MarkClassHeldDialog({
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <Label>Date</Label>
-              <div className="p-2 bg-slate-100 rounded-md border border-slate-200 text-sm text-slate-700 font-medium">
+              <div className="p-2 bg-slate-100 dark:bg-slate-800 rounded-md border border-slate-200 dark:border-slate-700 text-sm text-slate-700 dark:text-slate-300 font-medium">
                 {dateStr}
               </div>
             </div>
             <div>
               <Label>Time</Label>
-              <div className="p-2 bg-slate-100 rounded-md border border-slate-200 text-sm text-slate-700 font-medium">
+              <div className="p-2 bg-slate-100 dark:bg-slate-800 rounded-md border border-slate-200 dark:border-slate-700 text-sm text-slate-700 dark:text-slate-300 font-medium">
                 {scheduleStartTime} - {scheduleEndTime}
               </div>
             </div>
@@ -165,16 +165,16 @@ export function MarkClassHeldDialog({
           <div>
             <Label className="mb-2 block">Student Attendance</Label>
             {students.length === 0 ? (
-              <p className="text-sm text-slate-500">No students enrolled.</p>
+              <p className="text-sm text-slate-500 dark:text-slate-400">No students enrolled.</p>
             ) : (
-              <div className="max-h-60 overflow-y-auto rounded-md border border-slate-200">
-                <ul className="divide-y divide-slate-100">
+              <div className="max-h-60 overflow-y-auto rounded-md border border-slate-200 dark:border-slate-700">
+                <ul className="divide-y divide-slate-100 dark:divide-slate-700/60">
                   {students.map((student) => (
                     <li
                       key={student.id}
                       className="flex items-center justify-between px-3 py-2 text-sm"
                     >
-                      <span className="font-medium text-slate-700">
+                      <span className="font-medium text-slate-700 dark:text-slate-200">
                         {student.name}
                       </span>
                       <Button
@@ -189,7 +189,7 @@ export function MarkClassHeldDialog({
                         className={
                           attendance[student.id] === AttendanceStatus.PRESENT
                             ? "bg-emerald-600 hover:bg-emerald-700 focus-visible:outline-emerald-600"
-                            : "text-rose-600 border-rose-200 hover:bg-rose-50 hover:text-rose-700"
+                            : "text-rose-600 border-rose-200 hover:bg-rose-50 hover:text-rose-700 dark:text-rose-400 dark:border-rose-900/50 dark:hover:bg-rose-950/40"
                         }
                       >
                         {attendance[student.id] === AttendanceStatus.PRESENT

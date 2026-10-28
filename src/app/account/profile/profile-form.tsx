@@ -95,8 +95,8 @@ export function ProfileForm({
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       
-      <div className="flex items-center gap-6 pb-6 border-b border-slate-100">
-        <div className="relative h-20 w-20 rounded-full overflow-hidden bg-slate-100 border border-slate-200 shrink-0">
+      <div className="flex items-center gap-6 pb-6 border-b border-slate-100 dark:border-slate-800">
+        <div className="relative h-20 w-20 rounded-full overflow-hidden bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shrink-0">
           {avatarUrl ? (
             <Image src={avatarUrl} alt="Avatar" fill className="object-cover" />
           ) : (
@@ -122,12 +122,12 @@ export function ProfileForm({
               disabled={isUploading}
             />
           </Label>
-          <p className="text-xs text-slate-500 mt-2">JPG, GIF or PNG. Max size of 2MB.</p>
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-2">JPG, GIF or PNG. Max size of 2MB.</p>
         </div>
       </div>
 
       <div className="space-y-4">
-        <h3 className="text-sm font-medium text-slate-900 border-b pb-2">Basic Information</h3>
+        <h3 className="text-sm font-medium text-slate-900 dark:text-white border-b border-slate-100 dark:border-slate-800 pb-2">Basic Information</h3>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div className="space-y-2">
             <Label htmlFor="email">Email <span className="text-red-500 ml-0.5">*</span></Label>
@@ -137,7 +137,7 @@ export function ProfileForm({
               type="email"
               defaultValue={user.email}
               disabled
-              className="bg-slate-50 cursor-not-allowed"
+              className="bg-slate-50 dark:bg-slate-900/60 cursor-not-allowed text-slate-500 dark:text-slate-400"
             />
           </div>
           
@@ -176,7 +176,7 @@ export function ProfileForm({
 
       {user.role === Role.STUDENT && (
         <div className="space-y-4 pt-2">
-          <h3 className="text-sm font-medium text-slate-900 border-b pb-2">Chess Details</h3>
+          <h3 className="text-sm font-medium text-slate-900 dark:text-white border-b border-slate-100 dark:border-slate-800 pb-2">Chess Details</h3>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             
             <div className="space-y-2">
@@ -258,7 +258,7 @@ export function ProfileForm({
 
       {user.role === Role.TEACHER && (
         <div className="space-y-4 pt-2">
-          <h3 className="text-sm font-medium text-slate-900 border-b pb-2">Chess Details</h3>
+          <h3 className="text-sm font-medium text-slate-900 dark:text-white border-b border-slate-100 dark:border-slate-800 pb-2">Chess Details</h3>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div className="space-y-2">
               <Label htmlFor="chessComId">Chess.com ID</Label>
@@ -300,7 +300,7 @@ export function ProfileForm({
 
       {(user.role === Role.STUDENT) && (
         <div className="space-y-4 pt-2">
-          <h3 className="text-sm font-medium text-slate-900 border-b pb-2">Parent Details (Optional)</h3>
+          <h3 className="text-sm font-medium text-slate-900 dark:text-white border-b border-slate-100 dark:border-slate-800 pb-2">Parent Details (Optional)</h3>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div className="space-y-2">
               <Label htmlFor="parentName">Parent Name</Label>
@@ -325,7 +325,7 @@ export function ProfileForm({
 
       {user.role === Role.TEACHER && (
         <div className="space-y-4 pt-2">
-          <h3 className="text-sm font-medium text-slate-900 border-b pb-2">Coach Details</h3>
+          <h3 className="text-sm font-medium text-slate-900 dark:text-white border-b border-slate-100 dark:border-slate-800 pb-2">Coach Details</h3>
           <div className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="experience">Experience Summary</Label>
@@ -342,7 +342,7 @@ export function ProfileForm({
                 id="bio"
                 name="bio"
                 rows={4}
-                className="flex w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm ring-offset-white file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-slate-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                className="flex w-full rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900/50 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 ring-offset-white dark:ring-offset-slate-900 file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-slate-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                 defaultValue={user.coachProfile?.bio || ""}
                 placeholder="Tell students about your coaching style..."
               />

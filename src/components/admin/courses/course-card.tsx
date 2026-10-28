@@ -5,6 +5,7 @@ import { deleteCourse, toggleCoursePublish } from "@/actions/courses/course-acti
 import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 import { useState } from "react";
+import CourseImage from "@/components/common/course-image";
 
 function getLevelBadgeStyle(level: string) {
   if (!level) return "bg-slate-700/60 text-slate-300 border border-slate-600/40";
@@ -40,28 +41,16 @@ export default function CourseCard({ course, onEdit, onManageAccess }: { course:
   };
 
   const iconBtn =
-    "inline-flex h-9 w-9 items-center justify-center rounded-lg border border-white/10 text-slate-300 transition hover:bg-white/10 hover:text-white disabled:opacity-50";
+    "inline-flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-300 transition hover:bg-slate-100 dark:hover:bg-white/10 hover:text-slate-900 dark:hover:text-white disabled:opacity-50";
 
   const lessonCount = course._count?.lessons ?? 0;
 
   return (
-    <div className="group flex flex-col overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-b from-slate-900 to-slate-950 shadow-lg transition hover:-translate-y-0.5 hover:border-indigo-500/40 hover:shadow-indigo-500/10">
+    <div className="group flex flex-col overflow-hidden rounded-2xl border border-slate-200/90 dark:border-white/10 bg-white dark:bg-gradient-to-b dark:from-slate-900 dark:to-slate-950 shadow-sm hover:shadow-md dark:shadow-lg transition hover:-translate-y-0.5 hover:border-indigo-500/40 hover:shadow-indigo-500/10">
 
       {/* Thumbnail — strict 16:9 */}
-      <Link href={`${base}/${course.id}`} className="relative block overflow-hidden bg-slate-800/60" style={{ aspectRatio: "16/9" }}>
-        {course.thumbnailUrl ? (
-          <img
-            src={course.thumbnailUrl}
-            alt={course.title}
-            className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
-            style={{ width: "100%", aspectRatio: "16/9", objectFit: "cover" }}
-          />
-        ) : (
-          <div className="flex h-full w-full flex-col items-center justify-center gap-2 text-slate-500">
-            <ImageOff className="h-8 w-8" />
-            <span className="text-xs">No thumbnail</span>
-          </div>
-        )}
+      <Link href={`${base}/${course.id}`} className="relative block overflow-hidden bg-slate-100 dark:bg-slate-800/60" style={{ aspectRatio: "16/9" }}>
+        <CourseImage src={course.thumbnailUrl} alt={course.title} title={course.title} />
 
         {/* Top-left: Level badge */}
         <div className="absolute left-3 top-3 flex gap-2">
@@ -82,7 +71,7 @@ export default function CourseCard({ course, onEdit, onManageAccess }: { course:
 
         {/* Bottom: Lesson count pill — very prominent */}
         <div className="absolute bottom-3 left-3">
-          <span className="flex items-center gap-1.5 rounded-full bg-black/70 px-3 py-1 text-xs font-bold text-white backdrop-blur border border-white/10">
+          <span className="flex items-center gap-1.5 rounded-full bg-slate-900/80 dark:bg-black/70 px-3 py-1 text-xs font-bold text-white backdrop-blur border border-white/20">
             <BookOpen className="h-3.5 w-3.5 text-indigo-400" />
             {lessonCount} {lessonCount === 1 ? "Lesson" : "Lessons"}
           </span>
@@ -90,34 +79,34 @@ export default function CourseCard({ course, onEdit, onManageAccess }: { course:
 
         {/* Bottom-right: Price pill */}
         <div className="absolute bottom-3 right-3">
-          <span className="rounded-full bg-black/70 px-3 py-1 text-xs font-bold text-white backdrop-blur border border-white/10">
+          <span className="rounded-full bg-slate-900/80 dark:bg-black/70 px-3 py-1 text-xs font-bold text-white backdrop-blur border border-white/20">
             {course.price === 0 ? "Free" : `₹${(course.price / 100).toFixed(0)}`}
           </span>
         </div>
       </Link>
 
       {/* Card body */}
-      <div className="flex flex-1 flex-col p-4 bg-[#0B0F19]">
-        <h3 className="line-clamp-1 text-[17px] font-bold text-white">{course.title}</h3>
-        <p className="mt-1.5 line-clamp-2 flex-1 text-sm text-slate-400 leading-relaxed">{course.description}</p>
+      <div className="flex flex-1 flex-col p-4 bg-white dark:bg-[#0B0F19]">
+        <h3 className="line-clamp-1 text-[17px] font-bold text-slate-900 dark:text-white">{course.title}</h3>
+        <p className="mt-1.5 line-clamp-2 flex-1 text-sm text-slate-600 dark:text-slate-400 leading-relaxed">{course.description}</p>
 
         {/* Stats row */}
-        <div className="mt-3 flex items-center gap-3 text-xs text-slate-400 font-medium">
+        <div className="mt-3 flex items-center gap-3 text-xs text-slate-500 dark:text-slate-400 font-medium">
           <span className="flex items-center gap-1.5">
-            <BookOpen className="h-3.5 w-3.5 text-indigo-400" />
-            <span className="font-bold text-white">{lessonCount}</span> Lessons
+            <BookOpen className="h-3.5 w-3.5 text-indigo-500 dark:text-indigo-400" />
+            <span className="font-bold text-slate-900 dark:text-white">{lessonCount}</span> Lessons
           </span>
           <span className="flex items-center gap-1.5">
             <Clock className="h-3.5 w-3.5" />
             --
           </span>
-          <span className="ml-auto font-bold text-[15px] text-white">
+          <span className="ml-auto font-bold text-[15px] text-slate-900 dark:text-white">
             {course.price === 0 ? "Free" : `₹${(course.price / 100).toFixed(0)}`}
           </span>
         </div>
 
         {/* Action buttons */}
-        <div className="mt-4 flex items-center gap-1 pt-4 border-t border-white/5">
+        <div className="mt-4 flex items-center gap-1 pt-4 border-t border-slate-100 dark:border-white/5">
           <button
             type="button"
             onClick={handleTogglePublish}
@@ -141,7 +130,7 @@ export default function CourseCard({ course, onEdit, onManageAccess }: { course:
             type="button"
             onClick={handleDelete}
             disabled={isDeleting}
-            className={`${iconBtn} hover:!bg-red-500/20 hover:!text-red-400`}
+            className={`${iconBtn} hover:!bg-red-50 dark:hover:!bg-red-500/20 hover:!text-red-600 dark:hover:!text-red-400 hover:!border-red-200 dark:hover:!border-red-500/30`}
             title="Delete"
           >
             <Trash2 className="h-4 w-4" />

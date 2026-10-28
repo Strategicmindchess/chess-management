@@ -122,9 +122,10 @@ export async function submitClassLog(input: SubmitClassLogInput) {
     }
 
     const batch = classInstance.batch;
+    const effectiveCoachId = (classInstance as any).coachProfileId ?? batch.coachProfileId;
 
-    if (!coachProfile || batch.coachProfileId !== coachProfile.id) {
-      return { success: false, error: "You are not assigned to this batch" };
+    if (!coachProfile || effectiveCoachId !== coachProfile.id) {
+      return { success: false, error: "You are not assigned to this class session" };
     }
 
     // 2. Pre-check join event outside the transaction to avoid holding/wasting a transaction
@@ -196,10 +197,11 @@ export async function submitClassLog(input: SubmitClassLogInput) {
             date: classInstance.date,
             topicCovered: data.topicCovered,
             durationMins: data.durationMins,
-            payoutAmount: batch.payoutRate, // Snapshot of current rate
+            payoutAmount: (classInstance as any).coachPay ?? batch.payoutRate, // Snapshot of instance rate (fallback to batch rate)
+            coachClassTaken: coachProfile.id,
             attendanceMarkedAt: new Date(), // Explicitly saved for 24h delay calculation
             coachJoinedAt: firstJoinEvent.joinedAt, 
-          },
+          } as any,
         });
 
         const completedAt = new Date();

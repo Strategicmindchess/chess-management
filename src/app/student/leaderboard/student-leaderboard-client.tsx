@@ -95,7 +95,7 @@ export function StudentLeaderboardClient() {
         <div className="lg:col-span-2 space-y-6">
           {/* Tab navigation — simple link-based */}
           <div>
-            <div className="flex border-b border-slate-200 mb-4">
+            <div className="flex border-b border-slate-200 dark:border-slate-800 mb-4">
               {[
                 { label: 'Monthly', icon: Calendar, id: 'monthly' },
                 { label: 'Weekly', icon: Flame, id: 'weekly' },
@@ -107,7 +107,7 @@ export function StudentLeaderboardClient() {
                   <button
                     key={tab.id}
                     data-tab={tab.id}
-                    className="flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium text-slate-500 border-b-2 border-transparent hover:text-slate-700 hover:border-slate-300 transition-colors first:pl-0"
+                    className="flex items-center gap-1.5 px-4 py-2.5 text-sm font-semibold text-slate-600 dark:text-slate-400 border-b-2 border-transparent hover:text-slate-900 dark:hover:text-white hover:border-brand-500 transition-colors first:pl-0 cursor-pointer"
                   >
                     <Icon className="w-4 h-4" />
                     {tab.label}
@@ -119,12 +119,12 @@ export function StudentLeaderboardClient() {
             {/* Monthly leaderboard */}
             <div id="tab-monthly">
               <div className="flex items-center justify-between mb-3">
-                <h2 className="text-sm font-bold text-slate-700 flex items-center gap-1.5">
-                  <Calendar className="w-4 h-4 text-brand-600" />
+                <h2 className="text-sm font-bold text-slate-900 dark:text-slate-200 flex items-center gap-1.5">
+                  <Calendar className="w-4 h-4 text-brand-600 dark:text-brand-500" />
                   Monthly Leaderboard
                 </h2>
                 {monthlyData.calculatedAt && (
-                  <span className="text-[10px] text-slate-400">
+                  <span className="text-[10px] text-slate-500 dark:text-slate-400">
                     Calculated: {new Date(monthlyData.calculatedAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Kolkata' })}
                   </span>
                 )}

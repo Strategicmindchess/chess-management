@@ -108,10 +108,10 @@ function TestLinksSection() {
   const [expandedIdx, setExpandedIdx] = useState<number | null>(0);
 
   return (
-    <div className="h-[500px] overflow-auto p-4 space-y-3 bg-[#111723]/30">
-      <div className="px-2 pb-2 border-b border-slate-700/50">
-        <h3 className="text-base font-semibold text-white">SMC Test Links</h3>
-        <p className="text-xs text-slate-400 mt-0.5">
+    <div className="h-[500px] overflow-auto p-4 space-y-3 bg-slate-50/50 dark:bg-[#111723]/30">
+      <div className="px-2 pb-2 border-b border-slate-200 dark:border-slate-700/50">
+        <h3 className="text-base font-bold text-slate-900 dark:text-white">SMC Test Links</h3>
+        <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">
           All levels — click any test to open it in a new tab.
         </p>
       </div>
@@ -119,44 +119,44 @@ function TestLinksSection() {
       {SMC_TEST_LEVELS.map((level, idx) => (
         <div
           key={level.level}
-          className="rounded-lg border border-slate-700/50 bg-[#1a1f2e] overflow-hidden"
+          className="rounded-lg border border-slate-200/90 dark:border-slate-700/50 bg-white dark:bg-[#1a1f2e] overflow-hidden shadow-xs"
         >
           <button
             onClick={() => setExpandedIdx(expandedIdx === idx ? null : idx)}
-            className="w-full flex items-center justify-between px-4 py-3 hover:bg-[#1e2538] transition-colors"
+            className="w-full flex items-center justify-between px-4 py-3 hover:bg-slate-50 dark:hover:bg-[#1e2538] transition-colors cursor-pointer"
           >
             <div className="flex items-center gap-2.5">
-              <span className="text-sm font-semibold text-slate-200">
+              <span className="text-sm font-semibold text-slate-900 dark:text-slate-200">
                 {level.level}
               </span>
-              <span className="text-[10px] px-2 py-0.5 bg-brand-600/10 text-brand-400 border border-brand-500/20 rounded-full font-medium">
+              <span className="text-[10px] px-2 py-0.5 bg-brand-50 text-brand-700 border border-brand-200 dark:bg-brand-600/10 dark:text-brand-400 dark:border-brand-500/20 rounded-full font-medium">
                 {level.tests.length} {level.tests.length === 1 ? "test" : "tests"}
               </span>
             </div>
             {expandedIdx === idx ? (
-              <ChevronUp className="h-4 w-4 text-slate-400" />
+              <ChevronUp className="h-4 w-4 text-slate-600 dark:text-slate-400" />
             ) : (
-              <ChevronDown className="h-4 w-4 text-slate-500" />
+              <ChevronDown className="h-4 w-4 text-slate-400 dark:text-slate-500" />
             )}
           </button>
 
           {expandedIdx === idx && (
-            <div className="border-t border-slate-700/50 divide-y divide-slate-700/30">
+            <div className="border-t border-slate-200 dark:border-slate-700/50 divide-y divide-slate-100 dark:divide-slate-700/30">
               {level.tests.map((test) => (
                 <a
                   key={test.url}
                   href={test.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center justify-between px-4 py-2.5 hover:bg-[#111723]/60 transition-colors group"
+                  className="flex items-center justify-between px-4 py-2.5 hover:bg-slate-50/80 dark:hover:bg-[#111723]/60 transition-colors group"
                 >
                   <div className="flex items-center gap-2">
-                    <ExternalLink className="h-3.5 w-3.5 text-brand-500" />
-                    <span className="text-sm text-slate-300 group-hover:text-brand-400 transition-colors">
+                    <ExternalLink className="h-3.5 w-3.5 text-brand-600 dark:text-brand-500" />
+                    <span className="text-sm text-slate-700 dark:text-slate-300 group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors">
                       {test.name}
                     </span>
                   </div>
-                  <span className="text-[11px] text-slate-600 group-hover:text-slate-400 truncate max-w-[200px]">
+                  <span className="text-[11px] text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-400 truncate max-w-[200px]">
                     {test.url.replace("https://", "")}
                   </span>
                 </a>

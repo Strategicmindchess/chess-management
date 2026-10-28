@@ -12,6 +12,9 @@ export type BatchSession = {
   status: string;
   lectureName?: string | null;
   sessionNumber?: number | null;
+  coachProfileId?: string | null;
+  coachPay?: number | null;
+  coachName?: string | null;
 };
 
 /**

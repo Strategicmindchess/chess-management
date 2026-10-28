@@ -45,7 +45,15 @@ export async function getAdminPayoutSummary(monthString: string): Promise<BatchP
           user: true,
         },
       },
-      batch: true,
+      batch: {
+        include: {
+          coach: {
+            include: {
+              user: true,
+            },
+          },
+        },
+      },
     },
   });
 
@@ -53,10 +61,13 @@ export async function getAdminPayoutSummary(monthString: string): Promise<BatchP
 
   for (const log of logs) {
     if (!batchMap.has(log.batchId)) {
+      // Prioritize permanent batch lead coach; fallback to session coach if batch has no coach
+      const batchLeadCoachName = log.batch.coach?.user?.name ?? log.coach.user.name;
+
       batchMap.set(log.batchId, {
         batchId: log.batchId,
         batchName: log.batch.name,
-        coachName: log.coach.user.name,
+        coachName: batchLeadCoachName,
         totalSessions: 0,
         totalPayout: 0,
       });
@@ -85,6 +96,13 @@ export async function getBatchClassLogs(batchId: string, monthString: string) {
     },
     include: {
       attendance: true,
+      coach: {
+        include: {
+          user: {
+            select: { name: true },
+          },
+        },
+      },
     },
     orderBy: {
       date: "asc",

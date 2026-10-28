@@ -5,6 +5,7 @@ import Link from "next/link";
 import { ArrowLeft, Play, Lock, Unlock, Film, Loader2 } from "lucide-react";
 import { getLessonVideoUrl } from "@/actions/courses/lesson-actions";
 import { Dialog } from "@/components/ui/dialog";
+import CourseImage from "@/components/common/course-image";
 
 export default function StudentLessonPlayer({ course, lessons, hasAccess }: { course: any; lessons: any[]; hasAccess: boolean }) {
   const [player, setPlayer] = useState<{ title: string; url: string } | null>(null);
@@ -32,49 +33,43 @@ export default function StudentLessonPlayer({ course, lessons, hasAccess }: { co
 
   return (
     <div className="mx-auto max-w-6xl space-y-6 p-6">
-      <Link href="/student/courses" className="inline-flex items-center gap-2 text-sm text-slate-400 transition hover:text-white">
+      <Link href="/student/courses" className="inline-flex items-center gap-2 text-sm text-slate-500 transition hover:text-slate-900 dark:text-slate-400 dark:hover:text-white">
         <ArrowLeft className="h-4 w-4" /> Back to courses
       </Link>
 
       <div className="flex flex-col gap-6 md:flex-row">
         {/* Left column: Course Details */}
         <div className="md:w-1/3 space-y-4">
-          <div className="aspect-video w-full overflow-hidden rounded-xl bg-slate-800">
-            {course.thumbnailUrl ? (
-              <img src={course.thumbnailUrl} alt={course.title} className="h-full w-full object-cover" />
-            ) : (
-              <div className="flex h-full items-center justify-center text-slate-500">
-                <Film className="h-10 w-10" />
-              </div>
-            )}
+          <div className="aspect-video w-full overflow-hidden rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-white/10 shadow-xs">
+            <CourseImage src={course.thumbnailUrl} alt={course.title} title={course.title} />
           </div>
           
           <div>
             <div className="mb-2 flex items-center gap-2">
               {hasAccess ? (
-                <span className="flex items-center gap-1 rounded-full bg-emerald-500/20 px-2.5 py-0.5 text-[11px] font-bold text-emerald-300">
+                <span className="flex items-center gap-1 rounded-full bg-emerald-500/15 px-2.5 py-0.5 text-[11px] font-bold text-emerald-700 dark:text-emerald-300">
                   <Unlock className="h-3 w-3" /> Enrolled
                 </span>
               ) : (
-                <span className="flex items-center gap-1 rounded-full bg-slate-800 px-2.5 py-0.5 text-[11px] font-semibold text-slate-300 border border-white/10">
+                <span className="flex items-center gap-1 rounded-full bg-slate-100 dark:bg-slate-800 px-2.5 py-0.5 text-[11px] font-semibold text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-white/10">
                   <Lock className="h-3 w-3" /> Locked
                 </span>
               )}
               {course.level && (
-                <span className="rounded-full bg-white/10 px-2.5 py-0.5 text-xs font-semibold text-slate-200">
+                <span className="rounded-full bg-slate-100 dark:bg-white/10 px-2.5 py-0.5 text-xs font-semibold text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-white/5">
                   {course.level.replace(/_/g, " ")}
                 </span>
               )}
             </div>
-            <h1 className="text-2xl font-bold text-white">{course.title}</h1>
-            <p className="mt-2 text-sm text-slate-400 whitespace-pre-wrap">{course.description}</p>
+            <h1 className="text-2xl font-bold text-slate-900 dark:text-white">{course.title}</h1>
+            <p className="mt-2 text-sm text-slate-600 dark:text-slate-400 whitespace-pre-wrap">{course.description}</p>
           </div>
         </div>
 
         {/* Right column: Lessons */}
         <div className="md:w-2/3">
-          <div className="overflow-hidden rounded-2xl border border-white/10 bg-slate-900/60">
-            <div className="border-b border-white/10 bg-slate-900 px-4 py-3 font-semibold text-white">
+          <div className="overflow-hidden rounded-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900/60 shadow-xs">
+            <div className="border-b border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-slate-900 px-4 py-3 font-semibold text-slate-900 dark:text-white">
               Course Content ({lessons.length} lessons)
             </div>
             
@@ -83,28 +78,28 @@ export default function StudentLessonPlayer({ course, lessons, hasAccess }: { co
                 Lessons are being uploaded. Check back later!
               </div>
             ) : (
-              <ul className="divide-y divide-white/5">
+              <ul className="divide-y divide-slate-200 dark:divide-white/5">
                 {lessons.map((lesson) => {
                   const canPlay = hasAccess || lesson.isPreview;
                   const isReady = lesson.status === "READY";
 
                   return (
-                    <li key={lesson.id} className="flex items-center gap-4 p-4 transition hover:bg-white/[0.03]">
-                      <div className="flex h-11 w-11 shrink-0 flex-col items-center justify-center rounded-xl bg-indigo-500/15 text-indigo-300">
+                    <li key={lesson.id} className="flex items-center gap-4 p-4 transition hover:bg-slate-50 dark:hover:bg-white/[0.03]">
+                      <div className="flex h-11 w-11 shrink-0 flex-col items-center justify-center rounded-xl bg-indigo-500/15 text-indigo-600 dark:text-indigo-300">
                         <span className="text-sm font-bold leading-none">{lesson.lessonNumber}</span>
                         <span className="text-[10px] leading-none opacity-70">P{lesson.partNumber}</span>
                       </div>
 
                       <div className="min-w-0 flex-1">
-                        <p className={`truncate font-medium ${canPlay ? "text-white" : "text-slate-400"}`}>
+                        <p className={`truncate font-medium ${canPlay ? "text-slate-900 dark:text-white" : "text-slate-500 dark:text-slate-400"}`}>
                           {lesson.title}
                         </p>
                         <div className="mt-1 flex items-center gap-2 text-xs">
                           {lesson.isPreview && !hasAccess && (
-                            <span className="rounded bg-violet-500/15 px-1.5 py-0.5 text-violet-300 font-medium">Free preview</span>
+                            <span className="rounded bg-violet-500/15 px-1.5 py-0.5 text-violet-700 dark:text-violet-300 font-medium">Free preview</span>
                           )}
                           {!isReady && (
-                            <span className="text-slate-500 italic">Video processing...</span>
+                            <span className="text-slate-400 dark:text-slate-500 italic">Video processing...</span>
                           )}
                         </div>
                       </div>
@@ -114,7 +109,7 @@ export default function StudentLessonPlayer({ course, lessons, hasAccess }: { co
                           <button
                             onClick={() => handlePlay(lesson)}
                             disabled={!isReady || loading === lesson.id}
-                            className="flex items-center justify-center h-10 w-10 rounded-full bg-white/5 text-white transition hover:bg-white/10 hover:scale-105 disabled:opacity-50 disabled:hover:scale-100"
+                            className="flex items-center justify-center h-10 w-10 rounded-full bg-slate-100 hover:bg-slate-200 dark:bg-white/5 text-slate-900 dark:text-white transition dark:hover:bg-white/10 hover:scale-105 disabled:opacity-50 disabled:hover:scale-100 shadow-2xs"
                           >
                             {loading === lesson.id ? (
                               <Loader2 className="h-4 w-4 animate-spin" />
@@ -123,7 +118,7 @@ export default function StudentLessonPlayer({ course, lessons, hasAccess }: { co
                             )}
                           </button>
                         ) : (
-                          <div className="flex items-center justify-center h-10 w-10 rounded-full bg-slate-900 border border-white/5 text-slate-500">
+                          <div className="flex items-center justify-center h-10 w-10 rounded-full bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-white/5 text-slate-400 dark:text-slate-500">
                             <Lock className="h-4 w-4" />
                           </div>
                         )}
