@@ -7,7 +7,11 @@ import { withLogging } from "../../../../lib/api-logger";
 
 export const dynamic = "force-dynamic";
 export let GET = withLogging(async function(req: NextRequest) {
-    await requireRole([Role.ADMIN]);
+    try {
+      await requireRole([Role.ADMIN]);
+    } catch {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
 
     try {
     const [stats, reportDataResponse] = await Promise.all([

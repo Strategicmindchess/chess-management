@@ -6,7 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { MarkClassHeldDialog } from "@/components/coach/mark-class-held-dialog";
 import { startOfDay } from "date-fns";
-import { getISTDayBounds } from "@/lib/timezone";
+import { getISTDayBounds, formatISTDate } from "@/lib/timezone";
 
 export default async function TeacherAttendancePage() {
   const user = await requireRole([Role.TEACHER]);
@@ -21,10 +21,13 @@ export default async function TeacherAttendancePage() {
   // Get all un-marked class instances for this coach up to today (including today's classes)
   const pendingInstances = await prisma.classInstance.findMany({
     where: {
-      batch: { coachProfileId: coachProfile.id, isActive: true },
+      OR: [
+        { coachProfileId: coachProfile.id },
+        { coachProfileId: null, batch: { coachProfileId: coachProfile.id, isActive: true } }
+      ],
       date: { lt: tomorrow },
       status: "SCHEDULED"
-    },
+    } as any,
     include: {
       batch: {
         include: {
@@ -46,8 +49,8 @@ export default async function TeacherAttendancePage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-xl font-semibold text-white">Today's Attendance</h1>
-        <p className="text-sm text-slate-400">
+        <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">Today's Attendance</h1>
+        <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
           Mark attendance for classes held today. You can only submit attendance after the class finishes.
         </p>
       </div>
@@ -61,26 +64,26 @@ export default async function TeacherAttendancePage() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {pendingInstances.map((instance) => {
             const batch = instance.batch;
-            const dateStr = new Date(instance.date).toLocaleDateString("en-US", { weekday: 'long', month: 'short', day: 'numeric' });
+            const dateStr = formatISTDate(instance.date, "EEEE, MMM d");
 
             return (
-              <Card key={instance.id} className="flex flex-col h-full">
+              <Card key={instance.id} className="flex flex-col h-full bg-white dark:bg-[#1a1f2e] border-slate-200/90 dark:border-slate-700/50 shadow-sm">
                 <CardContent className="p-5 flex flex-col h-full">
                   <div className="flex justify-between items-start mb-2">
-                    <h2 className="text-lg font-bold text-white">{batch.name}</h2>
+                    <h2 className="text-lg font-bold text-slate-900 dark:text-white">{batch.name}</h2>
                     <Badge variant="neutral">{batch.code}</Badge>
                   </div>
 
-                  <div className="text-sm text-slate-400 mb-6 flex-grow">
-                    <p className="font-medium text-slate-200">Class Session</p>
+                  <div className="text-sm text-slate-600 dark:text-slate-400 mb-6 flex-grow">
+                    <p className="font-semibold text-slate-800 dark:text-slate-200">Class Session</p>
                     {/* @ts-ignore */}
                     {instance.lectureName && (
-                      <p className="text-brand-400 font-semibold mt-1 mb-1">
+                      <p className="text-brand-600 dark:text-brand-400 font-semibold mt-1 mb-1">
                         {/* @ts-ignore */}
                         📖 {instance.lectureName}
                       </p>
                     )}
-                    <p>{dateStr}</p>
+                    <p className="mt-1">{dateStr}</p>
                     <p>{instance.startTime} - {instance.endTime}</p>
                   </div>
 

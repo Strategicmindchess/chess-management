@@ -36,14 +36,14 @@ function ClaimForm({ onSubmit, loading }: {
   const [form, setForm] = useState({
     fullAddress: "", city: "", state: "", pincode: "", mobileNumber: "", additionalInfo: "",
   });
-  const inp = "w-full rounded-lg border border-slate-700 bg-[#111723] text-slate-200 placeholder:text-slate-500 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500";
+  const inp = "w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#111723] text-slate-900 dark:text-slate-200 placeholder:text-slate-400 dark:placeholder:text-slate-500 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 shadow-xs";
 
   return (
     <form
       onSubmit={e => { e.preventDefault(); onSubmit(form); }}
-      className="mt-4 space-y-3 bg-[#111723]/60 rounded-xl border border-brand-500/20 p-4"
+      className="mt-4 space-y-3 bg-slate-50/80 dark:bg-[#111723]/60 rounded-xl border border-brand-200 dark:border-brand-500/20 p-4 shadow-xs"
     >
-      <p className="text-sm font-semibold text-white mb-3">🏠 Delivery Address</p>
+      <p className="text-sm font-semibold text-slate-900 dark:text-white mb-3">🏠 Delivery Address</p>
       <textarea
         className={`${inp} resize-none`} rows={3}
         placeholder="Full address (house no, street, area...)"
@@ -68,7 +68,7 @@ function ClaimForm({ onSubmit, loading }: {
       <button
         type="submit"
         disabled={loading}
-        className="w-full py-3 bg-brand-600 hover:bg-brand-700 text-white font-semibold rounded-xl text-sm flex items-center justify-center gap-2 disabled:opacity-50"
+        className="w-full py-3 bg-brand-600 hover:bg-brand-700 text-white font-semibold rounded-xl text-sm flex items-center justify-center gap-2 disabled:opacity-50 shadow-sm cursor-pointer"
       >
         {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Gift className="w-4 h-4" />}
         Submit Chocolate Claim 🍫
@@ -105,20 +105,20 @@ export function StudentChocolateCard({ status }: { status: ChocolateStatus }) {
   }
 
   return (
-    <div className={`rounded-2xl border p-5 transition-all ${
+    <div className={`rounded-2xl border p-5 transition-all shadow-xs hover:shadow-md ${
       isEligible
-        ? "border-brand-500/50 bg-gradient-to-br from-brand-900/20 to-amber-900/10"
-        : "border-slate-700/50 bg-[#1a1f2e]"
+        ? "border-amber-300 dark:border-brand-500/50 bg-gradient-to-br from-amber-50 to-orange-50/60 dark:from-brand-900/20 dark:to-amber-900/10"
+        : "border-slate-200/90 dark:border-slate-700/50 bg-white dark:bg-[#1a1f2e]"
     }`}>
       {/* Header */}
       <div className="flex items-center gap-3 mb-4">
         <div className="text-3xl">🍫</div>
         <div>
-          <h3 className="font-bold text-white text-base">Monthly Chocolate Challenge</h3>
-          <p className="text-xs text-slate-400">{status.month}</p>
+          <h3 className="font-bold text-slate-900 dark:text-white text-base">Monthly Chocolate Challenge</h3>
+          <p className="text-xs text-slate-500 dark:text-slate-400">{status.month}</p>
         </div>
         {isEligible && (
-          <span className="ml-auto text-xs font-semibold text-emerald-400 bg-emerald-500/10 border border-emerald-500/30 px-2.5 py-1 rounded-full">
+          <span className="ml-auto text-xs font-semibold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/30 px-2.5 py-1 rounded-full shadow-xs">
             🎉 Eligible!
           </span>
         )}
@@ -127,49 +127,49 @@ export function StudentChocolateCard({ status }: { status: ChocolateStatus }) {
       {/* Points + progress */}
       <div className="mb-4">
         <div className="flex justify-between items-end mb-2">
-          <span className={`text-3xl font-bold ${isEligible ? "text-brand-400" : "text-white"}`}>
+          <span className={`text-3xl font-bold ${isEligible ? "text-amber-600 dark:text-brand-400" : "text-slate-900 dark:text-white"}`}>
             {localTotal}
           </span>
-          <span className="text-slate-400 text-sm">/ {status.maxPoints} marks</span>
+          <span className="text-slate-500 dark:text-slate-400 text-sm font-medium">/ {status.maxPoints} marks</span>
         </div>
-        <div className="w-full bg-slate-700/40 rounded-full h-3 overflow-hidden relative">
+        <div className="w-full bg-slate-100 dark:bg-slate-700/40 rounded-full h-3 overflow-hidden relative shadow-inner">
           <div
             className={`h-3 rounded-full transition-all duration-700 ${
-              isEligible ? "bg-gradient-to-r from-brand-500 to-yellow-400" : "bg-brand-500"
+              isEligible ? "bg-gradient-to-r from-amber-500 to-yellow-400" : "bg-brand-500"
             }`}
             style={{ width: `${pct}%` }}
           />
           {/* Threshold line at 38 */}
           <div
-            className="absolute top-0 h-3 w-0.5 bg-white/60"
+            className="absolute top-0 h-3 w-0.5 bg-slate-400 dark:bg-white/60"
             style={{ left: `${(status.rewardThreshold / status.maxPoints) * 100}%` }}
           />
         </div>
-        <div className="flex justify-between mt-1 text-[10px] text-slate-500">
+        <div className="flex justify-between mt-1 text-[10px] text-slate-500 font-medium">
           <span>0</span>
-          <span className="text-brand-400/80">{status.rewardThreshold} 🍫</span>
+          <span className="text-amber-600 dark:text-brand-400/80 font-bold">{status.rewardThreshold} 🍫</span>
           <span>{status.maxPoints}</span>
         </div>
       </div>
 
       {/* Status row */}
       <div className="grid grid-cols-2 gap-2 mb-4">
-        <div className="bg-[#111723]/60 rounded-lg p-2.5 text-center">
-          <p className="text-xs text-slate-400">Today's marks</p>
+        <div className="bg-slate-50 dark:bg-[#111723]/60 border border-slate-200/80 dark:border-transparent rounded-xl p-2.5 text-center shadow-xs">
+          <p className="text-xs text-slate-500 dark:text-slate-400">Today's marks</p>
           <p className={`font-bold text-sm mt-0.5 ${
             status.todayRecord
-              ? status.todayRecord.points > 0 ? "text-emerald-400" : "text-rose-400"
-              : "text-slate-500"
+              ? status.todayRecord.points > 0 ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"
+              : "text-slate-400 dark:text-slate-500"
           }`}>
             {status.todayRecord
               ? (status.todayRecord.points > 0 ? `+${status.todayRecord.points}` : status.todayRecord.points)
               : "Not marked"}
           </p>
         </div>
-        <div className="bg-[#111723]/60 rounded-lg p-2.5 text-center">
-          <p className="text-xs text-slate-400">Status</p>
+        <div className="bg-slate-50 dark:bg-[#111723]/60 border border-slate-200/80 dark:border-transparent rounded-xl p-2.5 text-center shadow-xs">
+          <p className="text-xs text-slate-500 dark:text-slate-400">Status</p>
           <p className={`font-bold text-xs mt-0.5 ${
-            isEligible ? "text-emerald-400" : "text-slate-300"
+            isEligible ? "text-emerald-600 dark:text-emerald-400" : "text-slate-700 dark:text-slate-300"
           }`}>
             {isEligible ? "🍫 Chocolate Unlocked" : needMore > 0 ? `${needMore} more to go` : "In progress"}
           </p>
@@ -182,8 +182,8 @@ export function StudentChocolateCard({ status }: { status: ChocolateStatus }) {
           {claimed ? (
             <div>
               <div className={`flex items-center gap-2 px-4 py-3 rounded-xl border text-sm font-medium ${
-                CLAIM_STATUS_LABEL[localStatus]?.color ?? "text-slate-300"
-              } bg-[#111723]/60 border-slate-700/50`}>
+                CLAIM_STATUS_LABEL[localStatus]?.color ?? "text-slate-700 dark:text-slate-300"
+              } bg-slate-50 dark:bg-[#111723]/60 border-slate-200 dark:border-slate-700/50 shadow-xs`}>
                 <CheckCircle2 className="w-4 h-4 shrink-0" />
                 <span>{CLAIM_STATUS_LABEL[localStatus]?.label ?? localStatus}</span>
                 {ticketNo && <span className="text-xs text-slate-500 ml-auto">#{ticketNo.slice(-6)}</span>}
@@ -193,7 +193,7 @@ export function StudentChocolateCard({ status }: { status: ChocolateStatus }) {
             <>
               <button
                 onClick={() => setShowForm(v => !v)}
-                className="w-full py-3 bg-gradient-to-r from-brand-600 to-yellow-600 hover:from-brand-700 hover:to-yellow-700 text-white font-bold rounded-xl text-sm flex items-center justify-center gap-2 shadow-lg"
+                className="w-full py-3 bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 text-white font-bold rounded-xl text-sm flex items-center justify-center gap-2 shadow-md cursor-pointer"
               >
                 <Gift className="w-4 h-4" />
                 Claim Chocolate 🍫
@@ -209,7 +209,7 @@ export function StudentChocolateCard({ status }: { status: ChocolateStatus }) {
         <div>
           <button
             onClick={() => setShowHistory(v => !v)}
-            className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-slate-200 transition-colors"
+            className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors cursor-pointer"
           >
             <Trophy className="w-3.5 h-3.5" />
             Previous months
@@ -218,9 +218,9 @@ export function StudentChocolateCard({ status }: { status: ChocolateStatus }) {
           {showHistory && (
             <div className="mt-2 space-y-1.5">
               {status.history.map(h => (
-                <div key={h.month} className="flex justify-between items-center bg-[#111723]/40 rounded-lg px-3 py-2 text-xs">
-                  <span className="text-slate-400">{h.month}</span>
-                  <span className="font-semibold text-slate-200">{h.totalPoints}/{status.maxPoints}</span>
+                <div key={h.month} className="flex justify-between items-center bg-slate-50 dark:bg-[#111723]/40 border border-slate-200/60 dark:border-transparent rounded-lg px-3 py-2 text-xs">
+                  <span className="text-slate-500 dark:text-slate-400">{h.month}</span>
+                  <span className="font-semibold text-slate-800 dark:text-slate-200">{h.totalPoints}/{status.maxPoints}</span>
                   <span>{h.isEligible ? "🍫" : "—"}</span>
                 </div>
               ))}

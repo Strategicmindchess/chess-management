@@ -84,7 +84,7 @@ export function UsersTable({
               type="text"
               name="query"
               placeholder="Search by name or email..."
-              className="flex h-10 w-full rounded-md border border-slate-700 bg-slate-900/50 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 disabled:cursor-not-allowed disabled:opacity-50"
+              className="flex h-10 w-full rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900/50 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-slate-900 disabled:cursor-not-allowed disabled:opacity-50"
               value={searchValue}
               onChange={(e) => {
                 setSearchValue(e.target.value);
@@ -100,7 +100,7 @@ export function UsersTable({
             <Button type="submit" variant="secondary">Search</Button>
           </form>
         </div>
-        <div className="overflow-x-auto rounded-xl border border-slate-700/50">
+        <div className="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-700/50">
           <Table>
             <TableHead>
               <tr>
@@ -119,36 +119,36 @@ export function UsersTable({
               {users.map((user) => (
                 <TableRow
                   key={user.id}
-                  className="cursor-pointer transition-colors group"
+                  className="cursor-pointer transition-colors group hover:bg-slate-50/80 dark:hover:bg-slate-800/40"
                   onClick={() => handleRowClick(user)}
                 >
                   {/* Name with loading spinner */}
                   <TableCell>
                     <div className="flex items-center gap-2">
                       {navigatingId === user.id ? (
-                        <Loader2 className="h-4 w-4 animate-spin text-brand-400 shrink-0" />
+                        <Loader2 className="h-4 w-4 animate-spin text-brand-600 dark:text-brand-400 shrink-0" />
                       ) : (
                         <span className="h-4 w-4 shrink-0" />
                       )}
-                      <span className="font-semibold text-white group-hover:text-brand-400 transition-colors">
+                      <span className="font-semibold text-slate-900 dark:text-white group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors">
                         {user.name}
                       </span>
                     </div>
                   </TableCell>
-                  <TableCell className="text-slate-300">{user.email}</TableCell>
-                  <TableCell className="text-slate-400">{user.phone || "—"}</TableCell>
+                  <TableCell className="text-slate-600 dark:text-slate-300">{user.email}</TableCell>
+                  <TableCell className="text-slate-500 dark:text-slate-400">{user.phone || "—"}</TableCell>
                   <TableCell>
                     <Badge variant="brand">{ROLE_LABEL[user.role]}</Badge>
                   </TableCell>
-                  <TableCell className="text-slate-300">{user.city || "—"}</TableCell>
-                  <TableCell className="text-slate-300 font-mono text-xs">
+                  <TableCell className="text-slate-600 dark:text-slate-300">{user.city || "—"}</TableCell>
+                  <TableCell className="text-slate-600 dark:text-slate-300 font-mono text-xs">
                     {user.chessComRating ? (
-                      <span className="text-emerald-400 font-semibold">{user.chessComRating}</span>
+                      <span className="text-emerald-600 dark:text-emerald-400 font-semibold">{user.chessComRating}</span>
                     ) : "—"}
                   </TableCell>
-                  <TableCell className="text-slate-300 font-mono text-xs">
+                  <TableCell className="text-slate-600 dark:text-slate-300 font-mono text-xs">
                     {user.lichessRating ? (
-                      <span className="text-blue-400 font-semibold">{user.lichessRating}</span>
+                      <span className="text-blue-600 dark:text-blue-400 font-semibold">{user.lichessRating}</span>
                     ) : "—"}
                   </TableCell>
                   <TableCell>

@@ -52,20 +52,20 @@ function ProgressBar({
   const heights = { sm: "h-1.5", md: "h-2.5", lg: "h-3.5" };
 
   return (
-    <div className={`w-full bg-slate-800 rounded-full overflow-hidden relative ${heights[size]}`}>
+    <div className={`w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden relative ${heights[size]}`}>
       <div
         className={`${heights[size]} rounded-full transition-all duration-700 ease-out ${
           isEligible
             ? "bg-gradient-to-r from-emerald-500 to-yellow-400 shadow-[0_0_8px_rgba(52,211,153,0.6)]"
             : value > 20
             ? "bg-gradient-to-r from-brand-500 to-brand-400"
-            : "bg-slate-600"
+            : "bg-slate-400 dark:bg-slate-600"
         }`}
         style={{ width: `${pct}%` }}
       />
       {/* Chocolate threshold marker */}
       <div
-        className="absolute top-0 bottom-0 w-0.5 bg-white/50"
+        className="absolute top-0 bottom-0 w-0.5 bg-slate-400/50 dark:bg-white/50"
         style={{ left: `${thresholdPct}%` }}
         title={`Chocolate threshold: ${threshold}`}
       />
@@ -114,8 +114,8 @@ function StudentMarkCard({
     <div
       className={`relative rounded-2xl border p-5 transition-all duration-300 overflow-hidden ${
         isEligible
-          ? "border-emerald-500/40 bg-gradient-to-br from-emerald-900/20 to-[#1a1f2e] shadow-[0_0_30px_rgba(52,211,153,0.08)]"
-          : "border-slate-700/50 bg-[#1a1f2e] hover:border-slate-600/70"
+          ? "border-emerald-300 dark:border-emerald-500/40 bg-gradient-to-br from-emerald-50/80 to-white dark:from-emerald-900/20 dark:to-[#1a1f2e] shadow-xs dark:shadow-[0_0_30px_rgba(52,211,153,0.08)]"
+          : "border-slate-200 dark:border-slate-700/50 bg-white dark:bg-[#1a1f2e] hover:border-slate-300 dark:hover:border-slate-600/70 shadow-xs"
       }`}
     >
       {/* Eligible glow accent */}
@@ -130,17 +130,17 @@ function StudentMarkCard({
           <div
             className={`w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold border shrink-0 ${
               isEligible
-                ? "bg-emerald-500/20 border-emerald-500/40 text-emerald-400"
-                : "bg-slate-700/50 border-slate-600/50 text-slate-300"
+                ? "bg-emerald-100 dark:bg-emerald-500/20 border-emerald-300 dark:border-emerald-500/40 text-emerald-700 dark:text-emerald-400"
+                : "bg-slate-100 dark:bg-slate-700/50 border-slate-200 dark:border-slate-600/50 text-slate-700 dark:text-slate-300"
             }`}
           >
             {student.studentName.charAt(0).toUpperCase()}
           </div>
           <div>
-            <p className="font-semibold text-white text-sm leading-tight">
+            <p className="font-semibold text-slate-900 dark:text-white text-sm leading-tight">
               {student.studentName}
             </p>
-            <p className="text-[11px] text-slate-500 mt-0.5 flex items-center gap-1">
+            <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 flex items-center gap-1">
               <Users className="w-3 h-3" /> {student.batchName}
             </p>
           </div>
@@ -148,11 +148,11 @@ function StudentMarkCard({
 
         {/* Status badge */}
         {isEligible ? (
-          <span className="shrink-0 flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-emerald-400 bg-emerald-500/10 border border-emerald-500/30 px-2.5 py-1 rounded-full">
+          <span className="shrink-0 flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-emerald-700 dark:text-emerald-400 bg-emerald-100/80 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/30 px-2.5 py-1 rounded-full">
             🍫 Eligible
           </span>
         ) : needMore > 0 ? (
-          <span className="shrink-0 text-[10px] text-slate-500 bg-slate-800/60 border border-slate-700/50 px-2.5 py-1 rounded-full">
+          <span className="shrink-0 text-[10px] text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/50 px-2.5 py-1 rounded-full font-medium">
             {needMore} more to 🍫
           </span>
         ) : null}
@@ -164,16 +164,16 @@ function StudentMarkCard({
           <div>
             <span
               className={`text-2xl font-bold tabular-nums ${
-                isEligible ? "text-emerald-400" : "text-white"
+                isEligible ? "text-emerald-600 dark:text-emerald-400" : "text-slate-900 dark:text-white"
               }`}
             >
               {localTotal}
             </span>
-            <span className="text-slate-500 text-sm ml-1">
+            <span className="text-slate-500 dark:text-slate-400 text-sm ml-1">
               / {student.maxPoints}
             </span>
           </div>
-          <span className="text-xs text-slate-500">
+          <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">
             {Math.round((localTotal / student.maxPoints) * 100)}%
           </span>
         </div>
@@ -183,9 +183,9 @@ function StudentMarkCard({
           threshold={student.rewardThreshold}
           size="md"
         />
-        <div className="flex justify-between mt-1.5 text-[10px] text-slate-600">
+        <div className="flex justify-between mt-1.5 text-[10px] text-slate-500 dark:text-slate-400">
           <span>0</span>
-          <span className="text-amber-500/70">{student.rewardThreshold} 🍫</span>
+          <span className="text-amber-600 dark:text-amber-500/70 font-medium">{student.rewardThreshold} 🍫</span>
           <span>{student.maxPoints}</span>
         </div>
       </div>
@@ -254,29 +254,29 @@ function StudentMarkCard({
 function RulesPanel() {
   const [open, setOpen] = useState(false);
   return (
-    <div className="rounded-2xl border border-amber-500/20 bg-amber-500/5 overflow-hidden">
+    <div className="rounded-2xl border border-amber-200 dark:border-amber-500/20 bg-amber-50/70 dark:bg-amber-500/5 overflow-hidden">
       <button
         onClick={() => setOpen((v) => !v)}
-        className="w-full flex items-center gap-3 p-4 text-left"
+        className="w-full flex items-center gap-3 p-4 text-left cursor-pointer"
       >
-        <div className="w-8 h-8 rounded-lg bg-amber-500/20 flex items-center justify-center border border-amber-500/30 shrink-0">
-          <Info className="w-4 h-4 text-amber-400" />
+        <div className="w-8 h-8 rounded-lg bg-amber-100 dark:bg-amber-500/20 flex items-center justify-center border border-amber-200 dark:border-amber-500/30 shrink-0">
+          <Info className="w-4 h-4 text-amber-700 dark:text-amber-400" />
         </div>
         <div className="flex-1">
-          <p className="text-sm font-semibold text-amber-300">Marking Rules</p>
-          <p className="text-xs text-slate-500">
+          <p className="text-sm font-semibold text-amber-900 dark:text-amber-300">Marking Rules</p>
+          <p className="text-xs text-slate-600 dark:text-slate-500">
             How the chocolate challenge works
           </p>
         </div>
         {open ? (
-          <ChevronUp className="w-4 h-4 text-amber-400" />
+          <ChevronUp className="w-4 h-4 text-amber-700 dark:text-amber-400" />
         ) : (
-          <ChevronDown className="w-4 h-4 text-amber-400" />
+          <ChevronDown className="w-4 h-4 text-amber-700 dark:text-amber-400" />
         )}
       </button>
 
       {open && (
-        <div className="px-4 pb-4 grid grid-cols-1 sm:grid-cols-2 gap-3 border-t border-amber-500/10 pt-3">
+        <div className="px-4 pb-4 grid grid-cols-1 sm:grid-cols-2 gap-3 border-t border-amber-200 dark:border-amber-500/10 pt-3">
           {[
             {
               icon: "✅",
@@ -311,14 +311,14 @@ function RulesPanel() {
           ].map((r) => (
             <div
               key={r.label}
-              className="flex items-start gap-2 bg-[#1a1f2e]/60 rounded-lg p-3"
+              className="flex items-start gap-2 bg-white/80 dark:bg-[#1a1f2e]/60 border border-amber-200/60 dark:border-transparent rounded-lg p-3"
             >
               <span className="text-lg shrink-0">{r.icon}</span>
               <div>
-                <p className="text-xs font-semibold text-slate-200">
+                <p className="text-xs font-semibold text-slate-900 dark:text-slate-200">
                   {r.label}
                 </p>
-                <p className="text-[11px] text-slate-500 mt-0.5">{r.desc}</p>
+                <p className="text-[11px] text-slate-600 dark:text-slate-500 mt-0.5">{r.desc}</p>
               </div>
             </div>
           ))}
@@ -388,57 +388,57 @@ export function ChocolateChallengeClient({
       {/* ── Page Header ── */}
       <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
         <div>
-          <p className="text-xs font-bold tracking-widest text-amber-500/70 uppercase mb-2 flex items-center gap-2">
+          <p className="text-xs font-bold tracking-widest text-amber-600 dark:text-amber-500/70 uppercase mb-2 flex items-center gap-2">
             <Gift className="w-3.5 h-3.5" /> Monthly Challenge
           </p>
-          <h1 className="text-3xl font-bold tracking-tight text-white flex items-center gap-2">
+          <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2">
             🍫 Chocolate Challenge
           </h1>
-          <p className="text-slate-400 mt-2 text-sm">
+          <p className="text-slate-600 dark:text-slate-400 mt-2 text-sm">
             Award marks to students for correct question answers.
             Reach 38 marks to unlock a chocolate reward.
           </p>
         </div>
-        <div className="flex items-center gap-2 bg-[#1a1f2e] border border-slate-700/50 rounded-xl px-4 py-2">
-          <Calendar className="w-4 h-4 text-amber-400" />
-          <span className="text-sm font-semibold text-white">{currentMonth}</span>
+        <div className="flex items-center gap-2 bg-white dark:bg-[#1a1f2e] border border-slate-200 dark:border-slate-700/50 rounded-xl px-4 py-2 shadow-xs">
+          <Calendar className="w-4 h-4 text-amber-500 dark:text-amber-400" />
+          <span className="text-sm font-semibold text-slate-900 dark:text-white">{currentMonth}</span>
         </div>
       </div>
 
       {/* ── Stats Row ── */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="bg-[#1a1f2e] border border-slate-700/50 rounded-2xl p-4">
+        <div className="bg-white dark:bg-[#1a1f2e] border border-slate-200 dark:border-slate-700/50 rounded-2xl p-4 shadow-xs">
           <div className="flex items-center gap-2 mb-2">
-            <Users className="w-4 h-4 text-slate-400" />
-            <p className="text-xs text-slate-400 font-medium uppercase tracking-wider">Students</p>
+            <Users className="w-4 h-4 text-slate-500 dark:text-slate-400" />
+            <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold uppercase tracking-wider">Students</p>
           </div>
-          <p className="text-3xl font-bold text-white">{totalStudents}</p>
+          <p className="text-3xl font-bold text-slate-900 dark:text-white">{totalStudents}</p>
         </div>
 
-        <div className="bg-emerald-500/5 border border-emerald-500/20 rounded-2xl p-4">
+        <div className="bg-emerald-50 dark:bg-emerald-500/5 border border-emerald-200 dark:border-emerald-500/20 rounded-2xl p-4 shadow-xs">
           <div className="flex items-center gap-2 mb-2">
-            <Gift className="w-4 h-4 text-emerald-400" />
-            <p className="text-xs text-emerald-400/80 font-medium uppercase tracking-wider">Eligible 🍫</p>
+            <Gift className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+            <p className="text-xs text-emerald-700 dark:text-emerald-400/80 font-semibold uppercase tracking-wider">Eligible 🍫</p>
           </div>
-          <p className="text-3xl font-bold text-emerald-400">{eligibleCount}</p>
+          <p className="text-3xl font-bold text-emerald-700 dark:text-emerald-400">{eligibleCount}</p>
         </div>
 
-        <div className="bg-brand-500/5 border border-brand-500/20 rounded-2xl p-4">
+        <div className="bg-brand-50 dark:bg-brand-500/5 border border-brand-200 dark:border-brand-500/20 rounded-2xl p-4 shadow-xs">
           <div className="flex items-center gap-2 mb-2">
-            <CheckCircle2 className="w-4 h-4 text-brand-400" />
-            <p className="text-xs text-brand-400/80 font-medium uppercase tracking-wider">Marked Today</p>
+            <CheckCircle2 className="w-4 h-4 text-brand-600 dark:text-brand-400" />
+            <p className="text-xs text-brand-700 dark:text-brand-400/80 font-semibold uppercase tracking-wider">Marked Today</p>
           </div>
-          <p className="text-3xl font-bold text-brand-400">{markedTodayCount}</p>
-          <p className="text-[11px] text-slate-600 mt-0.5">of {totalStudents}</p>
+          <p className="text-3xl font-bold text-brand-700 dark:text-brand-400">{markedTodayCount}</p>
+          <p className="text-[11px] text-slate-500 dark:text-slate-500 mt-0.5">of {totalStudents}</p>
         </div>
 
-        <div className="bg-amber-500/5 border border-amber-500/20 rounded-2xl p-4">
+        <div className="bg-amber-50 dark:bg-amber-500/5 border border-amber-200 dark:border-amber-500/20 rounded-2xl p-4 shadow-xs">
           <div className="flex items-center gap-2 mb-2">
-            <TrendingUp className="w-4 h-4 text-amber-400" />
-            <p className="text-xs text-amber-400/80 font-medium uppercase tracking-wider">Avg Marks</p>
+            <TrendingUp className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+            <p className="text-xs text-amber-700 dark:text-amber-400/80 font-semibold uppercase tracking-wider">Avg Marks</p>
           </div>
-          <p className="text-3xl font-bold text-amber-400">{avgMarks}</p>
-          <p className="text-[11px] text-slate-600 mt-0.5">out of 40</p>
+          <p className="text-3xl font-bold text-amber-700 dark:text-amber-400">{avgMarks}</p>
+          <p className="text-[11px] text-slate-500 dark:text-slate-500 mt-0.5">out of 40</p>
         </div>
       </div>
 
@@ -449,13 +449,13 @@ export function ChocolateChallengeClient({
       <div className="flex flex-col sm:flex-row gap-3">
         {/* Search */}
         <div className="relative flex-1 max-w-sm">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 dark:text-slate-500" />
           <input
             type="text"
             placeholder="Search student or batch..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full bg-[#1a1f2e] border border-slate-700 text-white rounded-xl pl-9 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 placeholder:text-slate-600"
+            className="w-full bg-white dark:bg-[#1a1f2e] border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white rounded-xl pl-9 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 placeholder:text-slate-400 dark:placeholder:text-slate-600 shadow-xs"
           />
         </div>
 
@@ -465,10 +465,10 @@ export function ChocolateChallengeClient({
             <button
               key={f}
               onClick={() => setFilter(f)}
-              className={`px-4 py-2 rounded-xl text-sm font-medium border transition-all capitalize ${
+              className={`px-4 py-2 rounded-xl text-sm font-semibold border transition-all capitalize cursor-pointer ${
                 filter === f
-                  ? "bg-brand-600 border-brand-500 text-white shadow-lg shadow-brand-900/30"
-                  : "bg-[#1a1f2e] border-slate-700 text-slate-400 hover:border-slate-500 hover:text-white"
+                  ? "bg-brand-600 border-brand-500 text-white shadow-xs"
+                  : "bg-white dark:bg-[#1a1f2e] border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-400 hover:border-slate-300 dark:hover:border-slate-500 hover:text-slate-900 dark:hover:text-white shadow-xs"
               }`}
             >
               {f === "all"

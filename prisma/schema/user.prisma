@@ -96,6 +96,7 @@ model CoachProfile {
   coachFeedbackGiven    CoachFeedback[]           @relation("CoachGivenFeedback")
   tournamentScoresGiven TournamentScore[]         @relation("CoachTournament")
   batches               Batch[]                   @relation("BatchCoach")
+  classInstances        ClassInstance[]           @relation("ClassInstanceCoach")
   chocolateQuestions    ChocolateQuestionRecord[] @relation("CoachChocolateQuestions")
   joinEvents            ClassJoinEvent[]
   classLogs             ClassLog[]

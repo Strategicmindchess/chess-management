@@ -92,7 +92,8 @@ export let POST = withLogging(async function(req: NextRequest) {
     if (!classInstance) {
     return NextResponse.json({ error: "Class instance not found" }, { status: 404 });
     }
-    if (classInstance.batch.coachProfileId !== coach.id) {
+    const effectiveCoachId = (classInstance as any).coachProfileId ?? classInstance.batch.coachProfileId;
+    if (effectiveCoachId !== coach.id) {
     return NextResponse.json({ error: "You can only reschedule classes assigned to you" }, { status: 403 });
     }
 

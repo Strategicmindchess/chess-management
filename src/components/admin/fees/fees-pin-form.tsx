@@ -11,7 +11,7 @@ export function FeesPinForm() {
   return (
     <div className="flex min-h-[60vh] items-center justify-center">
       <div
-        className="w-full max-w-sm rounded-2xl border border-slate-200 bg-white p-8 shadow-lg"
+        className="w-full max-w-sm rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#1a1f2e] p-8 shadow-lg"
         style={{ fontFamily: "'Inter', sans-serif" }}
       >
         {/* Icon */}
@@ -25,12 +25,12 @@ export function FeesPinForm() {
         </div>
 
         <h1
-          className="mb-1 text-center text-lg font-semibold text-slate-900"
+          className="mb-1 text-center text-lg font-semibold text-slate-900 dark:text-white"
           style={{ fontFamily: "'Fraunces', serif" }}
         >
           Student Ledger
         </h1>
-        <p className="mb-6 text-center text-sm text-slate-500">
+        <p className="mb-6 text-center text-sm text-slate-500 dark:text-slate-400">
           Enter the admin PIN to access fee records.
         </p>
 
@@ -38,7 +38,7 @@ export function FeesPinForm() {
           <div>
             <label
               htmlFor="pin"
-              className="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-500"
+              className="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400"
             >
               PIN
             </label>
@@ -49,13 +49,13 @@ export function FeesPinForm() {
               autoFocus
               autoComplete="off"
               placeholder="••••••"
-              className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm text-slate-900 outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100"
+              className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2.5 text-sm text-slate-900 dark:text-white outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100 dark:focus:ring-emerald-950"
               style={{ fontFamily: "'JetBrains Mono', monospace", letterSpacing: "0.15em" }}
             />
           </div>
 
           {state?.error && (
-            <p className="rounded-lg bg-red-50 px-3 py-2 text-sm font-medium text-red-600">
+            <p className="rounded-lg bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900/50 px-3 py-2 text-sm font-medium text-red-600 dark:text-red-400">
               {state.error}
             </p>
           )}

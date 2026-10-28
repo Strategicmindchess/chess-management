@@ -441,11 +441,11 @@ export function FeesLedger({ initialConfigs, availableStudents, availableBatches
 
       {/* Period Bar */}
       <div className="flex items-center gap-3 mb-4 relative z-10">
-        <button onClick={() => setPeriod(shiftMonthKey(period, -1))} className="w-7 h-7 rounded border border-gray-300 dark:border-slate-700 bg-white dark:bg-[#11141c]/90 dark:backdrop-blur-xl hover:bg-gray-50 dark:bg-slate-900/50 cursor-pointer flex items-center justify-center text-lg text-gray-600 dark:text-gray-300">‹</button>
-        <span className="font-mono text-sm font-medium min-w-[90px] text-center text-gray-700">{monthLabel(period)}</span>
-        <button onClick={() => setPeriod(shiftMonthKey(period, 1))} className="w-7 h-7 rounded border border-gray-300 dark:border-slate-700 bg-white dark:bg-[#11141c]/90 dark:backdrop-blur-xl hover:bg-gray-50 dark:bg-slate-900/50 cursor-pointer flex items-center justify-center text-lg text-gray-600 dark:text-gray-300">›</button>
+        <button onClick={() => setPeriod(shiftMonthKey(period, -1))} className="w-7 h-7 rounded border border-gray-300 dark:border-slate-700 bg-white dark:bg-[#11141c]/90 dark:backdrop-blur-xl hover:bg-gray-50 dark:hover:bg-slate-800 cursor-pointer flex items-center justify-center text-lg text-gray-600 dark:text-gray-300">‹</button>
+        <span className="font-mono text-sm font-medium min-w-[90px] text-center text-gray-700 dark:text-gray-200">{monthLabel(period)}</span>
+        <button onClick={() => setPeriod(shiftMonthKey(period, 1))} className="w-7 h-7 rounded border border-gray-300 dark:border-slate-700 bg-white dark:bg-[#11141c]/90 dark:backdrop-blur-xl hover:bg-gray-50 dark:hover:bg-slate-800 cursor-pointer flex items-center justify-center text-lg text-gray-600 dark:text-gray-300">›</button>
         {period !== monthKey(new Date()) && (
-          <button onClick={() => setPeriod(monthKey(new Date()))} className="text-xs text-blue-600 bg-transparent border-none cursor-pointer font-semibold underline hover:text-blue-800 ml-2">Today</button>
+          <button onClick={() => setPeriod(monthKey(new Date()))} className="text-xs text-blue-600 dark:text-blue-400 bg-transparent border-none cursor-pointer font-semibold underline hover:text-blue-800 ml-2">Today</button>
         )}
       </div>
 
@@ -453,9 +453,9 @@ export function FeesLedger({ initialConfigs, availableStudents, availableBatches
       <div className="grid grid-cols-4 gap-3 mb-4 relative z-10">
         {[
           { label: "Students", value: filtered.length, color: "text-gray-900 dark:text-white" },
-          { label: "Paid", value: paid, color: "text-green-600" },
-          { label: "Unpaid", value: unpaid, color: "text-red-600" },
-          { label: "Collected", value: `₹${revenue.toLocaleString("en-IN")}`, color: "text-amber-600" },
+          { label: "Paid", value: paid, color: "text-green-600 dark:text-green-400" },
+          { label: "Unpaid", value: unpaid, color: "text-red-600 dark:text-red-400" },
+          { label: "Collected", value: `₹${revenue.toLocaleString("en-IN")}`, color: "text-amber-600 dark:text-amber-400" },
         ].map((card) => (
           <div key={card.label} className="bg-white dark:bg-[#11141c]/90 dark:backdrop-blur-xl border border-gray-200 dark:border-slate-800 rounded-xl p-3 text-center shadow-sm">
             <div className={`font-serif text-lg font-semibold ${card.color}`}>{card.value}</div>
@@ -504,9 +504,9 @@ export function FeesLedger({ initialConfigs, availableStudents, availableBatches
           return (
             <div key={c.id} className="bg-white dark:bg-[#11141c]/90 dark:backdrop-blur-xl border border-gray-200 dark:border-slate-800 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow">
               {/* Card header */}
-              <div onClick={() => setExpanded((p) => ({ ...p, [c.id]: !p[c.id] }))} className="flex items-center justify-between p-3.5 cursor-pointer hover:bg-gray-50 dark:bg-slate-900/50 transition-colors">
+              <div onClick={() => setExpanded((p) => ({ ...p, [c.id]: !p[c.id] }))} className="flex items-center justify-between p-3.5 cursor-pointer hover:bg-gray-50 dark:hover:bg-slate-800/50 transition-colors">
                 <div className="flex items-center gap-3 min-w-0">
-                  <div className="w-10 h-10 rounded-lg bg-gray-100 text-gray-900 dark:text-white flex items-center justify-center font-serif font-bold text-lg shrink-0">
+                  <div className="w-10 h-10 rounded-lg bg-gray-100 dark:bg-slate-800 text-gray-900 dark:text-white flex items-center justify-center font-serif font-bold text-lg shrink-0">
                     {(s.user.name.trim().charAt(0) || "?").toUpperCase()}
                   </div>
                   <div>
@@ -515,14 +515,14 @@ export function FeesLedger({ initialConfigs, availableStudents, availableBatches
                       {batchCode ? `Batch ${batchCode} • ` : ""}
                       {s.level ? `${LEVEL_LABELS[s.level] ?? s.level} • ` : ""}
                       {coachName ? `Coach ${coachName} • ` : ""}
-                      <span className={`font-semibold ${isBatch ? "text-amber-600" : "text-blue-600"}`}>{isBatch ? "Batch-based" : "Monthly"}</span>
+                      <span className={`font-semibold ${isBatch ? "text-amber-600 dark:text-amber-400" : "text-blue-600 dark:text-blue-400"}`}>{isBatch ? "Batch-based" : "Monthly"}</span>
                     </div>
                   </div>
                 </div>
                 <div className="flex items-center gap-3 shrink-0">
                   <button
                     onClick={(e) => { e.stopPropagation(); if (active) toggleCycleStatus(c.id, active); }}
-                    className={`border-none rounded-full px-3 py-1.5 text-xs font-bold cursor-pointer transition-colors ${status === "PAID" ? "bg-green-100 text-green-700 hover:bg-green-200" : status === "WAIVED" ? "bg-gray-100 text-gray-600 dark:text-gray-300 hover:bg-gray-200" : overdue ? "bg-red-100 text-red-700 hover:bg-red-200" : "bg-amber-100 text-amber-700 hover:bg-amber-200"}`}>
+                    className={`border-none rounded-full px-3 py-1.5 text-xs font-bold cursor-pointer transition-colors ${status === "PAID" ? "bg-green-100 dark:bg-green-950/40 text-green-700 dark:text-green-300 hover:bg-green-200" : status === "WAIVED" ? "bg-gray-100 dark:bg-slate-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200" : overdue ? "bg-red-100 dark:bg-red-950/40 text-red-700 dark:text-red-300 hover:bg-red-200" : "bg-amber-100 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 hover:bg-amber-200"}`}>
                     {status === "PAID" ? "Paid" : status === "WAIVED" ? "Waived" : overdue ? "Overdue" : "Unpaid"}
                   </button>
                   <span className={`text-gray-400 text-sm transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}>▼</span>
@@ -531,7 +531,7 @@ export function FeesLedger({ initialConfigs, availableStudents, availableBatches
 
               {/* Expanded detail */}
               {isOpen && (
-                <div className="border-t border-gray-100 p-4 bg-gray-50 dark:bg-slate-900/50">
+                <div className="border-t border-gray-100 dark:border-slate-800 p-4 bg-gray-50 dark:bg-slate-900/50">
                   {/* Info grid */}
                   <div className="grid grid-cols-2 gap-4 mb-4">
                     {[
@@ -622,8 +622,8 @@ export function FeesLedger({ initialConfigs, availableStudents, availableBatches
 
                   {/* Actions */}
                   <div className="flex gap-2 justify-end">
-                    <button onClick={() => openEdit(c)} className="flex items-center gap-1.5 bg-white dark:bg-[#11141c]/90 dark:backdrop-blur-xl border border-gray-200 dark:border-slate-800 rounded-md px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50 dark:bg-slate-900/50 shadow-sm cursor-pointer transition-colors">✎ Edit</button>
-                    <button onClick={() => setDeleteTarget(c)} className="flex items-center gap-1.5 bg-white dark:bg-[#11141c]/90 dark:backdrop-blur-xl border border-red-200 rounded-md px-3 py-1.5 text-xs font-semibold text-red-600 hover:bg-red-50 shadow-sm cursor-pointer transition-colors">🗑 Delete</button>
+                    <button onClick={() => openEdit(c)} className="flex items-center gap-1.5 bg-white dark:bg-[#11141c]/90 dark:backdrop-blur-xl border border-gray-200 dark:border-slate-800 rounded-md px-3 py-1.5 text-xs font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-800 shadow-sm cursor-pointer transition-colors">✎ Edit</button>
+                    <button onClick={() => setDeleteTarget(c)} className="flex items-center gap-1.5 bg-white dark:bg-[#11141c]/90 dark:backdrop-blur-xl border border-red-200 dark:border-red-900/40 rounded-md px-3 py-1.5 text-xs font-semibold text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 shadow-sm cursor-pointer transition-colors">🗑 Delete</button>
                   </div>
                 </div>
               )}
@@ -698,7 +698,7 @@ export function FeesLedger({ initialConfigs, availableStudents, availableBatches
           </Field>
           {addError && <p className="text-red-600 text-xs">{addError}</p>}
           <div className="flex gap-2 justify-end mt-2">
-            <button onClick={() => setAddOpen(false)} className="bg-gray-100 hover:bg-gray-200 text-gray-800 dark:text-gray-200 border-none rounded-lg px-4 py-2.5 text-sm font-semibold cursor-pointer transition-colors">Cancel</button>
+            <button onClick={() => setAddOpen(false)} className="bg-gray-100 hover:bg-gray-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-800 dark:text-gray-200 border-none rounded-lg px-4 py-2.5 text-sm font-semibold cursor-pointer transition-colors">Cancel</button>
             <button onClick={submitAdd} disabled={addLoading} className="bg-blue-600 hover:bg-blue-700 text-white border-none rounded-lg px-4 py-2.5 text-sm font-semibold cursor-pointer transition-colors disabled:opacity-50 disabled:cursor-not-allowed">{addLoading ? "Adding…" : "Add student"}</button>
           </div>
         </div>
@@ -749,7 +749,7 @@ export function FeesLedger({ initialConfigs, availableStudents, availableBatches
           </Field>
           {editError && <p className="text-red-600 text-xs">{editError}</p>}
           <div className="flex gap-2 justify-end mt-2">
-            <button onClick={() => setEditTarget(null)} className="bg-gray-100 hover:bg-gray-200 text-gray-800 dark:text-gray-200 border-none rounded-lg px-4 py-2.5 text-sm font-semibold cursor-pointer transition-colors">Cancel</button>
+            <button onClick={() => setEditTarget(null)} className="bg-gray-100 hover:bg-gray-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-800 dark:text-gray-200 border-none rounded-lg px-4 py-2.5 text-sm font-semibold cursor-pointer transition-colors">Cancel</button>
             <button onClick={submitEdit} disabled={editLoading} className="bg-blue-600 hover:bg-blue-700 text-white border-none rounded-lg px-4 py-2.5 text-sm font-semibold cursor-pointer transition-colors disabled:opacity-50 disabled:cursor-not-allowed">{editLoading ? "Saving…" : "Save changes"}</button>
           </div>
         </div>
@@ -806,7 +806,7 @@ export function FeesLedger({ initialConfigs, availableStudents, availableBatches
           </Field>
           {cycleError && <p className="text-red-600 text-xs">{cycleError}</p>}
           <div className="flex gap-2 justify-end mt-2">
-            <button onClick={() => setAddCycleTarget(null)} className="bg-gray-100 hover:bg-gray-200 text-gray-800 dark:text-gray-200 border-none rounded-lg px-4 py-2.5 text-sm font-semibold cursor-pointer transition-colors">Cancel</button>
+            <button onClick={() => setAddCycleTarget(null)} className="bg-gray-100 hover:bg-gray-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-800 dark:text-gray-200 border-none rounded-lg px-4 py-2.5 text-sm font-semibold cursor-pointer transition-colors">Cancel</button>
             <button onClick={submitCycle} disabled={cycleLoading} className="bg-blue-600 hover:bg-blue-700 text-white border-none rounded-lg px-4 py-2.5 text-sm font-semibold cursor-pointer transition-colors disabled:opacity-50 disabled:cursor-not-allowed">{cycleLoading ? "Adding…" : "Add cycle"}</button>
           </div>
         </div>
@@ -818,7 +818,7 @@ export function FeesLedger({ initialConfigs, availableStudents, availableBatches
           This removes their fee configuration and all payment cycles. Student account is not deleted.
         </p>
         <div className="flex gap-3 justify-end">
-          <button onClick={() => setDeleteTarget(null)} className="bg-gray-100 hover:bg-gray-200 text-gray-800 dark:text-gray-200 border-none rounded-lg px-4 py-2.5 text-sm font-semibold cursor-pointer transition-colors">Cancel</button>
+          <button onClick={() => setDeleteTarget(null)} className="bg-gray-100 hover:bg-gray-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-800 dark:text-gray-200 border-none rounded-lg px-4 py-2.5 text-sm font-semibold cursor-pointer transition-colors">Cancel</button>
           <button onClick={async () => { if (deleteTarget) { await deleteConfig(deleteTarget.id); setDeleteTarget(null); } }} className="bg-red-600 hover:bg-red-700 text-white border-none rounded-lg px-4 py-2.5 text-sm font-semibold cursor-pointer transition-colors">Delete</button>
         </div>
       </Modal>
@@ -839,7 +839,7 @@ function Modal({ open, onClose, title, children }: { open: boolean; onClose: () 
       <div className="bg-white dark:bg-[#11141c]/90 dark:backdrop-blur-xl rounded-t-2xl sm:rounded-2xl p-5 w-full max-w-md max-h-[90vh] overflow-y-auto shadow-xl animate-in slide-in-from-bottom-4 sm:slide-in-from-bottom-0 sm:zoom-in-95 duration-200">
         <div className="flex justify-between items-center mb-5">
           <div className="font-serif font-semibold text-xl text-gray-900 dark:text-white">{title}</div>
-          <button onClick={onClose} className="w-8 h-8 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-600 dark:text-gray-300 flex items-center justify-center transition-colors cursor-pointer border-none">✕</button>
+          <button onClick={onClose} className="w-8 h-8 rounded-lg bg-gray-100 hover:bg-gray-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-600 dark:text-gray-300 flex items-center justify-center transition-colors cursor-pointer border-none">✕</button>
         </div>
         {children}
       </div>

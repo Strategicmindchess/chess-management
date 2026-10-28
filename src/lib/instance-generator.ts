@@ -131,6 +131,8 @@ export async function generateInstancesInternal(
     status: 'SCHEDULED';
     lectureName: string | null;
     sessionNumber: number | null;
+    coachProfileId?: string | null;
+    coachPay?: number | null;
   }[] = [];
 
   let currentDate = new Date(startDate);
@@ -166,6 +168,8 @@ export async function generateInstancesInternal(
           status: 'SCHEDULED',
           lectureName,
           sessionNumber: currentSession, // 1-based exact index
+          coachProfileId: batch.coachProfileId ?? null,
+          coachPay: batch.payoutRate ?? 0,
         });
 
         currentSession++;       // Move to the next lecture for the next generated class
@@ -180,7 +184,7 @@ export async function generateInstancesInternal(
 
   // ── 5. Save to Database ────────────────────────────────────────────────────
   if (newInstances.length > 0) {
-    await prisma.classInstance.createMany({ data: newInstances });
+    await prisma.classInstance.createMany({ data: newInstances as any });
   }
 }
 

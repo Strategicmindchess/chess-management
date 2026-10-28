@@ -89,14 +89,36 @@ export async function abortMultipartUpload(key: string, uploadId: string) {
 
 export async function getPresignedUrlFromPublicUrl(publicUrl: string | null) {
   if (!publicUrl) return null;
-  const base =
-    process.env.S3_PUBLIC_BASE_URL ||
-    `${(process.env.S3_ENDPOINT_URL || "https://t3.storageapi.dev").replace(/\/$/, "")}/${BUCKET_NAME}`;
-  const prefix = `${base.replace(/\/$/, "")}/`;
-  
-  if (publicUrl.startsWith(prefix)) {
-    const key = publicUrl.substring(prefix.length);
-    return await generateDownloadUrl(key);
+  try {
+    let key: string | null = null;
+    const bucketMarker = `/${BUCKET_NAME}/`;
+
+    if (publicUrl.includes(bucketMarker)) {
+      key = publicUrl.substring(publicUrl.indexOf(bucketMarker) + bucketMarker.length);
+    } else if (publicUrl.includes("/thumbnails/")) {
+      key = publicUrl.substring(publicUrl.indexOf("thumbnails/"));
+    } else if (publicUrl.includes("/videos/")) {
+      key = publicUrl.substring(publicUrl.indexOf("videos/"));
+    } else if (publicUrl.startsWith("thumbnails/") || publicUrl.startsWith("videos/")) {
+      key = publicUrl;
+    } else {
+      const base =
+        process.env.S3_PUBLIC_BASE_URL ||
+        `${(process.env.S3_ENDPOINT_URL || "https://t3.storageapi.dev").replace(/\/$/, "")}/${BUCKET_NAME}`;
+      const prefix = `${base.replace(/\/$/, "")}/`;
+      
+      if (publicUrl.startsWith(prefix)) {
+        key = publicUrl.substring(prefix.length);
+      }
+    }
+
+    if (key) {
+      key = key.split("?")[0].split("#")[0];
+      key = decodeURIComponent(key);
+      return await generateDownloadUrl(key);
+    }
+  } catch (err) {
+    console.error("Failed to generate presigned URL for:", publicUrl, err);
   }
   return publicUrl;
 }

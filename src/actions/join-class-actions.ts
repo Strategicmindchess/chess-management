@@ -21,8 +21,9 @@ export async function recordClassJoinTime(classInstanceId: string) {
       throw new Error("Class instance not found");
     }
 
-    if (!instance.batch.coachProfileId) {
-      throw new Error("No coach assigned to this batch");
+    const effectiveCoachProfileId = (instance as any).coachProfileId || instance.batch.coachProfileId;
+    if (!effectiveCoachProfileId) {
+      throw new Error("No coach assigned to this class");
     }
 
     const now = new Date();
@@ -33,7 +34,7 @@ export async function recordClassJoinTime(classInstanceId: string) {
       await tx.classJoinEvent.create({
         data: {
           classInstanceId,
-          coachProfileId: instance.batch.coachProfileId!,
+          coachProfileId: effectiveCoachProfileId,
           joinedAt: now,
           source: "JOIN_BUTTON",
         },

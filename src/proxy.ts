@@ -43,7 +43,6 @@ export async function proxy(request: NextRequest) {
   const requestId = request.headers.get('x-request-id') || crypto.randomUUID();
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set('x-request-id', requestId);
-  requestHeaders.set('x-invoke-path', pathname);
 
   // Import logger and log incoming request
   const { logger } = await import('@/lib/logger');

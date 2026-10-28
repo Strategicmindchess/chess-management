@@ -94,12 +94,12 @@ export function TeacherCoachLeaderboardClient() {
       {/* Score breakdown legend */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {[
-          { label: "Student Performance", max: 100, color: "text-blue-600 bg-blue-50" },
-          { label: "Student Feedback", max: 200, color: "text-violet-600 bg-violet-50" },
-          { label: "Class Quality", max: 100, color: "text-emerald-600 bg-emerald-50" },
-          { label: "Management Points", max: 100, color: "text-amber-600 bg-amber-50" },
+          { label: "Student Performance", max: 100, color: "text-blue-700 bg-blue-50 dark:bg-blue-950/30 dark:text-blue-300 border border-blue-200/60 dark:border-blue-900/40" },
+          { label: "Student Feedback", max: 200, color: "text-violet-700 bg-violet-50 dark:bg-violet-950/30 dark:text-violet-300 border border-violet-200/60 dark:border-violet-900/40" },
+          { label: "Class Quality", max: 100, color: "text-emerald-700 bg-emerald-50 dark:bg-emerald-950/30 dark:text-emerald-300 border border-emerald-200/60 dark:border-emerald-900/40" },
+          { label: "Management Points", max: 100, color: "text-amber-700 bg-amber-50 dark:bg-amber-950/30 dark:text-amber-300 border border-amber-200/60 dark:border-amber-900/40" },
         ].map((item) => (
-          <div key={item.label} className={`rounded-xl p-3 ${item.color} dark:bg-opacity-10 dark:text-opacity-80`}>
+          <div key={item.label} className={`rounded-xl p-3 ${item.color} shadow-xs`}>
             <p className="text-xs font-semibold">{item.label}</p>
             <p className="text-lg font-bold">/{item.max}</p>
           </div>
@@ -112,10 +112,10 @@ export function TeacherCoachLeaderboardClient() {
           <Loader2 className="w-8 h-8 animate-spin text-brand-500" />
         </div>
       ) : entries.length === 0 ? (
-        <Card>
+        <Card className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800">
           <CardContent className="py-12 text-center">
-            <Users className="w-10 h-10 text-slate-300 mx-auto mb-3" />
-            <p className="text-slate-500 text-sm">No leaderboard data for {month}.</p>
+            <Users className="w-10 h-10 text-slate-300 dark:text-slate-600 mx-auto mb-3" />
+            <p className="text-slate-500 dark:text-slate-400 text-sm">No leaderboard data for {month}.</p>
           </CardContent>
         </Card>
       ) : (
@@ -124,7 +124,7 @@ export function TeacherCoachLeaderboardClient() {
             return (
               <div
                 key={entry.coachProfileId}
-                className={`rounded-xl border p-4 transition-all shadow-sm ${RANK_STYLES[entry.rank] ?? "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800"}`}
+                className={`rounded-xl border p-4 transition-all shadow-xs ${RANK_STYLES[entry.rank] ?? "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800"}`}
               >
                 <div className="flex items-center justify-between gap-4">
                   {/* Rank + Name */}
@@ -140,20 +140,20 @@ export function TeacherCoachLeaderboardClient() {
                   {/* Score bars */}
                   <div className="hidden sm:flex items-center gap-2 md:gap-4 text-center flex-shrink-0">
                     <div className="w-16">
-                      <p className="text-xs text-slate-400">Perf</p>
-                      <p className="font-bold text-blue-700">{entry.studentPerfScore}<span className="text-slate-400 font-normal">/100</span></p>
+                      <p className="text-xs text-slate-500 dark:text-slate-400">Perf</p>
+                      <p className="font-bold text-blue-700 dark:text-blue-400">{entry.studentPerfScore}<span className="text-slate-400 font-normal">/100</span></p>
                     </div>
                     <div className="w-20">
-                      <p className="text-xs text-slate-400">Feedback</p>
-                      <p className="font-bold text-violet-700">{entry.studentFeedScore}<span className="text-slate-400 font-normal">/200</span></p>
+                      <p className="text-xs text-slate-500 dark:text-slate-400">Feedback</p>
+                      <p className="font-bold text-violet-700 dark:text-violet-400">{entry.studentFeedScore}<span className="text-slate-400 font-normal">/200</span></p>
                     </div>
                     <div className="w-16">
-                      <p className="text-xs text-slate-400">Quality</p>
-                      <p className="font-bold text-emerald-700">{entry.classQualityScore}<span className="text-slate-400 font-normal">/100</span></p>
+                      <p className="text-xs text-slate-500 dark:text-slate-400">Quality</p>
+                      <p className="font-bold text-emerald-700 dark:text-emerald-400">{entry.classQualityScore}<span className="text-slate-400 font-normal">/100</span></p>
                     </div>
                     <div className="w-16">
-                      <p className="text-xs text-slate-400">Mgmt</p>
-                      <p className={`font-bold ${entry.managementPoints > 0 ? "text-amber-700" : "text-slate-400"}`}>
+                      <p className="text-xs text-slate-500 dark:text-slate-400">Mgmt</p>
+                      <p className={`font-bold ${entry.managementPoints > 0 ? "text-amber-700 dark:text-amber-400" : "text-slate-400"}`}>
                         {entry.managementPoints}<span className="text-slate-400 font-normal">/100</span>
                       </p>
                     </div>
