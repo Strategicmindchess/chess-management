@@ -20,6 +20,7 @@ import { prisma } from '@/lib/prisma';
 import { redis, redisDel } from '@/lib/redis';
 import type { LeaderboardCalcJobData } from './leaderboard.queues';
 import { logger } from '@/lib/logger';
+import { getCurrentPeriod } from '@/lib/leaderboard-period';
 
 // ──────────────────────────────────────────────────────────────────────────────
 // Score calculation (pure functions)
@@ -82,11 +83,21 @@ function calcBulletPenalty(bulletGames: number, ultraBulletGames: number): numbe
 // ──────────────────────────────────────────────────────────────────────────────
 
 export async function processLeaderboardCalc(job: Job<LeaderboardCalcJobData>) {
-  const { periodType, periodStart: periodStartStr, periodEnd: periodEndStr, studentProfileId } = job.data;
+  const periodType = job.data?.periodType || 'MONTHLY';
+  const studentProfileId = job.data?.studentProfileId;
+  let periodStart: Date;
+  let periodEnd: Date;
+
+  if (job.data?.periodStart && job.data?.periodEnd) {
+    periodStart = new Date(job.data.periodStart);
+    periodEnd = new Date(job.data.periodEnd);
+  } else {
+    const current = getCurrentPeriod(periodType);
+    periodStart = current.periodStart;
+    periodEnd = current.periodEnd;
+  }
+  const periodStartStr = periodStart.toISOString();
   await job.log(`Started Leaderboard Calculation (Period: ${periodType})`);
-  
-  const periodStart = new Date(periodStartStr);
-  const periodEnd = new Date(periodEndStr);
 
   console.log(`[LeaderboardCalcWorker] Calculating ${periodType} leaderboard for period ${periodStartStr}`);
 
@@ -197,27 +208,52 @@ export async function processLeaderboardCalc(job: Job<LeaderboardCalcJobData>) {
   let processedCount = 0;
   for (const student of allActiveStudents) {
     const sid = student.id;
-    const snap = snapshotMap.get(sid) ?? null;
+    let snap: any = snapshotMap.get(sid) ?? null;
 
     if (!snap) {
-      await job.log(`Skipping student ${student.user.name || sid} - no snapshot found.`);
-      continue;
+      snap = await prisma.chessActivitySnapshot.upsert({
+        where: {
+          studentProfileId_periodType_periodStart: {
+            studentProfileId: sid,
+            periodType,
+            periodStart,
+          },
+        },
+        create: {
+          studentProfileId: sid,
+          periodType,
+          periodStart,
+          periodEnd,
+          rapidGames: 0,
+          blitzGames: 0,
+          classicalGames: 0,
+          bulletGames: 0,
+          ultraBulletGames: 0,
+          rapidWins: 0,
+          blitzWins: 0,
+          classicalWins: 0,
+          puzzleAttempts: 0,
+          puzzleSolved: 0,
+          streakDays: 0,
+        },
+        update: {},
+      });
     }
 
     // Chess scores: 0 if no snapshot
-    const rapidClassicalPoints = calcRapidClassicalPoints(snap.rapidGames, snap.classicalGames);
-    const blitzPoints = calcBlitzPoints(snap.blitzGames);
-    const puzzlePoints = calcPuzzlePoints(snap.puzzleSolved);
-    const winRateBonus = calcWinRateBonus(snap.rapidGames, snap.rapidWins, snap.blitzGames, snap.blitzWins);
-    const puzzleAccuracyBonus = calcPuzzleAccuracyBonus(snap.puzzleAttempts, snap.puzzleSolved);
-    const ratingBonus = calcRatingBonus(snap.rapidRatingStart, snap.rapidRatingEnd);
+    const rapidClassicalPoints = snap ? calcRapidClassicalPoints(snap.rapidGames, snap.classicalGames) : 0;
+    const blitzPoints = snap ? calcBlitzPoints(snap.blitzGames) : 0;
+    const puzzlePoints = snap ? calcPuzzlePoints(snap.puzzleSolved) : 0;
+    const winRateBonus = snap ? calcWinRateBonus(snap.rapidGames, snap.rapidWins, snap.blitzGames, snap.blitzWins) : 0;
+    const puzzleAccuracyBonus = snap ? calcPuzzleAccuracyBonus(snap.puzzleAttempts, snap.puzzleSolved) : 0;
+    const ratingBonus = snap ? calcRatingBonus(snap.rapidRatingStart, snap.rapidRatingEnd) : 0;
 
     // Streak: max of CC and Lichess streaks from StudentChessStats
     const chessStats = chessStatsMap.get(sid);
     const liveStreak = Math.max(chessStats?.ccStreak ?? 0, chessStats?.liStreak ?? 0);
-    const consistencyBonus = calcConsistencyBonus(liveStreak);
+    const consistencyBonus = snap ? calcConsistencyBonus(liveStreak) : 0;
 
-    const bulletPenalty = calcBulletPenalty(snap.bulletGames, snap.ultraBulletGames);
+    const bulletPenalty = snap ? calcBulletPenalty(snap.bulletGames, snap.ultraBulletGames) : 0;
 
     const coachFeedback = feedbackMap.get(sid) ?? 0;
     const attendance = attendanceMap.get(sid) ?? 0;

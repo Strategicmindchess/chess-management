@@ -68,18 +68,56 @@ Promise.all([
       queues: ['batch-queue', 'chess-fetch-queue', 'leaderboard-calc-queue', 'log-cleanup-queue', 'attendance-summary-queue', 'assignment-summary-queue', 'penalty-queue', 'whatsapp-queue'],
     }, 'All BullMQ workers running — listening for jobs');
 
-    // Register daily repeatable job for penalty processing (runs every 24 hours at 02:00 UTC)
+    // Register repeatable jobs
     try {
-      const { penaltyQueue } = await import('./src/workers/leaderboard.queues');
+      const { penaltyQueue, attendanceSummaryQueue, assignmentSummaryQueue, leaderboardCalcQueue } = await import('./src/workers/leaderboard.queues');
       const { JOB_NAMES } = await import('./src/lib/leaderboard-config');
+
+      // Daily penalty processing at 02:00 UTC
       await penaltyQueue.add(
         JOB_NAMES.PROCESS_PENALTIES,
         {},
         { repeat: { pattern: '0 2 * * *' }, jobId: 'daily-penalty-job' }
       );
       logger.info('Penalty repeatable job registered (daily at 02:00 UTC)');
+
+      // Clean up any legacy hourly repeatable jobs from Redis
+      try {
+        const [attR, asgR, lbR] = await Promise.all([
+          attendanceSummaryQueue.getRepeatableJobs(),
+          assignmentSummaryQueue.getRepeatableJobs(),
+          leaderboardCalcQueue.getRepeatableJobs(),
+        ]);
+        for (const j of attR) if (j.id?.includes('hourly')) await attendanceSummaryQueue.removeRepeatableByKey(j.key);
+        for (const j of asgR) if (j.id?.includes('hourly')) await assignmentSummaryQueue.removeRepeatableByKey(j.key);
+        for (const j of lbR) if (j.id?.includes('hourly')) await leaderboardCalcQueue.removeRepeatableByKey(j.key);
+      } catch (cleanErr) {
+        logger.warn({ error: String(cleanErr) }, 'Could not clean up legacy hourly repeatable jobs');
+      }
+
+      // Daily attendance summary sync (at 02:15 UTC)
+      await attendanceSummaryQueue.add(
+        JOB_NAMES.CALC_ATTENDANCE,
+        { periodType: 'MONTHLY' } as any,
+        { repeat: { pattern: '15 2 * * *' }, jobId: 'daily-attendance-monthly' }
+      );
+
+      // Daily assignment summary sync (at 02:15 UTC)
+      await assignmentSummaryQueue.add(
+        JOB_NAMES.CALC_ASSIGNMENT,
+        { periodType: 'MONTHLY' } as any,
+        { repeat: { pattern: '15 2 * * *' }, jobId: 'daily-assignment-monthly' }
+      );
+
+      // Daily leaderboard score recalculation (at 02:30 UTC)
+      await leaderboardCalcQueue.add(
+        JOB_NAMES.CALC_LEADERBOARD,
+        { periodType: 'MONTHLY' } as any,
+        { repeat: { pattern: '30 2 * * *' }, jobId: 'daily-leaderboard-monthly' }
+      );
+      logger.info('Daily repeatable jobs registered (attendance & assignments at 02:15 UTC, leaderboard at 02:30 UTC)');
     } catch (err) {
-      logger.warn({ error: String(err) }, 'Failed to register penalty repeatable job');
+      logger.warn({ error: String(err) }, 'Failed to register repeatable jobs');
     }
 
     // Log queue depths every 5 minutes

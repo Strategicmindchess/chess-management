@@ -7,6 +7,7 @@ import Link from "next/link";
 import { updateAssignmentStatus } from "@/actions/assignment-actions";
 import { Select } from "@/components/ui/select";
 import { useRouter } from "next/navigation";
+import { invalidateStudentMyClasses } from "@/hooks/use-student-my-classes";
 
 export function StudentAssignmentCard({ assignment }: { assignment: any }) {
   const [isUpdating, setIsUpdating] = useState(false);
@@ -21,6 +22,7 @@ export function StudentAssignmentCard({ assignment }: { assignment: any }) {
     );
 
     if (result.success) {
+      await invalidateStudentMyClasses();
       router.refresh();
     } else {
       alert(result.error || "Failed to update assignment status.");
@@ -94,4 +96,3 @@ export function StudentAssignmentCard({ assignment }: { assignment: any }) {
     </Card>
   );
 }
-

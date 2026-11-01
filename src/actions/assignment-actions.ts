@@ -3,6 +3,8 @@
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/dal";
 import { Role } from "@/lib/enums";
+import { revalidatePath } from "next/cache";
+import { getCurrentPeriod } from "@/lib/leaderboard-period";
 
 export async function getStudentAssignments() {
   const user = await getCurrentUser();
@@ -130,6 +132,29 @@ export async function updateAssignmentStatus(
       },
     });
 
+    // Revalidate paths so cached UI updates immediately
+    revalidatePath("/student");
+    revalidatePath("/student/my-classes");
+
+    // Recalculate assignment summary and leaderboard asynchronously in background
+    try {
+      const { assignmentSummaryQueue, leaderboardCalcQueue } = await import("@/workers/leaderboard.queues");
+      const { periodStart, periodEnd } = getCurrentPeriod("MONTHLY");
+      await assignmentSummaryQueue.add("calc-assignment", {
+        periodType: "MONTHLY",
+        periodStart: periodStart.toISOString(),
+        periodEnd: periodEnd.toISOString(),
+      });
+      await leaderboardCalcQueue.add("calc-leaderboard", {
+        periodType: "MONTHLY",
+        periodStart: periodStart.toISOString(),
+        periodEnd: periodEnd.toISOString(),
+        studentProfileId: profile.id,
+      }, { delay: 2000 });
+    } catch (qErr) {
+      console.warn("Could not queue leaderboard refresh after assignment update:", qErr);
+    }
+
     return { success: true, data: updated };
   } catch (error: any) {
     console.error("Error updating assignment status:", error);
@@ -238,4 +263,3 @@ export async function getAssignmentReport() {
     return { success: false, error: error.message || "Failed to fetch report" };
   }
 }
-

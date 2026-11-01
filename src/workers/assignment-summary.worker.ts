@@ -15,10 +15,22 @@ import { prisma } from '@/lib/prisma';
 import { logger } from '@/lib/logger';
 import type { AssignmentSummaryJobData } from './leaderboard.queues';
 
-async function processAssignmentSummary(job: Job<AssignmentSummaryJobData>) {
-  const { periodType, periodStart: periodStartStr, periodEnd: periodEndStr } = job.data;
-  const periodStart = new Date(periodStartStr);
-  const periodEnd = new Date(periodEndStr);
+import { getCurrentPeriod } from '@/lib/leaderboard-period';
+
+export async function processAssignmentSummary(job: Job<AssignmentSummaryJobData>) {
+  const periodType = job.data?.periodType || 'MONTHLY';
+  let periodStart: Date;
+  let periodEnd: Date;
+
+  if (job.data?.periodStart && job.data?.periodEnd) {
+    periodStart = new Date(job.data.periodStart);
+    periodEnd = new Date(job.data.periodEnd);
+  } else {
+    const current = getCurrentPeriod(periodType);
+    periodStart = current.periodStart;
+    periodEnd = current.periodEnd;
+  }
+  const periodStartStr = periodStart.toISOString();
 
   logger.info(`[AssignmentSummaryWorker] Calculating assignments for ${periodType} starting ${periodStartStr}`);
 

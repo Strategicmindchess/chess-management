@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { chessFetchQueue, logCleanupQueue } from '@/workers/leaderboard.queues';
+import { chessFetchQueue, logCleanupQueue, attendanceSummaryQueue, assignmentSummaryQueue } from '@/workers/leaderboard.queues';
 import { prisma } from '@/lib/prisma';
 import { logger } from '@/lib/logger';
 import { JOB_NAMES } from '@/lib/leaderboard-config';
@@ -58,10 +58,34 @@ export let GET = withLogging(async function(req: Request) {
     await chessFetchQueue.addBulk(fetchJobs);
     logger.info(`[Cron:Daily] Queued ${fetchJobs.length} chess-fetch jobs`);
 
-    // 2. Queue log cleanup
+    // 2. Queue attendance and assignment summaries
+    await attendanceSummaryQueue.add(JOB_NAMES.CALC_ATTENDANCE, {
+      periodType: 'WEEKLY',
+      periodStart: wStart,
+      periodEnd: wEnd,
+    });
+    await attendanceSummaryQueue.add(JOB_NAMES.CALC_ATTENDANCE, {
+      periodType: 'MONTHLY',
+      periodStart: mStart,
+      periodEnd: mEnd,
+    });
+    await assignmentSummaryQueue.add(JOB_NAMES.CALC_ASSIGNMENT, {
+      periodType: 'WEEKLY',
+      periodStart: wStart,
+      periodEnd: wEnd,
+    });
+    await assignmentSummaryQueue.add(JOB_NAMES.CALC_ASSIGNMENT, {
+      periodType: 'MONTHLY',
+      periodStart: mStart,
+      periodEnd: mEnd,
+    });
+    logger.info(`[Cron:Daily] Queued attendance & assignment summaries`);
+
+    // 3. Queue log cleanup
     await logCleanupQueue.add(JOB_NAMES.PURGE_OLD_LOGS, {});
     logger.info(`[Cron:Daily] Queued log cleanup job`);
-    // 3. Queue WhatsApp class reminders for tomorrow
+
+    // 4. Queue WhatsApp class reminders for tomorrow
     const tomorrow = new Date(now);
     tomorrow.setDate(tomorrow.getDate() + 1);
     tomorrow.setHours(0, 0, 0, 0);
@@ -82,7 +106,12 @@ export let GET = withLogging(async function(req: Request) {
     }
     logger.info(`[Cron:Daily] Queued ${tomorrowClasses.length} WhatsApp class reminders`);
 
-    return NextResponse.json({ success: true, queuedFetches: fetchJobs.length, classReminders: tomorrowClasses.length });
+    return NextResponse.json({
+      success: true,
+      queuedFetches: fetchJobs.length,
+      classReminders: tomorrowClasses.length,
+      summariesQueued: true,
+    });
     } catch (error: any) {
     logger.error({ error: error.message }, '[Cron:Daily] Failed to queue daily jobs');
     return NextResponse.json({ error: error.message }, { status: 500 });

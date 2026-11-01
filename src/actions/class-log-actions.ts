@@ -300,6 +300,26 @@ export async function submitClassLog(input: SubmitClassLogInput) {
     revalidatePath("/teacher/attendance");
     revalidatePath("/student");
     revalidatePath("/student/my-classes");
+
+    // Recalculate attendance summary and leaderboard in background
+    try {
+      const { attendanceSummaryQueue, leaderboardCalcQueue } = await import("@/workers/leaderboard.queues");
+      const { getCurrentPeriod } = await import("@/lib/leaderboard-period");
+      const { periodStart, periodEnd } = getCurrentPeriod("MONTHLY");
+      await attendanceSummaryQueue.add("calc-attendance", {
+        periodType: "MONTHLY",
+        periodStart: periodStart.toISOString(),
+        periodEnd: periodEnd.toISOString(),
+      });
+      await leaderboardCalcQueue.add("calc-leaderboard", {
+        periodType: "MONTHLY",
+        periodStart: periodStart.toISOString(),
+        periodEnd: periodEnd.toISOString(),
+      }, { delay: 3000 });
+    } catch (qErr) {
+      console.warn("Could not queue leaderboard refresh after class log:", qErr);
+    }
+
     return { success: true };
   } catch (err: any) {
     console.error("Error submitting class log:", err);
