@@ -21,6 +21,7 @@ model Batch {
   classInstances ClassInstance[]
   classLogs      ClassLog[]
   classRecordings ClassRecording[]
+  meetingSessions MeetingSession[]
 
   @@map("batches")
 }
@@ -52,6 +53,7 @@ model ClassInstance {
   classLog           ClassLog?                @relation(fields: [classLogId], references: [id])
   joinEvents         ClassJoinEvent[]
   rescheduleRequests CoachRescheduleRequest[]
+  meetingSession     MeetingSession?
 
   @@index([batchId, date])
   @@index([batchId, status])

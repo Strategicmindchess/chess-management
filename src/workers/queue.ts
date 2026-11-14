@@ -57,4 +57,6 @@ connection.on('error', (err) => {
 });
 
 export const batchQueue = new Queue('batch-queue', { connection });
+export const meetEventQueue = new Queue('meet-event-queue', { connection });
+export const meetRecordingQueue = new Queue('meet-recording-queue', { connection });
 

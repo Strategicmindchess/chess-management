@@ -1,8 +1,10 @@
 import { requireRole } from "@/lib/dal";
 import { prisma } from "@/lib/prisma";
-import { Role } from "@/generated/prisma/client";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ProfileForm } from "@/app/account/profile/profile-form";
+import { Role } from "@/lib/enums";
+import { getStudentPassportData } from "@/services/passport/passport.service";
+import { StudentProfileTabs } from "./student-profile-tabs";
+
+export const dynamic = "force-dynamic";
 
 export default async function StudentProfilePage() {
   const userBase = await requireRole([Role.STUDENT]);
@@ -12,27 +14,25 @@ export default async function StudentProfilePage() {
     include: { studentProfile: true },
   });
 
-  return (
-    <div className="space-y-6 max-w-3xl">
-      <div>
-        <h1 className="text-xl font-semibold text-slate-900 dark:text-white">
-          My Profile
-        </h1>
-        <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-          Manage your personal information, profile photo, and chess credentials.
-        </p>
-      </div>
+  if (!userWithProfile.studentProfile) {
+    return <div>Student profile not found.</div>;
+  }
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Profile Details</CardTitle>
-          <CardDescription>Update your personal details below. Your email address cannot be changed.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <ProfileForm user={userWithProfile as any} />
-        </CardContent>
-      </Card>
+  const passport = await getStudentPassportData(userWithProfile.studentProfile.id, {
+    viewerRole: Role.STUDENT,
+    viewerUserId: userBase.id,
+  });
+
+  if (!passport) {
+    return <div>Failed to load passport.</div>;
+  }
+
+  return (
+    <div className="space-y-6">
+      <StudentProfileTabs
+        passport={passport}
+        userWithProfile={userWithProfile as any}
+      />
     </div>
   );
 }
-

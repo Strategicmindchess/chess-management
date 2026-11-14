@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { requireRole } from "@/lib/dal";
 import { Role } from "@/lib/enums";
@@ -195,7 +196,17 @@ export default async function UserProfilePage({
             {user.phone && <span>{user.phone}</span>}
           </div>
         </div>
-        <EditUserButton user={userRow} />
+        <div className="flex items-center gap-2">
+          {isStudent && user.studentProfile && (
+            <Link
+              href={`/admin/students/${user.studentProfile.id}/passport`}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-amber-500 hover:bg-amber-600 text-slate-950 transition-colors shadow-xs"
+            >
+              <span>♟</span> View Chess Passport
+            </Link>
+          )}
+          <EditUserButton user={userRow} />
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
