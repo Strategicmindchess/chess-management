@@ -109,12 +109,15 @@ async function getStudentDashboardDataRaw(studentProfileId: string) {
   return { todayInstances, upcomingInstances };
 }
 
-export const getCachedStudentDashboardData = (studentProfileId: string) =>
-  unstable_cache(
-    async () => getStudentDashboardDataRaw(studentProfileId),
-    [`student-dashboard-${studentProfileId}`],
-    { revalidate: 30, tags: [`student-dashboard-${studentProfileId}`] }
-  )();
+const getCachedDashboardData = unstable_cache(
+  async (studentProfileId: string) => getStudentDashboardDataRaw(studentProfileId),
+  ['student-dashboard-data'],
+  { revalidate: 30 }
+);
+
+export async function getCachedStudentDashboardData(studentProfileId: string) {
+  return getCachedDashboardData(studentProfileId);
+}
 
 export async function getStudentDashboardData(studentProfileId: string) {
   await requireRole([Role.STUDENT]);

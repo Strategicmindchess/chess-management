@@ -268,12 +268,15 @@ async function getStudentChocolateStatusRaw(studentId: string) {
   };
 }
 
-export const getCachedStudentChocolateStatus = (studentId: string) =>
-  unstable_cache(
-    async () => getStudentChocolateStatusRaw(studentId),
-    [`student-chocolate-${studentId}`],
-    { revalidate: 30, tags: [`student-chocolate-${studentId}`] }
-  )();
+const getCachedChocolateStatus = unstable_cache(
+  async (studentId: string) => getStudentChocolateStatusRaw(studentId),
+  ["student-chocolate-status"],
+  { revalidate: 30 }
+);
+
+export async function getCachedStudentChocolateStatus(studentId: string) {
+  return getCachedChocolateStatus(studentId);
+}
 
 export async function getStudentChocolateStatus() {
   const session = await requireRole([Role.STUDENT]);
