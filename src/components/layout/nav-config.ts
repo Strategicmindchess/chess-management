@@ -1,4 +1,4 @@
-import { CalendarDays, LayoutDashboard, Users, IndianRupee, ClipboardCheck, Trophy, Activity, Wallet, Briefcase, MessageSquare, Gift, PlaySquare, Send } from "lucide-react";
+import { CalendarDays, LayoutDashboard, Users, IndianRupee, ClipboardCheck, Trophy, Activity, Wallet, Briefcase, MessageSquare, Gift, PlaySquare, Send, Shield } from "lucide-react";
 
 
 
@@ -63,7 +63,7 @@ export const NAV_ITEMS: Record<Role, NavItem[]> = {
     { href: "/student/my-classes", label: "My Classroom", icon: CalendarDays },
     { href: "/student/leaderboard", label: "Leaderboard", icon: Trophy },
     { href: "/student/tickets", label: "Support Tickets", icon: ClipboardCheck },
-    { href: "/student/profile", label: "Profile", icon: Users },
+    { href: "/student/profile", label: "Student Passport", icon: Shield },
     { href: "/student/courses", label: "Courses", icon: PlaySquare },
   ],
 };

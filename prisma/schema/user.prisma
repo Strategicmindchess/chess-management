@@ -29,6 +29,11 @@ model User {
   uploadedRecords         ClassRecording[]         @relation("RecordingUploader")
   accessedCourses         CourseAccess[]           @relation("CourseStudent")
   grantedCourseAccesses   CourseAccess[]           @relation("CourseAccessGranter")
+  issuedCertificates      StudentCertificate[]     @relation("CertificateIssuer")
+  referralCode            ReferralCode?            @relation("UserReferralCode")
+  referralsSent           ReferralAttribution[]    @relation("UserReferralsSent")
+  referralReceived        ReferralAttribution?     @relation("UserReferralReceived")
+  rewardClaims            RewardClaim[]            @relation("UserRewardClaims")
 
   @@map("users")
 }
@@ -50,6 +55,23 @@ model StudentProfile {
   fideId                String?
   fideRating            Int?
   level                 StudentLevel?
+  studentCode           String?                   @unique
+  bio                   String?                   @db.Text
+  peakRating            Int?
+  peakRatingPlatform    String?
+  peakRatingFormat      String?
+  peakRatingDate        DateTime?
+  shareSlug             String?                   @unique
+  isPublicPassportEnabled Boolean                 @default(true)
+  showRatings           Boolean                   @default(true)
+  showAchievements      Boolean                   @default(true)
+  showRatingProgress    Boolean                   @default(true)
+  showTournaments       Boolean                   @default(true)
+  showCertificates      Boolean                   @default(true)
+  showFideRating        Boolean                   @default(true)
+  certificates          StudentCertificate[]
+  customBadges          StudentBadge[]
+  ratingHistories       StudentRatingHistory[]
   assignmentScores      AssignmentScore[]
   chessAccount          ChessAccount?
   activitySnapshots     ChessActivitySnapshot[]
@@ -109,6 +131,7 @@ model CoachProfile {
   payoutAdjustments     PayoutAdjustment[]
   assignedStudents      StudentProfile[]          @relation("StudentAssignedCoach")
   tickets               Ticket[]                  @relation("CoachCreatedTickets")
+  meetingSessions       MeetingSession[]
 
   @@map("coach_profiles")
 }

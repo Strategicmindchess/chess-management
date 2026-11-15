@@ -1,0 +1,59 @@
+model StudentCertificate {
+  id                String          @id @default(cuid())
+  studentProfileId  String
+  title             String
+  description       String?         @db.Text
+  category          CertificateType @default(COURSE_COMPLETION)
+  certificateNumber String          @unique
+  issueDate         DateTime        @default(now())
+  certificateUrl    String?
+  issuedById        String?
+  issuedBy          User?           @relation("CertificateIssuer", fields: [issuedById], references: [id])
+  student           StudentProfile  @relation(fields: [studentProfileId], references: [id], onDelete: Cascade)
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+
+  @@index([studentProfileId])
+  @@map("student_certificates")
+}
+
+enum CertificateType {
+  COURSE_COMPLETION
+  TOURNAMENT_WIN
+  TACTICAL_MASTERY
+  MERIT
+  SPECIAL_ACHIEVEMENT
+}
+
+model StudentBadge {
+  id               String         @id @default(cuid())
+  studentProfileId String
+  badgeKey         String
+  title            String
+  description      String         @db.Text
+  icon             String
+  category         String
+  awardedAt        DateTime       @default(now())
+  isUnlocked       Boolean        @default(true)
+  metadata         Json?
+  student          StudentProfile @relation(fields: [studentProfileId], references: [id], onDelete: Cascade)
+
+  @@unique([studentProfileId, badgeKey])
+  @@index([studentProfileId])
+  @@map("student_badges")
+}
+
+model StudentRatingHistory {
+  id               String         @id @default(cuid())
+  studentProfileId String
+  recordedAt       DateTime       @default(now())
+  platform         String
+  format           String
+  rating           Int
+  gamesPlayed      Int?
+  student          StudentProfile @relation(fields: [studentProfileId], references: [id], onDelete: Cascade)
+
+  @@index([studentProfileId, recordedAt])
+  @@index([studentProfileId, platform, format])
+  @@map("student_rating_histories")
+}

@@ -38,7 +38,7 @@ describe('GET /api/class-feedback/pending', () => {
     const logs = [{ id: 'log-1' }];
     (prisma.classLog.findMany as any).mockResolvedValue(logs);
 
-    const res = await GET(makeRequest());
+    const res = await GET(makeRequest(), {} as any);
     const json = await res.json();
 
     expect(res.status).toBe(200);
@@ -54,7 +54,7 @@ describe('GET /api/class-feedback/pending', () => {
   it('P2 — non-student role → 403', async () => {
     mockRequireRole.mockRejectedValue(new Error('Forbidden'));
 
-    const res = await GET(makeRequest());
+    const res = await GET(makeRequest(), {} as any);
 
     expect(res.status).toBe(403);
   });
