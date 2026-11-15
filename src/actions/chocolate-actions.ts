@@ -5,7 +5,7 @@ import { requireRole } from "@/lib/dal";
 import { Role } from "@/lib/enums";
 import { format, startOfDay } from "date-fns";
 import { createNotification } from "@/lib/notifications";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, unstable_cache } from "next/cache";
 
 const CORRECT_POINTS = 5;
 const WRONG_POINTS = -2;
@@ -223,40 +223,32 @@ export async function getCoachStudentsWithMarks() {
 
 // ── Student: Get Chocolate Status ─────────────────────────────────────────────
 
-export async function getStudentChocolateStatus() {
-  const session = await requireRole([Role.STUDENT]);
-  const student = await prisma.studentProfile.findUnique({
-    where: { userId: session.id },
-  });
-  if (!student) return null;
-
+async function getStudentChocolateStatusRaw(studentId: string) {
   const month = currentMonth();
-
-  const eligibility = await prisma.chocolateEligibility.findUnique({
-    where: { studentProfileId_month: { studentProfileId: student.id, month } },
-    include: { claimTicket: true },
-  });
-
-  // History (last 6 months)
-  const history = await prisma.chocolateEligibility.findMany({
-    where: { studentProfileId: student.id },
-    orderBy: { month: "desc" },
-    take: 6,
-  });
-
-  // Today's record
   const today = startOfDay(new Date());
-  const todayRecord = await prisma.chocolateQuestionRecord.findUnique({
-    where: {
-      studentProfileId_classDate: {
-        studentProfileId: student.id,
-        classDate: today,
+
+  const [eligibility, history, todayRecord] = await Promise.all([
+    prisma.chocolateEligibility.findUnique({
+      where: { studentProfileId_month: { studentProfileId: studentId, month } },
+      include: { claimTicket: true },
+    }),
+    prisma.chocolateEligibility.findMany({
+      where: { studentProfileId: studentId },
+      orderBy: { month: "desc" },
+      take: 6,
+    }),
+    prisma.chocolateQuestionRecord.findUnique({
+      where: {
+        studentProfileId_classDate: {
+          studentProfileId: studentId,
+          classDate: today,
+        },
       },
-    },
-  });
+    }),
+  ]);
 
   return {
-    studentProfileId: student.id,
+    studentProfileId: studentId,
     month,
     totalPoints: eligibility?.totalPoints ?? 0,
     maxPoints: MAX_POINTS,
@@ -274,6 +266,24 @@ export async function getStudentChocolateStatus() {
       claimStatus: h.claimStatus,
     })),
   };
+}
+
+export const getCachedStudentChocolateStatus = (studentId: string) =>
+  unstable_cache(
+    async () => getStudentChocolateStatusRaw(studentId),
+    [`student-chocolate-${studentId}`],
+    { revalidate: 30, tags: [`student-chocolate-${studentId}`] }
+  )();
+
+export async function getStudentChocolateStatus() {
+  const session = await requireRole([Role.STUDENT]);
+  const student = await prisma.studentProfile.findUnique({
+    where: { userId: session.id },
+    select: { id: true },
+  });
+  if (!student) return null;
+
+  return getCachedStudentChocolateStatus(student.id);
 }
 
 // ── Student: Claim Chocolate ──────────────────────────────────────────────────

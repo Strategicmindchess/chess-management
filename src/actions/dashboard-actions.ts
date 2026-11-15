@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma';
 import { requireRole } from '@/lib/dal';
 import { Role } from '@/lib/enums';
 import { getISTDayBounds } from '@/lib/timezone';
+import { unstable_cache } from 'next/cache';
 
 export async function getTeacherDashboardData(coachProfileId: string) {
   await requireRole([Role.TEACHER]);
@@ -57,56 +58,67 @@ export async function getTeacherDashboardData(coachProfileId: string) {
   return { todayInstances, upcomingInstances };
 }
 
-export async function getStudentDashboardData(studentProfileId: string) {
-  await requireRole([Role.STUDENT]);
-
+async function getStudentDashboardDataRaw(studentProfileId: string) {
   const { today, tomorrow, threeDaysLater } = getISTDayBounds();
 
-  const todayInstances = await prisma.classInstance.findMany({
-    where: {
-      status: { in: ['SCHEDULED', 'CANCELLED'] },
-      date: {
-        gte: today,
-        lt: tomorrow
-      },
-      batch: {
-        students: { some: { studentProfileId } },
-        isActive: true
-      }
-    },
-    include: {
-      batch: {
-        include: {
-          coach: { include: { user: true } }
+  const [todayInstances, upcomingInstances] = await Promise.all([
+    prisma.classInstance.findMany({
+      where: {
+        status: { in: ['SCHEDULED', 'CANCELLED'] },
+        date: {
+          gte: today,
+          lt: tomorrow
+        },
+        batch: {
+          students: { some: { studentProfileId } },
+          isActive: true
         }
-      }
-    },
-    orderBy: [{ startTime: 'asc' }]
-  });
-
-  const upcomingInstances = await prisma.classInstance.findMany({
-    where: {
-      status: { in: ['SCHEDULED', 'CANCELLED'] },
-      date: {
-        gte: tomorrow,
-        lt: threeDaysLater
       },
-      batch: {
-        students: { some: { studentProfileId } },
-        isActive: true
-      }
-    },
-    include: {
-      batch: {
-        include: {
-          coach: { include: { user: true } }
+      include: {
+        batch: {
+          include: {
+            coach: { include: { user: true } }
+          }
         }
-      }
-    },
-    orderBy: [{ date: 'asc' }, { startTime: 'asc' }]
-  });
+      },
+      orderBy: [{ startTime: 'asc' }]
+    }),
+    prisma.classInstance.findMany({
+      where: {
+        status: { in: ['SCHEDULED', 'CANCELLED'] },
+        date: {
+          gte: tomorrow,
+          lt: threeDaysLater
+        },
+        batch: {
+          students: { some: { studentProfileId } },
+          isActive: true
+        }
+      },
+      include: {
+        batch: {
+          include: {
+            coach: { include: { user: true } }
+          }
+        }
+      },
+      orderBy: [{ date: 'asc' }, { startTime: 'asc' }]
+    })
+  ]);
 
   return { todayInstances, upcomingInstances };
+}
+
+export const getCachedStudentDashboardData = (studentProfileId: string) =>
+  unstable_cache(
+    async () => getStudentDashboardDataRaw(studentProfileId),
+    [`student-dashboard-${studentProfileId}`],
+    { revalidate: 30, tags: [`student-dashboard-${studentProfileId}`] }
+  )();
+
+export async function getStudentDashboardData(studentProfileId: string) {
+  await requireRole([Role.STUDENT]);
+  return getCachedStudentDashboardData(studentProfileId);
 }
 
 // ─── Admin Dashboard Stats ────────────────────────────────────────────────────

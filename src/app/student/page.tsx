@@ -2,14 +2,14 @@ import { requireRole } from "@/lib/dal";
 import { Role } from "@/lib/enums";
 import { Trophy, Zap, Swords, Target, GraduationCap, CalendarDays, ArrowRight, Users, ListTodo, Activity } from "lucide-react";
 import Image from "next/image";
-import { getStudentAssignments } from "@/actions/assignment-actions";
+import { getStudentAssignmentProgress } from "@/actions/assignment-actions";
 import { Progress } from "@/components/ui/progress";
 import Link from "next/link";
 import { format } from "date-fns";
 import { prisma } from "@/lib/prisma";
-import { getStudentDashboardData } from "@/actions/dashboard-actions";
+import { getCachedStudentDashboardData } from "@/actions/dashboard-actions";
 import { formatClassTiming, getClassDateLabel, isClassLive, isClassPast } from "@/lib/timezone";
-import { getStudentChocolateStatus } from "@/actions/chocolate-actions";
+import { getCachedStudentChocolateStatus } from "@/actions/chocolate-actions";
 import { StudentChocolateCard } from "@/components/student/chocolate-card";
 
 export const dynamic = "force-dynamic";
@@ -18,22 +18,19 @@ export default async function StudentDashboardPage() {
   const user = await requireRole([Role.STUDENT]);
 
   const studentProfile = await prisma.studentProfile.findUnique({
-    where: { userId: user.id }
+    where: { userId: user.id },
+    select: { id: true }
   });
 
   if (!studentProfile) {
     return <div className="p-6 text-white">Profile not found.</div>;
   }
 
-  const [assignmentsData, dashboardData, chocolateStatus] = await Promise.all([
-    getStudentAssignments() as any,
-    getStudentDashboardData(studentProfile.id),
-    getStudentChocolateStatus()
+  const [progress, dashboardData, chocolateStatus] = await Promise.all([
+    getStudentAssignmentProgress(studentProfile.id),
+    getCachedStudentDashboardData(studentProfile.id),
+    getCachedStudentChocolateStatus(studentProfile.id)
   ]);
-
-  const progress = assignmentsData.success && assignmentsData.progress
-    ? assignmentsData.progress
-    : { total: 0, score: 0, percentage: 0 };
 
   const { todayInstances, upcomingInstances } = dashboardData;
 
