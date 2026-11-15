@@ -1,0 +1,181 @@
+enum MeetingSessionStatus {
+  PENDING
+  ACTIVE
+  ENDED
+  FAILED
+}
+
+enum MeetingIdentityStatus {
+  MATCHED
+  UNMATCHED
+  AMBIGUOUS
+}
+
+enum MeetingEventStatus {
+  PENDING
+  PROCESSING
+  PROCESSED
+  FAILED
+  DEAD_LETTER
+}
+
+enum MeetingTransferStatus {
+  PENDING
+  TRANSFERRING
+  COMPLETED
+  FAILED
+}
+
+enum MeetingTranscriptStatus {
+  PENDING
+  AVAILABLE
+  FAILED
+}
+
+model MeetingSession {
+  id                   String                      @id @default(cuid())
+  classInstanceId      String                      @unique
+  batchId              String
+  coachProfileId       String
+  googleSpaceId        String                      @unique
+  meetingUrl           String
+  conferenceId         String?
+  status               MeetingSessionStatus        @default(PENDING)
+  createdAt            DateTime                    @default(now())
+  startedAt            DateTime?
+  endedAt              DateTime?
+  lastSyncedAt         DateTime?
+
+  classInstance        ClassInstance               @relation(fields: [classInstanceId], references: [id], onDelete: Cascade)
+  batch                Batch                       @relation(fields: [batchId], references: [id], onDelete: Cascade)
+  coachProfile         CoachProfile                @relation(fields: [coachProfileId], references: [id])
+  rosterSnapshots      MeetingRosterSnapshot[]
+  participants         MeetingParticipant[]
+  participantSessions  MeetingParticipantSession[]
+  events               MeetingEvent[]
+  recording            MeetingRecording?
+  transcript           MeetingTranscript?
+
+  @@index([classInstanceId])
+  @@index([batchId])
+  @@index([status])
+  @@map("meeting_sessions")
+}
+
+model MeetingRosterSnapshot {
+  id                 String         @id @default(cuid())
+  meetingSessionId   String
+  coachProfileId     String
+  enrolledStudentIds Json
+  snapshotAt         DateTime       @default(now())
+
+  meetingSession     MeetingSession @relation(fields: [meetingSessionId], references: [id], onDelete: Cascade)
+
+  @@index([meetingSessionId])
+  @@map("meeting_roster_snapshots")
+}
+
+model MeetingParticipant {
+  id                  String                      @id @default(cuid())
+  meetingSessionId    String
+  googleParticipantId String
+  displayName         String?
+  email               String?
+  userProfileId       String?
+  studentProfileId    String?
+  coachProfileId      String?
+  identityStatus      MeetingIdentityStatus       @default(UNMATCHED)
+  rawPayload          Json?
+
+  meetingSession      MeetingSession              @relation(fields: [meetingSessionId], references: [id], onDelete: Cascade)
+  sessions            MeetingParticipantSession[]
+  transcriptEntries   MeetingTranscriptEntry[]
+
+  @@unique([meetingSessionId, googleParticipantId])
+  @@index([meetingSessionId])
+  @@map("meeting_participants")
+}
+
+model MeetingParticipantSession {
+  id               String             @id @default(cuid())
+  participantId    String
+  meetingSessionId String
+  joinedAt         DateTime
+  leftAt           DateTime?
+  durationSeconds  Int?
+  eventSource      String?
+
+  participant      MeetingParticipant @relation(fields: [participantId], references: [id], onDelete: Cascade)
+  meetingSession   MeetingSession     @relation(fields: [meetingSessionId], references: [id], onDelete: Cascade)
+
+  @@index([meetingSessionId])
+  @@index([participantId])
+  @@map("meeting_participant_sessions")
+}
+
+model MeetingEvent {
+  id               String             @id @default(cuid())
+  googleEventId    String             @unique
+  meetingSessionId String?
+  eventType        String
+  payload          Json
+  receivedAt       DateTime           @default(now())
+  processedAt      DateTime?
+  status           MeetingEventStatus @default(PENDING)
+  retryCount       Int                @default(0)
+  errorMessage     String?
+
+  meetingSession   MeetingSession?    @relation(fields: [meetingSessionId], references: [id], onDelete: Cascade)
+
+  @@index([status, receivedAt])
+  @@index([meetingSessionId])
+  @@map("meeting_events")
+}
+
+model MeetingRecording {
+  id               String                @id @default(cuid())
+  meetingSessionId String                @unique
+  googleDriveFileId String
+  googleDriveUrl   String?
+  mimeType         String?
+  sizeBytes        BigInt?
+  s3Key            String?
+  transferStatus   MeetingTransferStatus @default(PENDING)
+  transferError    String?
+  createdAt        DateTime              @default(now())
+
+  meetingSession   MeetingSession        @relation(fields: [meetingSessionId], references: [id], onDelete: Cascade)
+
+  @@map("meeting_recordings")
+}
+
+model MeetingTranscript {
+  id               String                  @id @default(cuid())
+  meetingSessionId String                  @unique
+  googleDocId      String?
+  status           MeetingTranscriptStatus @default(PENDING)
+  processingError  String?
+  createdAt        DateTime                @default(now())
+
+  meetingSession   MeetingSession          @relation(fields: [meetingSessionId], references: [id], onDelete: Cascade)
+  entries          MeetingTranscriptEntry[]
+
+  @@map("meeting_transcripts")
+}
+
+model MeetingTranscriptEntry {
+  id            String              @id @default(cuid())
+  transcriptId  String
+  participantId String?
+  speakerName   String?
+  text          String              @db.Text
+  startOffsetMs Int?
+  endOffsetMs   Int?
+
+  transcript    MeetingTranscript   @relation(fields: [transcriptId], references: [id], onDelete: Cascade)
+  participant   MeetingParticipant? @relation(fields: [participantId], references: [id], onDelete: SetNull)
+
+  @@index([transcriptId])
+  @@map("meeting_transcript_entries")
+}
+
