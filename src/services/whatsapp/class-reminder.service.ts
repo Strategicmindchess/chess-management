@@ -248,21 +248,19 @@ export async function sendClassReminderService(
     month: 'short',
   });
 
-  // Step 4: 'smc_class_reminder' template dispatch karein
-  // Note: Ye UTILITY category template hai, ispar Error 131049 (ecosystem cap) kabhi nahi lagta.
+  // Step 4: 'class_remainder_daily' approved UTILITY template dispatch karein (with Join Class URL button)
   const result = await sendInBatches(
     recipients,
     (r) =>
       sendWhatsAppMessage({
         to: r.phone,
-        templateName: 'smc_class_reminder',
-        namedParams: {
-          student_name: r.name,
-          batch_name: instance.batch.name,
-          class_date: dateStr,
-          class_time: instance.startTime,
-          class_link: instance.batch.meetLink || '',
-        },
+        templateName: 'class_remainder_daily',
+        templateParams: [
+          r.name,
+          instance.batch.name,
+          instance.startTime,
+          instance.batch.meetLink || '',
+        ],
       }),
     onProgress
   );

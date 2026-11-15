@@ -181,9 +181,9 @@ export async function prepareManualNotification(data: any) {
     const dateStr = instance.date.toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata', day: 'numeric', month: 'short' });
     
     if (data.type === 'CLASS_REMINDER') {
-      templateName = 'smc_class_reminder';
-      templateParams = [instance.batch.name, dateStr, instance.startTime, instance.batch.meetLink || ''];
-      templatePreview = `Reminder: Your class for batch "${templateParams[0]}" is scheduled on ${templateParams[1]} at ${templateParams[2]}. Join Link: ${templateParams[3]}`;
+      templateName = 'class_remainder_daily';
+      templateParams = [instance.batch.name, instance.startTime, instance.batch.meetLink || ''];
+      templatePreview = `Hello Student 👋, Your chess session for *${templateParams[0]}* is starting at ${templateParams[1]}! Link: ${templateParams[2]} [JOIN CLASS Button Included]`;
     } else if (data.type === 'CLASS_CANCELLED') {
       templateName = 'smc_class_cancelled';
       const timeStr = `${dateStr} at ${instance.startTime}`;
@@ -208,11 +208,22 @@ export async function prepareManualNotification(data: any) {
       holidayId = holiday.id;
     }
 
-    templateName = 'smc_holiday';
+    templateName = 'smc_holiday_new';
     const startDate = new Date(data.startDate);
-    const dateStr = startDate.toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata', day: 'numeric', month: 'short' });
-    templateParams = [data.holidayName, dateStr];
-    templatePreview = `Holiday Announcement: SMC will remain closed for "${templateParams[0]}" starting from ${templateParams[1]}.`;
+    const endDate = new Date(data.endDate);
+    const startStr = startDate.toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata', day: 'numeric', month: 'short', year: 'numeric' });
+    const endStr = endDate.toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata', day: 'numeric', month: 'short', year: 'numeric' });
+    const durationStr = `from ${startStr} to ${endStr}`;
+
+    let resumeStr = data.resumeDate;
+    if (!resumeStr) {
+      const nextDay = new Date(endDate);
+      nextDay.setDate(nextDay.getDate() + 1);
+      resumeStr = nextDay.toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata', day: 'numeric', month: 'short', year: 'numeric' });
+    }
+
+    templateParams = [durationStr, data.holidayName, resumeStr];
+    templatePreview = `Holiday Announcement: SMC will remain closed ${durationStr} due to the ${data.holidayName}. Regular classes will resume from ${resumeStr}.`;
   } else if (data.type === 'TOURNAMENT') {
     let tournamentId = data.tournamentId;
     
@@ -235,26 +246,26 @@ export async function prepareManualNotification(data: any) {
 
 export async function sendSingleNotification(phone: string, templateName: string, templateParams: string[], recipientName?: string) {
   await requireRole(['ADMIN']);
-  if (templateName === 'smc_class_reminder') {
+  if (templateName === 'class_remainder_daily' || templateName === 'smc_class_reminder') {
     await sendWhatsAppMessage({
       to: toE164(phone),
-      templateName,
-      namedParams: {
-        student_name: recipientName || 'Student',
-        batch_name: templateParams[0] || '',
-        class_date: templateParams[1] || '',
-        class_time: templateParams[2] || '',
-        class_link: templateParams[3] || '',
-      }
+      templateName: 'class_remainder_daily',
+      templateParams: [
+        recipientName || 'Student',
+        templateParams[0] || '', // batch_name
+        templateParams[1] || '', // class_time
+        templateParams[2] || '', // meet_link
+      ],
     });
-  } else if (templateName === 'smc_holiday') {
+  } else if (templateName === 'smc_holiday_new' || templateName === 'smc_holiday') {
     await sendWhatsAppMessage({
       to: toE164(phone),
-      templateName,
-      namedParams: {
-        holiday_name: templateParams[0] || '',
-        start_date: templateParams[1] || '',
-      }
+      templateName: 'smc_holiday_new',
+      templateParams: [
+        templateParams[0] || '', // duration
+        templateParams[1] || '', // holiday_name
+        templateParams[2] || '', // resume_date
+      ],
     });
   } else if (templateName === 'smc_class_cancelled') {
     await sendWhatsAppMessage({

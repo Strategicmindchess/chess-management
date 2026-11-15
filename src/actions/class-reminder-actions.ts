@@ -1,6 +1,7 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
+import { addDays } from 'date-fns';
 import { prisma } from '@/lib/prisma';
 import { getCurrentUser } from '@/lib/dal';
 import { Role } from '@/lib/enums';
@@ -71,18 +72,26 @@ export async function notifyClassStudentsAction(
       return { success: false, error: 'This class has already ended.' };
     }
 
-    // 5. "Today Only" Check (IST)
+    // 5. "Today or Tomorrow" Check (IST) - Admins can notify Today and Tomorrow
     const { today, tomorrow } = getISTDayBounds();
+    const dayAfterTomorrow = addDays(tomorrow, 1);
     const classDate = new Date(instance.date);
-    if (classDate < today || classDate >= tomorrow) {
-      return { success: false, error: 'Reminders can only be sent on the day of the class.' };
+
+    if (user.role === Role.TEACHER) {
+      if (classDate < today || classDate >= tomorrow) {
+        return { success: false, error: 'Reminders can only be sent on the day of the class.' };
+      }
+    } else if (user.role === Role.ADMIN) {
+      if (classDate < today || classDate >= dayAfterTomorrow) {
+        return { success: false, error: 'Reminders can only be sent for today or tomorrow classes.' };
+      }
     }
 
-    // 6. 1-Hour Window Check (Cannot send earlier than 1 hour before class starts)
+    // 6. 1-Hour Window Check (Cannot send earlier than 1 hour before class starts for teachers)
     const { getISTNow } = await import('@/lib/timezone');
     const istNow = getISTNow();
 
-    // Parse instance.startTime (e.g. "16:00") into today's IST timestamp
+    // Parse instance.startTime (e.g. "16:00") into IST timestamp
     const [startH, startM] = instance.startTime.split(':').map(Number);
     const classStartIST = new Date(istNow);
     classStartIST.setHours(startH, startM, 0, 0);
@@ -101,12 +110,12 @@ export async function notifyClassStudentsAction(
       };
     }
 
-    // Parse instance.endTime (e.g. "17:00") - check if class already ended
+    // Parse instance.endTime (e.g. "17:00") - check if class already ended (for today's classes)
     const [endH, endM] = instance.endTime.split(':').map(Number);
     const classEndIST = new Date(istNow);
     classEndIST.setHours(endH, endM, 0, 0);
 
-    if (istNow > classEndIST) {
+    if (classDate < tomorrow && istNow > classEndIST) {
       return { success: false, error: 'This class has already ended.' };
     }
 
@@ -201,19 +210,21 @@ export interface AdminTodayClassItem {
 }
 
 /**
- * Server Action: Fetches all of today's scheduled classes across the academy for Admin
+ * Server Action: Fetches all scheduled classes for Today or Tomorrow across the academy for Admin
  */
-export async function getAdminTodayClassesAction(): Promise<AdminTodayClassItem[]> {
+export async function getAdminTodayClassesAction(targetDay: 'TODAY' | 'TOMORROW' = 'TODAY'): Promise<AdminTodayClassItem[]> {
   const user = await getCurrentUser();
   if (!user || user.role !== Role.ADMIN) {
     throw new Error('Unauthorized: Only administrators can view all academy classes.');
   }
 
   const { today, tomorrow } = getISTDayBounds();
+  const dayStart = targetDay === 'TOMORROW' ? tomorrow : today;
+  const dayEnd = targetDay === 'TOMORROW' ? addDays(tomorrow, 1) : tomorrow;
 
   const instances = await prisma.classInstance.findMany({
     where: {
-      date: { gte: today, lt: tomorrow },
+      date: { gte: dayStart, lt: dayEnd },
       batch: { isActive: true },
     },
     include: {

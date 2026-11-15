@@ -33,17 +33,18 @@ interface AdminTodayClassesDialogProps {
 export function AdminTodayClassesDialog({ open, onClose }: AdminTodayClassesDialogProps) {
   const [classes, setClasses] = useState<AdminTodayClassItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [dayFilter, setDayFilter] = useState<'TODAY' | 'TOMORROW'>('TODAY');
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<'ALL' | 'PENDING' | 'REMINDED'>('ALL');
   const [expandedStudents, setExpandedStudents] = useState<Record<string, boolean>>({});
 
-  const fetchClasses = async () => {
+  const fetchClasses = async (day = dayFilter) => {
     setIsLoading(true);
     try {
-      const data = await getAdminTodayClassesAction();
+      const data = await getAdminTodayClassesAction(day);
       setClasses(data);
     } catch (err: any) {
-      console.error('Failed to load today classes for admin', err);
+      console.error('Failed to load classes for admin', err);
     } finally {
       setIsLoading(false);
     }
@@ -51,9 +52,9 @@ export function AdminTodayClassesDialog({ open, onClose }: AdminTodayClassesDial
 
   useEffect(() => {
     if (open) {
-      fetchClasses();
+      fetchClasses(dayFilter);
     }
-  }, [open]);
+  }, [open, dayFilter]);
 
   // Toggle student expansion
   const toggleStudentList = (instanceId: string) => {
@@ -101,28 +102,71 @@ export function AdminTodayClassesDialog({ open, onClose }: AdminTodayClassesDial
   const pendingCount = totalClasses - remindedCount;
   const totalStudents = classes.reduce((acc, curr) => acc + curr.studentCount, 0);
 
-  // Today formatted in IST
-  const todayFormatted = new Date().toLocaleDateString('en-IN', {
-    weekday: 'long',
+  // Today & Tomorrow formatted in IST
+  const now = new Date();
+  const todayFormatted = now.toLocaleDateString('en-IN', {
+    weekday: 'short',
     day: 'numeric',
     month: 'short',
-    year: 'numeric',
     timeZone: 'Asia/Kolkata',
   });
+  const tomorrowDate = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+  const tomorrowFormatted = tomorrowDate.toLocaleDateString('en-IN', {
+    weekday: 'short',
+    day: 'numeric',
+    month: 'short',
+    timeZone: 'Asia/Kolkata',
+  });
+
+  const activeDateTitle = dayFilter === 'TODAY' ? `Today (${todayFormatted})` : `Tomorrow (${tomorrowFormatted})`;
 
   return (
     <Dialog
       open={open}
       onClose={onClose}
-      title="Today's Scheduled Classes & WhatsApp Notifications"
-      description={`Academy-wide live view for ${todayFormatted}. Check coach reminder status and dispatch 1-time notifications.`}
+      title="Scheduled Classes & WhatsApp Notifications"
+      description={`Academy-wide live view for ${activeDateTitle}. Inspect reminder status and dispatch 1-time notifications.`}
       className="max-w-5xl bg-slate-950 border border-slate-800 text-slate-100 shadow-2xl"
     >
       <div className="space-y-4 pt-2">
+        {/* Day Switcher: Today vs Tomorrow */}
+        <div className="flex items-center justify-between pb-1">
+          <div className="flex items-center gap-1.5 bg-slate-900/90 p-1 rounded-xl border border-slate-800">
+            <button
+              onClick={() => setDayFilter('TODAY')}
+              className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-2 transition-all ${
+                dayFilter === 'TODAY'
+                  ? 'bg-indigo-600 text-white shadow-md shadow-indigo-500/20'
+                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
+              }`}
+            >
+              <Calendar className="w-3.5 h-3.5" />
+              <span>Today ({todayFormatted})</span>
+            </button>
+            <button
+              onClick={() => setDayFilter('TOMORROW')}
+              className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-2 transition-all ${
+                dayFilter === 'TOMORROW'
+                  ? 'bg-indigo-600 text-white shadow-md shadow-indigo-500/20'
+                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
+              }`}
+            >
+              <Calendar className="w-3.5 h-3.5" />
+              <span>Tomorrow ({tomorrowFormatted})</span>
+            </button>
+          </div>
+
+          <span className="text-xs text-slate-400 hidden sm:inline font-medium">
+            {dayFilter === 'TODAY' ? '🔴 Live Today' : '🔵 Advance Schedule'}
+          </span>
+        </div>
+
         {/* Top Metric Cards */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           <div className="bg-slate-900/80 border border-slate-800/80 rounded-lg p-3">
-            <span className="text-[11px] font-medium uppercase tracking-wider text-slate-400">Total Today</span>
+            <span className="text-[11px] font-medium uppercase tracking-wider text-slate-400">
+              Total {dayFilter === 'TODAY' ? 'Today' : 'Tomorrow'}
+            </span>
             <div className="text-2xl font-bold text-white mt-0.5">{totalClasses}</div>
             <span className="text-[10px] text-slate-500">Scheduled sessions</span>
           </div>
@@ -139,7 +183,7 @@ export function AdminTodayClassesDialog({ open, onClose }: AdminTodayClassesDial
           <div className="bg-indigo-950/20 border border-indigo-500/30 rounded-lg p-3">
             <span className="text-[11px] font-medium uppercase tracking-wider text-indigo-400">Total Students</span>
             <div className="text-2xl font-bold text-indigo-300 mt-0.5">{totalStudents}</div>
-            <span className="text-[10px] text-indigo-400/80">Enrolled in today's classes</span>
+            <span className="text-[10px] text-indigo-400/80">Enrolled in {dayFilter === 'TODAY' ? "today's" : "tomorrow's"} classes</span>
           </div>
         </div>
 
@@ -186,7 +230,7 @@ export function AdminTodayClassesDialog({ open, onClose }: AdminTodayClassesDial
             <Button
               variant="secondary"
               size="sm"
-              onClick={fetchClasses}
+              onClick={() => fetchClasses(dayFilter)}
               disabled={isLoading}
               className="border-slate-700 bg-slate-900 hover:bg-slate-800 text-slate-300 h-9 px-3 gap-1.5"
               title="Refresh today's live classes"
@@ -202,7 +246,7 @@ export function AdminTodayClassesDialog({ open, onClose }: AdminTodayClassesDial
           {isLoading && classes.length === 0 ? (
             <div className="p-12 text-center text-slate-400 space-y-2">
               <RefreshCw className="w-6 h-6 animate-spin mx-auto text-indigo-400" />
-              <p className="text-sm">Fetching today's class instances across the academy...</p>
+              <p className="text-sm">Fetching {dayFilter === 'TODAY' ? "today's" : "tomorrow's"} class instances across the academy...</p>
             </div>
           ) : filteredClasses.length === 0 ? (
             <div className="p-10 text-center bg-slate-900/40 border border-slate-800 rounded-xl space-y-2">
@@ -211,7 +255,7 @@ export function AdminTodayClassesDialog({ open, onClose }: AdminTodayClassesDial
               <p className="text-xs text-slate-500 max-w-sm mx-auto">
                 {searchQuery || statusFilter !== 'ALL'
                   ? 'No classes match your current search or status filters.'
-                  : 'No class instances are scheduled for today in the academy calendar.'}
+                  : `No active class instances are scheduled for ${dayFilter === 'TODAY' ? 'today' : 'tomorrow'} in the academy calendar.`}
               </p>
             </div>
           ) : (

@@ -36,7 +36,28 @@ export async function sendWhatsAppMessage(payload: SendWhatsAppPayload): Promise
     Object.assign(paramMap, payload.namedParams);
   }
 
-  if (payload.templateName === 'smc_class_reminder') {
+  // --- 1. NEW APPROVED UTILITY TEMPLATES ---
+  if (payload.templateName === 'class_remainder_daily') {
+    const studentName = paramMap.student_name || paramMap.name || payload.templateParams?.[0] || 'Student';
+    const batchName   = paramMap.batch_name || payload.templateParams?.[1] || 'Special Batch';
+    const classTime   = paramMap.class_time || payload.templateParams?.[2] || '05:00 PM';
+    const classLink   = paramMap.class_link || payload.templateParams?.[3] || 'https://meet.google.com/smc-chess-class';
+
+    paramMap['1'] = studentName;
+    paramMap['2'] = batchName;
+    paramMap['3'] = classTime;
+    paramMap['4'] = classLink;
+  } else if (payload.templateName === 'smc_holiday_new') {
+    const duration = paramMap.duration || payload.templateParams?.[0] || (paramMap.start_date ? `from ${paramMap.start_date}` : 'Upcoming');
+    const reason   = paramMap.holiday_name || paramMap.reason || payload.templateParams?.[1] || 'Academy Break';
+    const resume   = paramMap.resume_date || payload.templateParams?.[2] || 'Soon';
+
+    paramMap['1'] = duration;
+    paramMap['2'] = reason;
+    paramMap['3'] = resume;
+  }
+  // --- 2. LEGACY / FALLBACK TEMPLATES ---
+  else if (payload.templateName === 'smc_class_reminder') {
     if (!paramMap.student_name && payload.templateParams?.[0]) paramMap.student_name = payload.templateParams[0];
     if (!paramMap.batch_name && payload.templateParams?.[1]) paramMap.batch_name = payload.templateParams[1];
     if (!paramMap.class_date && payload.templateParams?.[2]) paramMap.class_date = payload.templateParams[2];
@@ -78,6 +99,48 @@ export async function sendWhatsAppMessage(payload: SendWhatsAppPayload): Promise
 
   // Builder for named or positional
   const buildComponents = (useNamed: boolean) => {
+    // Special handling for class_remainder_daily (4 body params + 1 URL button param)
+    if (payload.templateName === 'class_remainder_daily') {
+      const p1 = paramMap['1'] || 'Student';
+      const p2 = paramMap['2'] || 'Special Batch';
+      const p3 = paramMap['3'] || '05:00 PM';
+      const p4 = paramMap['4'] || 'https://meet.google.com/smc-chess-class';
+
+      return [
+        {
+          type: "body",
+          parameters: [
+            { type: "text", text: p1 },
+            { type: "text", text: p2 },
+            { type: "text", text: p3 },
+            { type: "text", text: p4 },
+          ],
+        },
+        {
+          type: "button",
+          sub_type: "url",
+          index: "0",
+          parameters: [
+            { type: "text", text: p4 },
+          ],
+        },
+      ];
+    }
+
+    // Special handling for smc_holiday_new (3 positional params)
+    if (payload.templateName === 'smc_holiday_new') {
+      return [
+        {
+          type: "body",
+          parameters: [
+            { type: "text", text: paramMap['1'] || 'from 20 Oct to 22 Oct 2026' },
+            { type: "text", text: paramMap['2'] || 'Diwali Break' },
+            { type: "text", text: paramMap['3'] || '23 Oct 2026' },
+          ],
+        },
+      ];
+    }
+
     if (useNamed && isKnownNamed) {
       const keys = NAMED_TEMPLATES[payload.templateName] || Object.keys(paramMap);
       return [

@@ -160,9 +160,9 @@ export async function getAdminDashboardStats() {
     // Fee cycles with status PENDING
     prisma.feeCycle.count({ where: { status: "UNPAID" } }),
 
-    // Today's scheduled classes
+    // Today's scheduled classes (only for active batches)
     prisma.classInstance.count({
-      where: { status: "SCHEDULED", date: { gte: today, lt: tomorrow } },
+      where: { status: "SCHEDULED", date: { gte: today, lt: tomorrow }, batch: { isActive: true } },
     }),
     // Sum of all class log payouts for current month
     prisma.classLog.aggregate({

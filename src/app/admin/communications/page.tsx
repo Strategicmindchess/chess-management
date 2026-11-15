@@ -307,13 +307,14 @@ function CommunicationsContent({ defaultTab = 'input' }: { defaultTab?: CommTab 
               holidayName: fd.get('holidayName'),
               startDate: fd.get('startDate'),
               endDate: fd.get('endDate'),
+              resumeDate: fd.get('resumeDate'),
             });
           }} className="space-y-4">
             <div>
-              <Label>Holiday Name</Label>
-              <Input name="holidayName" required placeholder="e.g. Diwali Break" />
+              <Label>Holiday Name / Reason</Label>
+              <Input name="holidayName" required placeholder="e.g. Diwali break" />
             </div>
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
               <div>
                 <Label>Start Date</Label>
                 <Input type="date" name="startDate" required />
@@ -321,6 +322,10 @@ function CommunicationsContent({ defaultTab = 'input' }: { defaultTab?: CommTab 
               <div>
                 <Label>End Date</Label>
                 <Input type="date" name="endDate" required />
+              </div>
+              <div>
+                <Label>Classes Resume Date (Optional)</Label>
+                <Input type="date" name="resumeDate" />
               </div>
             </div>
             <Button type="submit" disabled={loading}>Create & Notify Holiday</Button>
