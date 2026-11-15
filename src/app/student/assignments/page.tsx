@@ -14,7 +14,12 @@ export const metadata = {
 export default async function StudentAssignmentsPage() {
   await requireRole([Role.STUDENT]);
 
-  const result = await getStudentAssignments();
+  // Load ONLY uncompleted (PENDING) assignments initially, 10 items for maximum speed!
+  const result = await getStudentAssignments({
+    status: "PENDING",
+    page: 1,
+    limit: 10,
+  });
 
   if (!result.success) {
     return (
@@ -28,13 +33,28 @@ export default async function StudentAssignmentsPage() {
   }
 
   const assignments = (result.data || []) as any[];
-  const progress = result.progress || { total: 0, score: 0, percentage: 0 };
+  const progress = result.progress || {
+    total: 0,
+    score: 0,
+    percentage: 0,
+    pendingCount: 0,
+    halfDoneCount: 0,
+    completedCount: 0,
+  };
+  const pagination = result.pagination || {
+    page: 1,
+    limit: 10,
+    totalItems: 0,
+    totalPages: 1,
+    hasMore: false,
+  };
 
   return (
     <div className="p-6">
       <StudentAssignmentsClient
         initialAssignments={assignments}
         initialProgress={progress}
+        initialPagination={pagination}
       />
     </div>
   );

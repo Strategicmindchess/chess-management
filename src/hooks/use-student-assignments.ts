@@ -26,13 +26,36 @@ export type StudentAssignmentsResponse = {
     total: number;
     score: number;
     percentage: number;
+    pendingCount?: number;
+    halfDoneCount?: number;
+    completedCount?: number;
+  };
+  pagination?: {
+    page: number;
+    limit: number;
+    totalItems: number;
+    totalPages: number;
+    hasMore: boolean;
   };
 };
 
-export function useStudentAssignments() {
-  const { data, error, isLoading, mutate: refetch } = useSWR<StudentAssignmentsResponse>(
-    STUDENT_ASSIGNMENTS_KEY
-  );
+export function useStudentAssignments(options?: {
+  status?: string;
+  page?: number;
+  limit?: number;
+  type?: string;
+  search?: string;
+}) {
+  const query = new URLSearchParams();
+  if (options?.status) query.set("status", options.status);
+  if (options?.page) query.set("page", String(options.page));
+  if (options?.limit) query.set("limit", String(options.limit));
+  if (options?.type) query.set("type", options.type);
+  if (options?.search) query.set("search", options.search);
+
+  const key = `${STUDENT_ASSIGNMENTS_KEY}${query.toString() ? `?${query.toString()}` : ""}`;
+
+  const { data, error, isLoading, mutate: refetch } = useSWR<StudentAssignmentsResponse>(key);
 
   return {
     data,
@@ -43,5 +66,5 @@ export function useStudentAssignments() {
 }
 
 export function invalidateStudentAssignments() {
-  return mutate(STUDENT_ASSIGNMENTS_KEY);
+  return mutate((key) => typeof key === "string" && key.startsWith(STUDENT_ASSIGNMENTS_KEY));
 }
