@@ -7,6 +7,7 @@ import { signupSchema, type SignupInput } from '@/lib/validation/auth';
 import { issueOtp } from '@/services/auth/otp';
 import { sendSignupOtpEmail } from '@/services/email/otp-email';
 import { OtpPurpose } from '@/generated/prisma/client';
+import { stageSignupAttribution } from '@/services/referral/attribution.service';
 
 export type SignupResult = { success: true; email: string } | { success: false; error: string };
 
@@ -51,6 +52,18 @@ export async function signup(input: SignupInput): Promise<SignupResult> {
 
     const code = await issueOtp(user.id, OtpPurpose.SIGNUP_VERIFICATION);
     await sendSignupOtpEmail(user.email, user.name, code);
+
+    if (parsed.data.referralCode) {
+      try {
+        await stageSignupAttribution({
+          referralCode: parsed.data.referralCode,
+          candidateEmail: user.email,
+          candidateName: user.name,
+        });
+      } catch (refErr) {
+        console.error("Referral staging error:", refErr);
+      }
+    }
   } catch (error) {
     console.error("Signup Create Error:", error);
     return { success: false, error: 'Could not create account. Please try again later.' };

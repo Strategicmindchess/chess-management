@@ -59,7 +59,7 @@ export async function getStudentAssignments() {
       return {
         id: sa.id,
         title: sa.batchAssignment.resource.title,
-        description: sa.batchAssignment.resource.source,
+        description: sa.batchAssignment.resource.description || sa.batchAssignment.resource.source,
         url: sa.batchAssignment.resource.url,
         type: sa.batchAssignment.resource.type,
         lectureNumber: sa.batchAssignment.lectureNumber,
@@ -135,6 +135,7 @@ export async function updateAssignmentStatus(
     // Revalidate paths so cached UI updates immediately
     revalidatePath("/student");
     revalidatePath("/student/my-classes");
+    revalidatePath("/student/assignments");
 
     // Recalculate assignment summary and leaderboard asynchronously in background
     try {

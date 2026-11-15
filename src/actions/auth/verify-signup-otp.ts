@@ -7,6 +7,7 @@ import { verifyOtpSchema, type VerifyOtpInput } from '@/lib/validation/auth';
 import { verifyOtp } from '@/services/auth/otp';
 import { startSession } from '@/services/auth/session';
 import { OtpPurpose } from '@/generated/prisma/client';
+import { finalizeSignupAttribution } from '@/services/referral/attribution.service';
 
 const OTP_ERROR_MESSAGES: Record<string, string> = {
   not_found: 'No pending verification found for this email. Please sign up again.',
@@ -41,6 +42,13 @@ export async function verifySignupOtp(input: VerifyOtpInput): Promise<{ error: s
       studentProfile: { create: {} }
     } 
   });
+
+  try {
+    await finalizeSignupAttribution(user.id, user.email);
+  } catch (refErr) {
+    console.error("Referral finalization error:", refErr);
+  }
+
   await startSession(user.id, user.role);
 
   redirect(ROLE_HOME_PATH[user.role]);

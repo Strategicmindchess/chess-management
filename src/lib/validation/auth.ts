@@ -28,6 +28,7 @@ export const signupSchema = z.object({
   name: z.string().trim().min(2, "Name must be at least 2 characters.").max(20, "Name must be at most 20 characters.").refine(val => !val.startsWith('_'), "Name cannot start with an underscore."),
   email: emailSchema,
   password: passwordSchema,
+  referralCode: z.string().trim().optional(),
 });
 
 export type SignupInput = z.infer<typeof signupSchema>;

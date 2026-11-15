@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
+import { useSearchParams } from 'next/navigation';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { signup } from '@/actions/auth/signup';
 import { signupSchema, type SignupInput } from '@/lib/validation/auth';
@@ -18,14 +19,17 @@ export function SignupDetailsForm({
 }: {
   onVerificationRequired: (email: string) => void;
 }) {
+  const searchParams = useSearchParams();
+  const initialRefCode = searchParams.get('ref') || '';
   const [serverError, setServerError] = useState<string | null>(null);
+
   const {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
   } = useForm<SignupInput>({
     resolver: zodResolver(signupSchema),
-    defaultValues: { name: '', email: '', password: '' },
+    defaultValues: { name: '', email: '', password: '', referralCode: initialRefCode },
   });
 
   async function onSubmit(values: SignupInput) {
@@ -66,6 +70,16 @@ export function SignupDetailsForm({
             placeholder="At least 8 characters"
           />
           <FieldError message={errors.password?.message} />
+        </div>
+        <div>
+          <Label htmlFor="referralCode">Referral Code <span className="text-xs text-slate-400 font-normal">(optional)</span></Label>
+          <Input
+            id="referralCode"
+            {...register('referralCode')}
+            placeholder="e.g. SMC-NAMAN25"
+            className="uppercase font-mono placeholder:normal-case placeholder:font-sans"
+          />
+          <FieldError message={errors.referralCode?.message} />
         </div>
         {serverError && <Alert variant="error">{serverError}</Alert>}
         <Button type="submit" variant="gradient" className="w-full" disabled={isSubmitting}>

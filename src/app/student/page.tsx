@@ -178,17 +178,33 @@ export default async function StudentDashboardPage() {
       </div>
 
       {/* Middle Row: Assignment Progress */}
-      <div className="rounded-2xl bg-white dark:bg-[#11141c]/50 backdrop-blur-2xl border border-slate-200/90 dark:border-slate-700/50 p-6 flex flex-col relative overflow-hidden shadow-xs hover:shadow-md dark:shadow-[0_8px_30px_rgba(0,0,0,0.4)] mt-8 group hover:border-slate-300 dark:hover:border-slate-600 transition-all">
+      <Link
+        href="/student/assignments"
+        className="rounded-2xl bg-white dark:bg-[#11141c]/50 backdrop-blur-2xl border border-slate-200/90 dark:border-slate-700/50 p-6 flex flex-col relative overflow-hidden shadow-xs hover:shadow-md dark:shadow-[0_8px_30px_rgba(0,0,0,0.4)] mt-8 group hover:border-brand-300 dark:hover:border-brand-500 transition-all cursor-pointer block"
+      >
         <div className="absolute top-0 right-0 w-64 h-64 bg-brand-500/10 rounded-full blur-[50px] pointer-events-none -z-10 group-hover:bg-brand-500/20 transition-colors duration-500" />
-        <div className="flex items-center justify-between mb-4 relative z-10">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-2 relative z-10">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-brand-50 dark:bg-brand-500/20 border border-brand-200/60 dark:border-brand-500/30 flex items-center justify-center shadow-xs">
               <GraduationCap className="w-5 h-5 text-brand-600 dark:text-brand-400" />
             </div>
-            <h2 className="text-lg font-bold text-slate-900 dark:text-white">Assignment Progress</h2>
+            <div>
+              <h2 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                Assignment Progress
+                <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-brand-50 text-brand-700 dark:bg-brand-500/20 dark:text-brand-300 border border-brand-200/50 dark:border-brand-500/30">
+                  Open Page →
+                </span>
+              </h2>
+              <p className="text-xs text-slate-500 dark:text-slate-400">Click to view and solve all assignments</p>
+            </div>
           </div>
-          <div className="text-sm font-medium text-slate-500 dark:text-slate-400">
-            Completed: <span className="text-slate-900 dark:text-white font-bold">{progress.score} / {progress.total}</span>
+          <div className="flex items-center gap-3">
+            <div className="text-sm font-medium text-slate-500 dark:text-slate-400">
+              Completed: <span className="text-slate-900 dark:text-white font-bold">{progress.score} / {progress.total}</span>
+            </div>
+            <span className="text-xs font-bold text-brand-600 dark:text-brand-400 flex items-center group-hover:translate-x-1 transition-transform">
+              View All <ArrowRight className="w-3.5 h-3.5 ml-1" />
+            </span>
           </div>
         </div>
 
@@ -208,9 +224,9 @@ export default async function StudentDashboardPage() {
           )}
         </div>
         <p className="text-xs text-slate-500 dark:text-slate-400 mt-2 relative z-10">
-          Keep going! Consistency leads to rating improvement.
+          Keep going! Consistency leads to rating improvement. Click anywhere on this card to open your assignments page.
         </p>
-      </div>
+      </Link>
 
       {/* Chocolate Challenge Card */}
       {chocolateStatus && (

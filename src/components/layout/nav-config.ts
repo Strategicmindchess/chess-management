@@ -1,4 +1,4 @@
-import { CalendarDays, LayoutDashboard, Users, IndianRupee, ClipboardCheck, Trophy, Activity, Wallet, Briefcase, MessageSquare, Gift, PlaySquare, Send, Shield } from "lucide-react";
+import { CalendarDays, LayoutDashboard, Users, IndianRupee, ClipboardCheck, Trophy, Activity, Wallet, Briefcase, MessageSquare, Gift, PlaySquare, Send, Shield, GraduationCap } from "lucide-react";
 
 
 
@@ -29,6 +29,7 @@ export const NAV_ITEMS: Record<Role, NavItem[]> = {
     { href: "/admin/payouts", label: "Payouts", icon: IndianRupee },
     { href: "/admin/employees", label: "Employees", icon: Briefcase },
     { href: "/admin/fees", label: "Student Ledger", icon: Wallet },
+    { href: "/admin/referrals", label: "Referrals", icon: Gift },
     { href: "/admin/feedback", label: "Student Feedback", icon: MessageSquare },
     { href: "/admin/chocolate", label: "Chocolate Rewards", icon: Gift },
     { href: "/admin/courses", label: "Courses", icon: PlaySquare },
@@ -61,7 +62,9 @@ export const NAV_ITEMS: Record<Role, NavItem[]> = {
   [Role.STUDENT]: [
     { href: "/student", label: "Dashboard", icon: LayoutDashboard },
     { href: "/student/my-classes", label: "My Classroom", icon: CalendarDays },
+    { href: "/student/assignments", label: "Assignments", icon: GraduationCap },
     { href: "/student/leaderboard", label: "Leaderboard", icon: Trophy },
+    { href: "/student/earn", label: "Earn with SMC", icon: Gift },
     { href: "/student/tickets", label: "Support Tickets", icon: ClipboardCheck },
     { href: "/student/profile", label: "Student Passport", icon: Shield },
     { href: "/student/courses", label: "Courses", icon: PlaySquare },

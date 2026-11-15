@@ -5,7 +5,8 @@ import { ClassSessionCard } from "@/components/dashboard/class-session-card";
 import { StudentAssignmentCard } from "@/components/dashboard/student-assignment-card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useStudentMyClasses } from "@/hooks/use-student-my-classes";
-import { Loader2 } from "lucide-react";
+import { Loader2, ArrowRight } from "lucide-react";
+import Link from "next/link";
 
 export function StudentMyClassesClient() {
   const { data, isLoading, error } = useStudentMyClasses();
@@ -96,7 +97,15 @@ export function StudentMyClassesClient() {
 
         <TabsContent value="assignments" className="focus:outline-none">
           <section>
-            <h2 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">Your Assignments</h2>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
+              <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Your Assignments</h2>
+              <Link
+                href="/student/assignments"
+                className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg bg-brand-50 hover:bg-brand-100 text-brand-700 border border-brand-200 dark:bg-brand-500/10 dark:text-brand-300 dark:border-brand-500/30 transition-colors w-fit"
+              >
+                Go to Dedicated Assignment Page <ArrowRight className="w-3.5 h-3.5" />
+              </Link>
+            </div>
             {assignments.length === 0 ? (
               <EmptyState
                 title="No assignments yet"
