@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import {
   CalendarDays, GraduationCap, UserCog, ArrowRight,
   Briefcase, MessageSquare, IndianRupee, AlertCircle, CheckCircle2,
@@ -10,8 +11,10 @@ import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
 import { useAdminDashboard } from "@/hooks/use-admin-dashboard";
 import useSWR from "swr";
+import { AdminTodayClassesDialog } from "@/components/admin/admin-today-classes-dialog";
 
 export function AdminDashboardClient({ userName }: { userName: string }) {
+  const [todayClassesOpen, setTodayClassesOpen] = useState(false);
   const { data, isLoading, error } = useAdminDashboard();
   
   const { data: rescheduleData } = useSWR("/api/admin/reschedule-requests?status=PENDING", async (url) => {
@@ -177,27 +180,53 @@ export function AdminDashboardClient({ userName }: { userName: string }) {
               <CalendarDays className="w-5 h-5 text-brand-600 dark:text-brand-400" />
               <h2 className="text-lg font-bold text-slate-900 dark:text-white">Operations Today</h2>
             </div>
-            <Link href="/admin/attendance" className="text-sm text-brand-600 hover:text-brand-700 dark:text-brand-400 dark:hover:text-brand-300 flex items-center gap-1 font-medium">
-              View All <ArrowRight className="w-4 h-4" />
-            </Link>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setTodayClassesOpen(true)}
+                className="text-xs bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-950/60 dark:hover:bg-indigo-900/60 text-indigo-600 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 px-2.5 py-1 rounded-md font-semibold transition-colors"
+              >
+                Quick Popup
+              </button>
+              <Link href="/admin/today-classes" className="text-sm text-brand-600 hover:text-brand-700 dark:text-brand-400 dark:hover:text-brand-300 flex items-center gap-1 font-medium">
+                Full Page <ArrowRight className="w-4 h-4" />
+              </Link>
+            </div>
           </div>
           
           <div className="flex-1 divide-y divide-slate-100 dark:divide-slate-800/50">
-            <Link href="/admin/attendance" className="block p-4 hover:bg-slate-50/80 dark:hover:bg-slate-800/20 transition-colors flex items-center justify-between group cursor-pointer">
-              <div className="flex items-center gap-4">
-                <div className="w-10 h-10 rounded-lg bg-indigo-50 dark:bg-indigo-500/10 flex items-center justify-center border border-indigo-200/60 dark:border-indigo-500/20">
+            <div className="p-4 hover:bg-slate-50/80 dark:hover:bg-slate-800/20 transition-colors flex items-center justify-between group">
+              <button
+                type="button"
+                onClick={() => setTodayClassesOpen(true)}
+                className="flex items-center gap-4 text-left flex-1 cursor-pointer"
+              >
+                <div className="w-10 h-10 rounded-lg bg-indigo-50 dark:bg-indigo-500/10 flex items-center justify-center border border-indigo-200/60 dark:border-indigo-500/20 group-hover:border-indigo-400 transition-colors">
                   <Clock className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
                 </div>
                 <div>
-                  <p className="text-slate-800 dark:text-white font-medium">Today's Classes</p>
-                  <p className="text-xs text-slate-500 dark:text-slate-400">Scheduled for today</p>
+                  <div className="flex items-center gap-2">
+                    <p className="text-slate-800 dark:text-white font-medium group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
+                      Today's Classes
+                    </p>
+                    <span className="text-[10px] bg-indigo-100 dark:bg-indigo-950/70 text-indigo-600 dark:text-indigo-300 px-1.5 py-0.5 rounded font-semibold border border-indigo-200 dark:border-indigo-800/60">
+                      Popup View
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">Click to view & notify today's batches</p>
                 </div>
-              </div>
-              <div className="flex items-center gap-3">
+              </button>
+              <div className="flex items-center gap-2">
                 <span className="text-slate-900 dark:text-white font-bold text-lg">{todayClassCount}</span>
-                <ArrowRight className="w-4 h-4 text-slate-400 dark:text-slate-600 group-hover:text-slate-600 dark:group-hover:text-slate-400 transition-colors" />
+                <Link
+                  href="/admin/today-classes"
+                  className="p-1.5 rounded-lg text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/50 transition-colors"
+                  title="Open Today's Classes Page"
+                >
+                  <ArrowRight className="w-4 h-4" />
+                </Link>
               </div>
-            </Link>
+            </div>
 
             <Link href="/admin/tickets" className="block p-4 hover:bg-slate-50/80 dark:hover:bg-slate-800/20 transition-colors flex items-center justify-between group cursor-pointer">
               <div className="flex items-center gap-4">
@@ -376,6 +405,11 @@ export function AdminDashboardClient({ userName }: { userName: string }) {
         </div>
 
       </div>
+
+      <AdminTodayClassesDialog
+        open={todayClassesOpen}
+        onClose={() => setTodayClassesOpen(false)}
+      />
     </div>
   );
 }
