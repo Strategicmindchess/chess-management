@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { Role } from "@/lib/enums";
+import { getMediaUrl } from "@/lib/s3";
 
 export interface PassportBadge {
   id: string;
@@ -223,7 +224,7 @@ export async function getStudentPassportData(
       shareSlug: student.shareSlug || student.id,
       publicUrl: `/passport/${student.shareSlug || student.id}`,
       name: student.user.name,
-      profilePictureUrl: student.user.profilePictureUrl,
+      profilePictureUrl: getMediaUrl(student.user.profilePictureUrl),
       level: student.level,
       joiningDate: null,
       bio: null,
@@ -719,7 +720,7 @@ export async function getStudentPassportData(
     shareSlug: student.shareSlug || student.id,
     publicUrl: `/passport/${student.shareSlug || student.id}`,
     name: student.user.name,
-    profilePictureUrl: student.user.profilePictureUrl,
+    profilePictureUrl: getMediaUrl(student.user.profilePictureUrl),
     level: student.level,
     joiningDate: student.joiningDate ? student.joiningDate.toISOString().split("T")[0] : null,
     bio: student.bio || null,

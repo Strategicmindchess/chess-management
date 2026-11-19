@@ -9,6 +9,7 @@ import { chessFetchQueue } from '@/workers/leaderboard.queues';
 import { JOB_NAMES } from '@/lib/leaderboard-config';
 import { getCurrentPeriod } from '@/lib/leaderboard-period';
 import { revalidatePath } from 'next/cache';
+import { getMediaUrl } from '@/lib/media-url';
 
 // ── Student self-service ───────────────────────────────────────────────────────
 
@@ -209,7 +210,7 @@ export async function getAllStudentsWithChessStatus() {
       studentProfileId: s.id,
       name: s.user.name,
       email: s.user.email,
-      profilePictureUrl: s.user.profilePictureUrl,
+      profilePictureUrl: getMediaUrl(s.user.profilePictureUrl),
       legacyChessComId: s.chessComId,   // from StudentProfile (legacy)
       legacyLichessId: s.lichessId,     // from StudentProfile (legacy)
       chessAccount: s.chessAccount,     // from ChessAccount (live system)

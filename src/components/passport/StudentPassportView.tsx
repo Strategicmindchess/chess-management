@@ -46,6 +46,8 @@ import {
   FileCheck,
 } from "lucide-react";
 
+import { getMediaUrl } from "@/lib/media-url";
+
 interface Props {
   passport: StudentPassportData;
   isOwner?: boolean;
@@ -71,6 +73,7 @@ export function StudentPassportView({
   const [isSyncing, setIsSyncing] = useState(false);
   const [syncMessage, setSyncMessage] = useState<string | null>(null);
   const [copiedLink, setCopiedLink] = useState(false);
+  const [imageError, setImageError] = useState(false);
 
   const canEdit = isOwner || isAdmin;
   const origin = typeof window !== "undefined" ? window.location.origin : "";
@@ -256,12 +259,14 @@ export function StudentPassportView({
           <div className="md:col-span-3 flex flex-col items-center sm:items-start md:items-center text-center">
             <div className="relative group">
               <div className="w-32 h-32 rounded-3xl overflow-hidden border-2 border-amber-400/80 bg-slate-800 shadow-xl shadow-black/50 relative">
-                {data.profilePictureUrl ? (
+                {data.profilePictureUrl && !imageError ? (
                   <Image
-                    src={data.profilePictureUrl}
+                    src={getMediaUrl(data.profilePictureUrl) || data.profilePictureUrl}
                     alt={data.name}
                     width={128}
                     height={128}
+                    unoptimized
+                    onError={() => setImageError(true)}
                     className="object-cover w-full h-full"
                   />
                 ) : (

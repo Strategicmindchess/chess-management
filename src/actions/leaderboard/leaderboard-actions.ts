@@ -14,6 +14,7 @@ import { Role } from '@/lib/enums';
 import { redisGet, redisSet } from '@/lib/redis';
 import { REDIS_KEYS, LEADERBOARD_CONFIG } from '@/lib/leaderboard-config';
 import { getCurrentPeriod } from '@/lib/leaderboard-period';
+import { getMediaUrl } from '@/lib/media-url';
 
 export interface LeaderboardRow {
   rank: number;
@@ -156,7 +157,7 @@ export async function generateLeaderboardCache(
     rank: e.rank ?? 999,
     studentProfileId: e.studentProfileId,
     studentName: e.student.user.name,
-    profilePictureUrl: e.student.user.profilePictureUrl,
+    profilePictureUrl: getMediaUrl(e.student.user.profilePictureUrl),
     totalScore: e.totalScore,
     chocolatePoints: chocolateMap.get(e.studentProfileId) || 0,
     chessComUsername: e.student.chessAccount?.chessComUsername ?? null,
@@ -261,7 +262,7 @@ export async function getStudentLeaderboardEntry(
     rank: entry.rank ?? 999,
     studentProfileId: entry.studentProfileId,
     studentName: entry.student.user.name,
-    profilePictureUrl: entry.student.user.profilePictureUrl,
+    profilePictureUrl: getMediaUrl(entry.student.user.profilePictureUrl),
     totalScore: entry.totalScore,
     chocolatePoints: 0, // Optionally fetch this in getStudentLeaderboardEntry if needed
     chessComUsername: entry.student.chessAccount?.chessComUsername ?? null,

@@ -33,13 +33,13 @@ export async function generateUploadUrl(key: string, contentType: string) {
   return await getSignedUrl(s3Client, command, { expiresIn: 3600 });
 }
 
-export async function generateDownloadUrl(key: string) {
+export async function generateDownloadUrl(key: string, expiresIn = 86400) {
   const command = new GetObjectCommand({
     Bucket: BUCKET_NAME,
     Key: key,
   });
 
-  return await getSignedUrl(s3Client, command, { expiresIn: 3600 });
+  return await getSignedUrl(s3Client, command, { expiresIn });
 }
 
 export async function createMultipartUpload(key: string, contentType: string) {
@@ -87,8 +87,19 @@ export async function abortMultipartUpload(key: string, uploadId: string) {
   return await s3Client.send(command);
 }
 
+import { getMediaUrl } from "./media-url";
+export { getMediaUrl };
+
 export async function getPresignedUrlFromPublicUrl(publicUrl: string | null) {
   if (!publicUrl) return null;
+  // If it's a profile picture, return our dedicated cached media route
+  if (
+    publicUrl.includes("profile-pictures/") ||
+    publicUrl.startsWith("profile-pictures/")
+  ) {
+    return getMediaUrl(publicUrl);
+  }
+
   try {
     let key: string | null = null;
     const bucketMarker = `/${BUCKET_NAME}/`;
@@ -99,7 +110,13 @@ export async function getPresignedUrlFromPublicUrl(publicUrl: string | null) {
       key = publicUrl.substring(publicUrl.indexOf("thumbnails/"));
     } else if (publicUrl.includes("/videos/")) {
       key = publicUrl.substring(publicUrl.indexOf("videos/"));
-    } else if (publicUrl.startsWith("thumbnails/") || publicUrl.startsWith("videos/")) {
+    } else if (publicUrl.includes("/profile-pictures/")) {
+      key = publicUrl.substring(publicUrl.indexOf("profile-pictures/"));
+    } else if (
+      publicUrl.startsWith("thumbnails/") ||
+      publicUrl.startsWith("videos/") ||
+      publicUrl.startsWith("profile-pictures/")
+    ) {
       key = publicUrl;
     } else {
       const base =

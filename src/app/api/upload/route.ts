@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/dal";
 import { s3Client, BUCKET_NAME } from "@/lib/s3";
+import { getMediaUrl } from "@/lib/media-url";
 import { PutObjectCommand } from "@aws-sdk/client-s3";
 import { prisma } from "@/lib/prisma";
 import { withLogging } from "../../../lib/api-logger";
 
 export let POST = withLogging(async function(request: NextRequest) {
-    try {
+  try {
     const user = await getCurrentUser();
     if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -32,17 +33,18 @@ export let POST = withLogging(async function(request: NextRequest) {
 
     await s3Client.send(command);
 
-    const url = `${process.env.S3_ENDPOINT_URL}/${BUCKET_NAME}/${key}`;
+    const rawUrl = `${process.env.S3_ENDPOINT_URL}/${BUCKET_NAME}/${key}`;
 
     // Update user profile picture in DB
     await prisma.user.update({
       where: { id: user.id },
-      data: { profilePictureUrl: url },
+      data: { profilePictureUrl: rawUrl },
     });
 
-    return NextResponse.json({ url });
-    } catch (error) {
+    const publicUrl = getMediaUrl(rawUrl) || rawUrl;
+    return NextResponse.json({ url: publicUrl, rawUrl });
+  } catch (error) {
     console.error("Upload error:", error);
     return NextResponse.json({ error: "Failed to upload file" }, { status: 500 });
-    }
-    });
+  }
+});

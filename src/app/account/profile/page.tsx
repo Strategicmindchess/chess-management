@@ -4,6 +4,7 @@ import { DashboardShell } from "@/components/layout/dashboard-shell";
 import { ROLE_LABEL } from "@/lib/constants";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ProfileForm } from "./profile-form";
+import { getMediaUrl } from "@/lib/media-url";
 
 export default async function ProfilePage() {
   const userBase = await getCurrentUser();
@@ -31,7 +32,7 @@ export default async function ProfilePage() {
             <CardDescription>Update your personal details below. Your email address cannot be changed.</CardDescription>
           </CardHeader>
           <CardContent>
-            <ProfileForm user={user} />
+            <ProfileForm user={{ ...user, profilePictureUrl: getMediaUrl(user.profilePictureUrl) }} />
           </CardContent>
         </Card>
       </div>
